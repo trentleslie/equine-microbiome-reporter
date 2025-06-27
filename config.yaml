@@ -1,0 +1,12 @@
+# Default barcode column to analyze
+barcode_column: barcode59
+
+# Default patient information
+default_species: Koń
+default_age: Unknown
+performed_by: Julia Kończak
+requested_by: Aleksandra Matusiak
+
+# Processing settings
+max_workers: 4
+log_level: INFO
