@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Configure Report - Equine Microbiome Reporter{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-cog"></i> Configure Report Parameters</h4>
+            </div>
+            <div class="card-body">
+                <p class="lead">File uploaded successfully! Now configure the report details.</p>
+                
+                <form action="/generate_report" method="POST" id="reportForm">
+                    <input type="hidden" name="filename" value="{{ filename }}">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-3"><i class="fas fa-vial"></i> Sample Selection</h5>
+                            
+                            <div class="mb-3">
+                                <label for="barcode_column" class="form-label">Select Barcode Column</label>
+                                <select class="form-select" id="barcode_column" name="barcode_column" required>
+                                    <option value="">Choose barcode...</option>
+                                    {% for barcode in barcode_columns %}
+                                        <option value="{{ barcode }}" {% if barcode == 'barcode59' %}selected{% endif %}>
+                                            {{ barcode }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Select which sample (barcode) to analyze</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5 class="mb-3"><i class="fas fa-horse"></i> Patient Information</h5>
+                            
+                            <div class="mb-3">
+                                <label for="patient_name" class="form-label">Patient Name</label>
+                                <input type="text" class="form-control" id="patient_name" name="patient_name" 
+                                       placeholder="e.g., Montana" required>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="species" class="form-label">Species</label>
+                                    <input type="text" class="form-control" id="species" name="species" 
+                                           value="Koń" placeholder="e.g., Koń">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="age" class="form-label">Age</label>
+                                    <input type="text" class="form-control" id="age" name="age" 
+                                           placeholder="e.g., 20 lat">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-3"><i class="fas fa-clipboard"></i> Sample Details</h5>
+                            
+                            <div class="mb-3">
+                                <label for="sample_number" class="form-label">Sample Number</label>
+                                <input type="text" class="form-control" id="sample_number" name="sample_number" 
+                                       placeholder="e.g., 506" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="date_received" class="form-label">Date Received</label>
+                                <input type="text" class="form-control" id="date_received" name="date_received" 
+                                       value="{{ current_date }}" 
+                                       placeholder="DD.MM.YYYY r.">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5 class="mb-3"><i class="fas fa-user-md"></i> Laboratory Personnel</h5>
+                            
+                            <div class="mb-3">
+                                <label for="performed_by" class="form-label">Performed By</label>
+                                <input type="text" class="form-control" id="performed_by" name="performed_by" 
+                                       value="Julia Kończak" placeholder="Laboratory technician name">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="requested_by" class="form-label">Requested By</label>
+                                <input type="text" class="form-control" id="requested_by" name="requested_by" 
+                                       placeholder="e.g., Dr. Smith" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="/" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg" id="generateBtn">
+                            <i class="fas fa-file-pdf"></i> Generate Report
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('reportForm').addEventListener('submit', function(e) {
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Generating Report...';
+});
+
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-label {
+        font-weight: 600;
+    }
+    hr {
+        border-top: 2px solid #dee2e6;
+    }
+</style>
+{% endblock %}

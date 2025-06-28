@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Upload CSV - Equine Microbiome Reporter{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-upload"></i> Upload Microbiome Data</h4>
+            </div>
+            <div class="card-body">
+                <p class="lead">Upload your CSV file containing 16S rRNA sequencing data to generate a comprehensive veterinary report.</p>
+                
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle"></i> File Requirements:</h6>
+                    <ul class="mb-0">
+                        <li>CSV format with bacterial abundance data</li>
+                        <li>Must contain species, phylum, genus columns</li>
+                        <li>At least one barcode column (e.g., barcode59)</li>
+                        <li>Maximum file size: 16MB</li>
+                    </ul>
+                </div>
+
+                <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+                    <div class="mb-4">
+                        <label for="file" class="form-label">Select CSV File</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
+                        <div class="form-text">Choose your microbiome sequencing data file</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg" id="uploadBtn">
+                            <i class="fas fa-arrow-circle-up"></i> Upload and Continue
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-question-circle"></i> Need Help?</h5>
+                <p class="card-text">
+                    Download our <a href="/static/example_data.csv" download>example CSV file</a> to see the expected format.
+                    For detailed instructions, check the <a href="https://github.com/yourusername/equine-microbiome-reporter" target="_blank">documentation</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    const btn = document.getElementById('uploadBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Uploading...';
+});
+</script>
+{% endblock %}

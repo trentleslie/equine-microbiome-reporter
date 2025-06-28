@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Report Ready - Equine Microbiome Reporter{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow border-success">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="fas fa-check-circle"></i> Report Generated Successfully!</h4>
+            </div>
+            <div class="card-body text-center py-5">
+                <i class="fas fa-file-pdf text-danger" style="font-size: 5rem;"></i>
+                
+                <h3 class="mt-4">Your microbiome analysis report is ready</h3>
+                <p class="lead">Report for patient: <strong>{{ patient_name }}</strong></p>
+                
+                <div class="my-4">
+                    <a href="{{ url_for('download_report', filename=report_filename) }}" 
+                       class="btn btn-success btn-lg">
+                        <i class="fas fa-download"></i> Download PDF Report
+                    </a>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> The report includes:
+                    <ul class="list-unstyled mb-0 mt-2">
+                        <li>✓ Species distribution analysis</li>
+                        <li>✓ Phylum composition with reference ranges</li>
+                        <li>✓ Dysbiosis index calculation</li>
+                        <li>✓ Clinical interpretation in Polish</li>
+                        <li>✓ Microscopic and biochemical analysis</li>
+                    </ul>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-plus-circle"></i> Generate Another Report
+                    </a>
+                    <button onclick="window.print()" class="btn btn-secondary">
+                        <i class="fas fa-print"></i> Print This Page
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-shield-alt"></i> Data Privacy</h5>
+                <p class="card-text text-muted">
+                    Your uploaded data and generated reports are automatically deleted after download 
+                    to ensure patient data privacy. Please save your report locally.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

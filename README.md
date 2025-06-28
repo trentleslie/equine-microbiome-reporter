@@ -47,6 +47,8 @@ The project dependencies are managed through `pyproject.toml`:
 - numpy (>=1.21.0)
 - reportlab (>=3.6.0)
 - PyYAML (>=6.0)
+- Flask (>=2.3.0) - for web application
+- Werkzeug (>=2.3.0) - Flask dependency
 
 ## Quick Start
 
@@ -146,6 +148,39 @@ The tool generates comprehensive PDF reports including:
 - Clinical interpretation in Polish
 - Microscopic and biochemical analysis sections
 - Parasite screening results
+
+## Web Application
+
+### Running the Web Interface
+
+For a user-friendly web interface, run the Flask application:
+
+```bash
+# Using the startup script
+./run_web_app.sh
+
+# Or directly with Poetry
+poetry run python web_app.py
+```
+
+The web application will be available at `http://localhost:5001`
+
+### Web Application Features
+
+- **Easy Upload**: Drag-and-drop CSV file upload
+- **Interactive Configuration**: Configure patient information through web forms
+- **Barcode Selection**: Choose which sample (barcode) to analyze
+- **Instant Download**: Generate and download PDF reports immediately
+- **Example Data**: Download example CSV file to understand the format
+
+### Using the Web Interface
+
+1. Navigate to `http://localhost:5001`
+2. Upload your microbiome CSV file
+3. Select the barcode column to analyze
+4. Fill in patient information
+5. Click "Generate Report"
+6. Download your PDF report
 
 ## Advanced Usage
 
