@@ -16,3 +16,15 @@
 2025-06-27 13:07:14,124 - batch_processor - INFO - Successfully generated report: reports/batch/sample_2_report.pdf
 2025-06-27 13:07:14,125 - batch_processor - INFO - Processing data/sample_3.csv -> reports/batch/sample_3_report.pdf
 2025-06-27 13:07:15,917 - batch_processor - INFO - Successfully generated report: reports/batch/sample_3_report.pdf
+2025-06-27 17:59:50,841 - batch_processor - INFO - Processing data/sample_1.csv -> reports/batch/sample_1_report.pdf
+2025-06-27 17:59:53,150 - batch_processor - INFO - Successfully generated report: reports/batch/sample_1_report.pdf
+2025-06-27 17:59:53,151 - batch_processor - INFO - Processing data/sample_2.csv -> reports/batch/sample_2_report.pdf
+2025-06-27 17:59:55,322 - batch_processor - INFO - Successfully generated report: reports/batch/sample_2_report.pdf
+2025-06-27 17:59:55,323 - batch_processor - INFO - Processing data/sample_3.csv -> reports/batch/sample_3_report.pdf
+2025-06-27 17:59:57,287 - batch_processor - INFO - Successfully generated report: reports/batch/sample_3_report.pdf
+2025-06-27 18:00:32,938 - batch_processor - INFO - Processing data/sample_1.csv -> reports/batch/sample_1_report.pdf
+2025-06-27 18:00:34,778 - batch_processor - INFO - Successfully generated report: reports/batch/sample_1_report.pdf
+2025-06-27 18:00:34,780 - batch_processor - INFO - Processing data/sample_2.csv -> reports/batch/sample_2_report.pdf
+2025-06-27 18:00:36,594 - batch_processor - INFO - Successfully generated report: reports/batch/sample_2_report.pdf
+2025-06-27 18:00:36,595 - batch_processor - INFO - Processing data/sample_3.csv -> reports/batch/sample_3_report.pdf
+2025-06-27 18:00:38,447 - batch_processor - INFO - Successfully generated report: reports/batch/sample_3_report.pdf
