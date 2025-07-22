@@ -1,22 +1,32 @@
 # Equine Microbiome Reporter
 
-**Professional PDF report generation for equine gut microbiome analysis using Jinja2 templates and ReportLab.**
+**Automated PDF report generation for equine gut microbiome analysis from 16S rRNA sequencing data.**
 
 ## 🔬 Overview
 
-This repository provides a modern, template-based system for automatically generating professional veterinary laboratory reports from microbiome sequencing CSV data. The system transforms raw bacterial abundance data into comprehensive 5-page PDF reports featuring species distribution charts, phylum analysis, dysbiosis indices, and clinical interpretations.
+A Jinja2-based template architecture that transforms raw bacterial abundance CSV data into professional veterinary laboratory reports. The system generates comprehensive 5-page PDF reports featuring species distribution charts, phylum analysis, dysbiosis indices, and clinical interpretations.
 
-**New Architecture:** The system uses a **Jinja2-based template architecture** supporting multiple languages and professional PDF generation with ReportLab.
+**Key Features:** Professional PDF generation • Multi-language support (English, Polish, Japanese) • Automated clinical analysis • FASTQ processing pipeline • LLM-enhanced recommendations
 
-## ✨ Features
+## ✨ Core Capabilities
 
-- 🎨 **Template-Based Design**: Jinja2 templates for easy customization and maintenance
-- 🌍 **Multi-Language Support**: English (Week 1), Polish & Japanese (Week 2)
-- 📊 **Professional PDF Generation**: 5-page reports matching reference laboratory standards
-- 🔬 **Clinical Analysis**: Automated dysbiosis index calculation and clinical interpretations
-- 📈 **Data Visualization**: Species distribution charts and phylum composition analysis
-- ⚖️ **Veterinary Standards**: Specialized for equine gut microbiome with clinical reference ranges
-- 🚀 **Scalable Architecture**: Modular design supporting batch processing and web applications
+### Report Generation
+- **Professional PDFs**: 5-page laboratory-standard reports with clinical analysis
+- **Multi-Language**: English (complete), Polish & Japanese (translation-ready)
+- **Jinja2 Templates**: Modular, maintainable template architecture
+- **Clinical Intelligence**: Automated dysbiosis index calculation with veterinary reference ranges
+
+### Data Processing
+- **FASTQ Pipeline**: Complete workflow from raw sequencing data to PDF reports
+- **Quality Control**: Phred scores, GC content, and read length analysis
+- **Batch Processing**: Handle multiple samples with progress tracking and validation
+- **Data Validation**: Automatic quality checks for species counts and phyla presence
+
+### Advanced Features
+- **LLM Integration**: AI-enhanced recommendations using OpenAI, Anthropic, or Google Gemini
+- **Clinical Templates**: 8 standardized scenarios for different dysbiosis patterns
+- **Translation System**: Automated multi-language translation with scientific glossary
+- **Interactive Notebooks**: Jupyter-based workflows for batch processing and analysis
 
 ## 🏗️ Architecture
 
@@ -26,7 +36,16 @@ src/                          # Core modules
 ├── csv_processor.py         # CSV → structured data conversion
 ├── report_generator.py      # Main orchestrator with Jinja2
 ├── pdf_builder.py          # ReportLab PDF generation
-└── llm_integration.py      # Week 2 LLM features
+├── batch_processor.py      # Batch processing for multiple files
+├── progress_tracker.py     # Progress tracking and QC reports
+├── clinical_templates.py   # 8 standardized clinical templates
+├── template_selector.py    # Data-driven template selection
+├── llm_recommendation_engine.py  # LLM integration (OpenAI, Anthropic, Gemini)
+├── fastq_qc.py             # FASTQ quality control analysis
+├── fastq_converter.py      # FASTQ to CSV conversion
+├── pipeline_integrator.py  # Complete FASTQ → PDF pipeline
+├── translation_service.py  # Multi-language translation with glossary
+└── template_translator.py  # Batch template translation workflow
 
 templates/                   # Jinja2 templates
 ├── base/                   # Layout components
@@ -38,37 +57,41 @@ config/                     # YAML configuration
 └── report_config.yaml     # Reference ranges, colors, settings
 ```
 
-## 🚀 Installation
-
-This project uses [Poetry](https://python-poetry.org/) for dependency management.
+## 🚀 Getting Started
 
 ### Prerequisites
 
 - Python 3.8+
-- Poetry (install from https://python-poetry.org/docs/#installation)
+- [Poetry](https://python-poetry.org/) for dependency management
 
-### Setup
+### Installation
 
 ```bash
-# Clone the repository
+# Clone and navigate to project
 git clone [repository-url]
 cd equine-microbiome-reporter
 
-# Install dependencies with Poetry
+# Install core dependencies
 poetry install
 
-# Activate the virtual environment
+# Optional: Add LLM support for AI recommendations
+poetry install --with llm
+
+# Optional: Add translation support
+poetry install --with translation-free  # No API key required
+# OR
+poetry install --with translation       # Google Cloud (API key required)
+
+# Activate environment
 poetry shell
 ```
 
-### Dependencies
+### Key Dependencies
 
-- **jinja2** - Template engine
-- **pyyaml** - Configuration management
-- **pandas** - Data processing
-- **matplotlib** - Visualization
-- **reportlab** - PDF generation
-- **numpy** - Numerical operations
+**Core**: `jinja2`, `reportlab`, `pandas`, `matplotlib`, `pyyaml`, `numpy`, `biopython`  
+**Development**: `jupyter`, `ipywidgets`, `tqdm`  
+**LLM (optional)**: `openai`, `anthropic`, `google-generativeai`  
+**Translation (optional)**: `googletrans`, `google-cloud-translate`
 
 ## ⚡ Quick Start
 
@@ -116,21 +139,124 @@ print('✅ Success!' if success else '❌ Failed!')
 "
 ```
 
+## 🧬 FASTQ Processing Pipeline
+
+### Process Raw Sequencing Data
+
+The system now includes a complete pipeline for processing FASTQ files from 16S rRNA sequencing:
+
+```python
+from src.pipeline_integrator import MicrobiomePipelineIntegrator
+
+# Initialize pipeline
+pipeline = MicrobiomePipelineIntegrator(output_dir="pipeline_output")
+
+# Process single FASTQ file
+results = pipeline.process_sample(
+    fastq_file="sample.fastq.gz",
+    patient_info={
+        'name': 'Montana',
+        'age': '20 years',
+        'sample_number': '506'
+    },
+    language="en"  # Generate English PDF
+)
+```
+
+### Quality Control Analysis
+
+```python
+from src.fastq_qc import FASTQQualityControl
+
+# Run QC analysis
+qc = FASTQQualityControl("sample.fastq.gz")
+qc_results = qc.run_qc()
+qc.print_summary()
+qc.plot_quality_metrics(save_path="qc_report.png")
+```
+
+### Batch Processing
+
+#### Interactive Jupyter Notebook
+
+The easiest way to process multiple files is using the batch processing notebook:
+
+```bash
+# Launch the batch processing notebook
+poetry run jupyter notebook notebooks/batch_processing.ipynb
+```
+
+The notebook provides:
+- 📊 Interactive progress tracking
+- ✅ Automatic quality validation
+- 📈 Summary statistics and reports
+- 🎯 Simple point-and-click interface
+
+#### Programmatic Batch Processing
+
+```python
+from src.batch_processor import BatchProcessor, BatchConfig
+
+# Configure batch processing
+config = BatchConfig(
+    data_dir='data',
+    reports_dir='reports/batch_output',
+    language='en',
+    parallel_processing=True
+)
+
+# Process all CSV files in directory
+processor = BatchProcessor(config)
+results = processor.process_directory(validate=True)
+
+# Generate summary report
+summary = processor.generate_summary_report()
+print(f"Processed {summary['total_files']} files")
+print(f"Success rate: {summary['success_rate']:.1f}%")
+```
+
+#### Manifest-Based Processing
+
+```python
+import pandas as pd
+
+# Create manifest with patient information
+manifest = pd.DataFrame({
+    'csv_file': ['sample_1.csv', 'sample_2.csv'],
+    'patient_name': ['Montana', 'Thunder'],
+    'age': ['20 years', '15 years'],
+    'sample_number': ['506', '507'],
+    'performed_by': ['Julia Kończak', 'Julia Kończak'],
+    'requested_by': ['Dr. Smith', 'Dr. Johnson']
+})
+manifest.to_csv('manifest.csv', index=False)
+
+# Process using manifest
+results = processor.process_from_manifest(Path('manifest.csv'))
+```
+
+### Pipeline Features
+
+- **Quality Control**: Phred scores, read lengths, GC content analysis
+- **Filtering**: Customizable quality thresholds (Q20/Q30)
+- **Visualization**: QC plots and statistics
+- **Integration**: Seamless connection to PDF generation
+
 ## 📊 Input Data Format
 
-The system expects CSV files with bacterial abundance data:
+### FASTQ Files
+- Standard 16S rRNA sequencing format
+- Compressed (.gz) or uncompressed
+- Automatically converts to abundance tables
 
+### CSV Files
 ```csv
 species,barcode45,barcode46,...,barcode78,phylum,genus
 Streptomyces sp.,0,0,...,27,Actinomycetota,Streptomyces
 Lactobacillus sp.,45,23,...,156,Bacillota,Lactobacillus
 ```
 
-### Required Columns
-- `species`: Bacterial species name
-- `barcode[N]`: Abundance counts for each sample
-- `phylum`: Bacterial phylum classification
-- `genus`: Bacterial genus classification
+**Required**: `species`, `barcode[N]`, `phylum`, `genus` columns
 
 ## ⚙️ Configuration
 
@@ -156,12 +282,75 @@ colors:
   teal: "#14B8A6"
 ```
 
+## 🤖 LLM-Powered Recommendations
+
+### Overview
+
+The system includes an AI-powered recommendation engine that enhances clinical interpretations using Large Language Models (LLMs). The engine supports OpenAI, Anthropic Claude, and Google Gemini.
+
+### Features
+
+- **8 Clinical Templates**: Standardized scenarios for different dysbiosis patterns
+- **Smart Selection**: Data-driven template selection based on microbiome analysis
+- **Few-Shot Prompting**: Consistent, high-quality outputs
+- **Multi-Provider Support**: Choose between OpenAI, Anthropic, or Google Gemini
+- **Caching**: Reduces API costs with intelligent response caching
+- **Fallback Support**: Works without LLM using template recommendations
+
+### Setup
+
+1. Copy `.env.example` to `.env`
+2. Add your API key(s):
+   ```env
+   OPENAI_API_KEY=your-key-here
+   ANTHROPIC_API_KEY=your-key-here
+   GOOGLE_API_KEY=your-key-here
+   
+   LLM_PROVIDER=openai  # or anthropic, gemini
+   ENABLE_LLM_RECOMMENDATIONS=true
+   ```
+3. Install LLM dependencies: `poetry install --with llm`
+
+### Usage
+
+```python
+from src.llm_recommendation_engine import create_recommendation_engine
+from src.data_models import PatientInfo, MicrobiomeData
+
+# Create recommendation engine
+engine = create_recommendation_engine()
+
+# Process sample with AI recommendations
+results = engine.process_sample(
+    microbiome_data=microbiome_data,
+    patient_info=patient_info,
+    clinical_history={"symptoms": "loose stools"}
+)
+
+# Results include template selection and personalized recommendations
+print(f"Selected Template: {results['template_info']['title']}")
+print(f"AI Recommendations: {results['recommendations']}")
+```
+
+### Clinical Templates
+
+1. **Healthy Maintenance**: Normal microbiome
+2. **Mild Imbalance**: Early intervention needed
+3. **Bacteroidota Deficiency**: Fiber processing support
+4. **Bacillota Excess**: Starch reduction protocol
+5. **Pseudomonadota Excess**: Inflammatory response
+6. **Acute Dysbiosis**: Intensive intervention
+7. **Chronic Dysbiosis**: Long-term management
+8. **Post-Antibiotic**: Microbiome restoration
+
+For interactive examples, see the [LLM Recommendation Notebook](notebooks/llm_recommendation_engine.ipynb).
+
 ## 🌍 Multi-Language Support
 
-### Current Implementation (Week 1)
+### Current Implementation
 - **✅ English**: Complete template set with clinical interpretations
-- **🚧 Polish**: Directory structure ready for Week 2
-- **🚧 Japanese**: Directory structure ready for Week 2
+- **🚧 Polish**: Translation system ready, templates pending translation
+- **🚧 Japanese**: Translation system ready, templates pending translation
 
 ### Language Selection
 
@@ -169,68 +358,92 @@ colors:
 # English (available now)
 generator = ReportGenerator(language="en")
 
-# Polish (Week 2)
+# Polish (after translation)
 generator = ReportGenerator(language="pl")
 
-# Japanese (Week 2)
-generator = ReportGenerator(language="jp")
+# Japanese (after translation)  
+generator = ReportGenerator(language="ja")
 ```
 
-## 📄 Report Structure
+### Template Translation System
 
-The generated 5-page PDF reports include:
+The project includes an automated translation system that preserves scientific terminology:
+
+```python
+from src.translation_service import get_translation_service
+from src.template_translator import TemplateTranslationWorkflow
+
+# Use free translation service (no API key needed)
+translation_service = get_translation_service("free")
+
+# Translate all templates to Polish and Japanese
+workflow = TemplateTranslationWorkflow(
+    project_root=Path("."),
+    translation_service=translation_service,
+    target_languages=["pl", "ja"]
+)
+results = workflow.translate_all_templates()
+
+# Create Excel files for expert review
+workflow.create_review_spreadsheet("pl")
+workflow.create_review_spreadsheet("ja")
+```
+
+Features:
+- **Scientific Glossary**: Preserves bacterial names and medical terminology
+- **Jinja2 Protection**: Maintains template syntax during translation
+- **Excel Export**: Creates spreadsheets for veterinary expert review
+- **Caching**: Reduces API costs by storing translations
+- **Free Option**: Works without API keys using googletrans
+
+For detailed usage, see the [Translation Notebook](notebooks/template_translation.ipynb).
+
+## 📄 Generated Report Structure
+
+Each 5-page PDF includes:
 
 1. **Title Page**: Patient information, laboratory branding
 2. **Sequencing Results**: Species distribution charts, dysbiosis index
-3. **Clinical Analysis**: Interpretation, recommendations
+3. **Clinical Analysis**: Interpretation and recommendations
 4. **Laboratory Results**: Parasitological, microscopic, biochemical data
 5. **Educational Content**: Microbiome health information
 
-## 🔬 Clinical Features
+**Clinical Intelligence**: Automated dysbiosis calculation • Evidence-based recommendations • Veterinary reference ranges • Risk stratification (normal/mild/severe)
 
-- **Dysbiosis Index**: Automated calculation based on phylum deviations
-- **Clinical Interpretations**: Evidence-based recommendations
-- **Reference Ranges**: Veterinary-specific normal values
-- **Risk Stratification**: Normal, mild, severe dysbiosis categories
-
-## 📁 Project Organization
+## 📁 Project Structure
 
 ```
 equine-microbiome-reporter/
-├── src/                    # ✅ Core architecture
-├── templates/              # ✅ Jinja2 templates  
-├── config/                 # ✅ YAML configuration
+├── src/                    # Core modules and pipeline components
+├── templates/              # Jinja2 templates (en/pl/jp)
+├── config/                 # YAML configuration files
+├── notebooks/              # Interactive Jupyter notebooks
 ├── data/                   # Sample CSV files
 ├── reports/                # Generated PDF outputs
+├── pipeline_output/        # FASTQ processing results
 ├── assets/                 # Images and logos
-├── docs/                   # Documentation and planning
-├── legacy/                 # Archived original code
-├── examples/               # Tutorial notebooks
-└── tests/                  # Test files
+├── docs/                   # Documentation
+└── legacy/                 # Original implementation
 ```
 
-## 🚀 Development Roadmap
+## 📈 Development Status
 
-### ✅ Week 1 (MVP Complete)
-- Jinja2 template architecture
-- English report generation
-- Professional 5-page PDF layout
-- Clinical analysis and recommendations
+### ✅ Complete
+- **Core Architecture**: Jinja2 template system with multi-language support
+- **English Reports**: Full 5-page PDF generation with clinical analysis
+- **FASTQ Processing**: Complete pipeline from sequencing data to reports
+- **Batch Processing**: Interactive notebooks with progress tracking
+- **LLM Integration**: AI-powered recommendations with multiple providers
+- **Translation System**: Automated translation with scientific glossary
 
-### 🚧 Week 2 (In Progress)
-- Polish and Japanese template translations
-- LLM-powered clinical summaries
-- Enhanced recommendation engine
+### 🚧 In Progress
+- **Polish Translation**: Template structure ready, translation pending
+- **Japanese Translation**: Template structure ready, translation pending
 
-### 📋 Week 3 (Planned)
-- Jupyter notebook batch processing
-- FASTQ file processing pipeline
-- Quality control validation
-
-### 🌐 Phase 2 (Future)
-- Web application interface
-- Real-time processing dashboard
-- User management system
+### 🔮 Future Enhancements
+- **Web Interface**: Browser-based report generation
+- **Real-time Dashboard**: Processing status and analytics
+- **API Integration**: RESTful endpoints for external systems
 
 ## 🧪 Legacy Components
 
@@ -244,22 +457,41 @@ poetry run python legacy/enhanced_pdf_generator_en.py data/sample.csv -o reports
 ./legacy/run_web_app.sh
 ```
 
-## 🤝 For Developers
+## 🛠️ Technical Details
 
-### Key Classes
+### Key Components
 
-- **`PatientInfo`**: Patient and test metadata
-- **`MicrobiomeData`**: Complete microbiome analysis results
-- **`CSVProcessor`**: Data processing and clinical calculations
-- **`ReportGenerator`**: Template orchestration
-- **`PDFBuilder`**: Professional PDF generation
+**Core Processing**
+- `PatientInfo` & `MicrobiomeData`: Data models for patient and analysis results
+- `CSVProcessor`: CSV parsing and clinical calculations
+- `ReportGenerator`: Main orchestrator using Jinja2 templates
+- `PDFBuilder`: ReportLab integration for PDF creation
+
+**FASTQ Pipeline**
+- `FASTQQualityControl`: Quality metrics and visualization
+- `FASTQtoCSVConverter`: Sequence data to abundance tables
+- `MicrobiomePipelineIntegrator`: End-to-end pipeline coordinator
+
+**Advanced Features**
+- `BatchProcessor`: Multi-file processing with validation
+- `LLMRecommendationEngine`: AI-powered clinical insights
+- `TranslationService`: Multi-language support with glossary
+- `ClinicalTemplate` & `TemplateSelector`: Standardized recommendations
 
 ### Adding New Languages
 
+#### Automated Translation Workflow:
+1. Run the translation notebook: `jupyter notebook notebooks/template_translation.ipynb`
+2. Templates are automatically translated with scientific glossary
+3. Review Excel files with veterinary language experts
+4. Apply corrections back to templates
+5. Test with `ReportGenerator(language="[language_code]")`
+
+#### Manual Translation:
 1. Create template directory: `templates/[language_code]/`
-2. Translate templates from `templates/en/`
+2. Copy and translate templates from `templates/en/`
 3. Update clinical interpretations for local terminology
-4. Test with `ReportGenerator(language="[language_code]")`
+4. Ensure scientific terms follow the glossary
 
 ### Template Customization
 
@@ -279,6 +511,8 @@ Sample: {{ patient.sample_number }}
 ```
 
 ## 📊 Example Usage
+
+### Single Report Generation
 
 ```python
 from src.report_generator import ReportGenerator
@@ -300,25 +534,32 @@ for patient in patients:
     print(f"{patient.name}: {'✅' if success else '❌'}")
 ```
 
-## 📝 Contributing
+### Batch Processing with Quality Control
 
-Contributions are welcome! Please see the `docs/` directory for architecture documentation and development guidelines.
+```python
+from src.batch_processor import BatchProcessor, BatchConfig
 
-## 📄 License
+# Configure with quality thresholds
+config = BatchConfig(
+    min_species_count=10,
+    max_unassigned_percentage=50.0,
+    required_phyla=["Bacillota", "Bacteroidota", "Pseudomonadota"]
+)
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+# Process and validate
+processor = BatchProcessor(config)
+results = processor.process_directory(validate=True)
 
-## 🏥 Acknowledgments
+# Check validation failures
+for result in results:
+    if not result['validation_passed']:
+        print(f"⚠️ {result['csv_file']}: {result['message']}")
+```
 
-- Developed for HippoVet+ veterinary laboratory
-- Based on 16S rRNA sequencing analysis workflows  
-- Designed for equine gut microbiome research
-- Reference PDF design provided by veterinary professionals
+## 🏥 About
+
+Developed for HippoVet+ veterinary laboratory, designed specifically for equine gut microbiome research using 16S rRNA sequencing analysis workflows.
 
 ---
 
-## 🔗 Links
-
-- **Documentation**: See `docs/` directory for detailed architecture and implementation plans
-- **Legacy Code**: Original implementations preserved in `legacy/` directory
-- **Examples**: Tutorial notebooks in `examples/` directory
+**Documentation**: `docs/` • **Legacy Code**: `legacy/` • **Examples**: `notebooks/`

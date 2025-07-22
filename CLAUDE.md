@@ -6,7 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Equine Microbiome Reporter** - An automated PDF report generation system for equine gut microbiome analysis from 16S rRNA sequencing data. The system uses a **Jinja2-based template architecture** to transform raw bacterial abundance CSV data into professional veterinary laboratory reports supporting multiple languages (English, Polish, Japanese).
 
-**Current Status:** Week 1 MVP - Complete Jinja2 architecture implemented with professional 5-page PDF generation.
+**Current Status:** Production-ready with English reports. Polish and Japanese translations pending.
+
+**Key Points for Claude:**
+- This is a **private project** for HippoVet+ veterinary laboratory - no open source contributions
+- Focus on **practical implementation** over documentation unless explicitly requested
+- The system has two parallel architectures: new Jinja2 (active) and legacy (archived)
+- Always use the new architecture unless specifically working with legacy code
 
 ## Development Commands
 
@@ -223,3 +229,98 @@ The original system generates reports entirely in Polish, including:
 - All UI elements in the web application
 
 When modifying legacy report text, ensure Polish language formatting and veterinary terminology are maintained.
+
+## Common Tasks & Solutions
+
+### Generate a Report Quickly
+```bash
+# Most common task - generate English report with minimal setup
+poetry run python -c "
+from src.report_generator import ReportGenerator
+from src.data_models import PatientInfo
+
+generator = ReportGenerator(language='en')
+patient = PatientInfo(name='TestHorse', sample_number='001')
+generator.generate_report('data/sample_1.csv', patient, 'test_report.pdf')
+"
+```
+
+### Debug Report Generation Issues
+1. **Check CSV format**: Ensure columns match: `species`, `barcode[N]`, `phylum`, `genus`
+2. **Verify phylum names**: Must match reference ranges exactly (e.g., "Bacillota" not "Firmicutes")
+3. **Template errors**: Check `templates/en/` for Jinja2 syntax issues
+4. **PDF generation**: Look for ReportLab errors in stack trace
+
+### Working with FASTQ Files
+```python
+# Convert FASTQ to CSV first
+from src.fastq_converter import FASTQtoCSVConverter
+converter = FASTQtoCSVConverter()
+converter.convert_fastq_to_csv("sample.fastq.gz", "output.csv")
+
+# Then generate report from CSV
+```
+
+### Batch Processing Best Practices
+- Use the **interactive notebook** at `notebooks/batch_processing.ipynb` for visual progress
+- Set validation thresholds in `BatchConfig` to catch data quality issues early
+- Check `reports/batch_output/summary_report.json` for processing statistics
+
+## Important File Locations
+
+### When User Asks About...
+- **"How do I generate a report?"** → Show code from this file's Quick Start section
+- **"Where are the templates?"** → `templates/en/` (active), `templates/pl/` and `templates/jp/` (pending)
+- **"How do I configure settings?"** → `config/report_config.yaml`
+- **"Where are examples?"** → `notebooks/` directory has interactive examples
+- **"What about the old system?"** → `legacy/` directory (archived, not for new development)
+
+### Key Files to Know
+- **Main entry point**: `src/report_generator.py`
+- **Data processing**: `src/csv_processor.py` 
+- **Clinical logic**: `src/csv_processor.py` (dysbiosis calculation)
+- **PDF generation**: `src/pdf_builder.py`
+- **Configuration**: `config/report_config.yaml`
+
+## Testing & Validation
+
+### Quick Validation Checks
+```python
+# Validate CSV data before processing
+from src.csv_processor import CSVProcessor
+processor = CSVProcessor()
+data = processor.load_csv("data/sample.csv", "barcode59")
+print(f"Species count: {len(data)}")  # Should be > 10
+print(f"Phyla: {set(row['phylum'] for row in data)}")  # Should include main phyla
+```
+
+### Common Validation Errors
+- **"No data for barcode"**: Wrong barcode column name
+- **"Invalid phylum"**: Phylum name doesn't match reference ranges
+- **"PDF generation failed"**: Usually missing patient info or template error
+
+## Performance Considerations
+
+- **Large CSV files**: The system handles up to 1000 species efficiently
+- **Batch processing**: Use parallel processing for > 10 files
+- **LLM recommendations**: Cache responses to reduce API costs
+- **Translation**: Use batch translation for multiple templates
+
+## Troubleshooting Checklist
+
+When something isn't working:
+1. ✓ Correct Python environment? (`poetry shell`)
+2. ✓ All dependencies installed? (`poetry install`)
+3. ✓ CSV format correct? (check required columns)
+4. ✓ Using correct architecture? (new Jinja2, not legacy)
+5. ✓ Patient info complete? (all required fields)
+6. ✓ Output directory exists? (create if needed)
+
+## DO NOT's for Claude
+
+1. **DON'T** create new documentation files unless explicitly requested
+2. **DON'T** suggest open-source contribution workflows
+3. **DON'T** mix legacy and new architecture code
+4. **DON'T** modify `config/report_config.yaml` without careful consideration
+5. **DON'T** assume FASTQ processing is always needed - most users work with CSV
+6. **DON'T** create example or test files in the main directories
