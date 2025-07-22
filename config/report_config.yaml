@@ -1,0 +1,47 @@
+# Report Configuration
+version: "1.0"
+
+# Reference ranges for dysbiosis calculation
+reference_ranges:
+  Actinomycetota: [0.1, 8.0]
+  Bacillota: [20.0, 70.0]
+  Bacteroidota: [4.0, 40.0]
+  Pseudomonadota: [2.0, 35.0]
+  Fibrobacterota: [0.1, 5.0]
+
+# Dysbiosis index thresholds
+dysbiosis_thresholds:
+  normal: 20
+  mild: 50
+
+# Color scheme
+colors:
+  primary_blue: "#1E3A8A"
+  green: "#10B981"
+  teal: "#14B8A6"
+  header_bg: "#F8FAFC"
+  text_dark: "#1F2937"
+  text_light: "#6B7280"
+
+# Template settings
+templates:
+  default: "report_full.j2"
+  languages:
+    - en
+    - pl
+    - jp
+
+# Laboratory information
+laboratory:
+  name: "HippoVet Laboratory"
+  accreditation: "ISO 15189"
+  contact:
+    phone: "+48 123 456 789"
+    email: "lab@hippovet.com"
+    website: "www.hippovet.com"
+
+# LLM settings (Week 2)
+llm:
+  enabled: false
+  provider: "openai"
+  model: "gpt-3.5-turbo"

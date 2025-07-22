@@ -1,21 +1,44 @@
 # Equine Microbiome Reporter
 
-Automated PDF report generation for equine gut microbiome analysis from 16S rRNA sequencing data.
+**Professional PDF report generation for equine gut microbiome analysis using Jinja2 templates and ReportLab.**
 
-## Overview
+## 🔬 Overview
 
-This repository provides tools to automatically generate professional veterinary laboratory reports from microbiome sequencing CSV data. It transforms raw bacterial abundance data into comprehensive PDF reports featuring species distribution charts, phylum analysis, dysbiosis indices, and clinical interpretations in Polish language format matching HippoVet+ laboratory standards.
+This repository provides a modern, template-based system for automatically generating professional veterinary laboratory reports from microbiome sequencing CSV data. The system transforms raw bacterial abundance data into comprehensive 5-page PDF reports featuring species distribution charts, phylum analysis, dysbiosis indices, and clinical interpretations.
 
-## Features
+**New Architecture:** The system uses a **Jinja2-based template architecture** supporting multiple languages and professional PDF generation with ReportLab.
 
-- 📊 **Automated Visualization**: Generate species distribution charts and phylum composition graphs
-- 🔬 **Clinical Analysis**: Calculate dysbiosis indices and identify potential health indicators
-- 🌍 **Polish Language Support**: Full support for Polish veterinary terminology and report formatting
-- ⚡ **Batch Processing**: Process multiple samples in parallel with configurable workflows
-- 📄 **Professional Reports**: Generate publication-ready PDF reports matching laboratory standards
-- 🏥 **Veterinary Focus**: Specialized for equine gut microbiome analysis with relevant reference ranges
+## ✨ Features
 
-## Installation
+- 🎨 **Template-Based Design**: Jinja2 templates for easy customization and maintenance
+- 🌍 **Multi-Language Support**: English (Week 1), Polish & Japanese (Week 2)
+- 📊 **Professional PDF Generation**: 5-page reports matching reference laboratory standards
+- 🔬 **Clinical Analysis**: Automated dysbiosis index calculation and clinical interpretations
+- 📈 **Data Visualization**: Species distribution charts and phylum composition analysis
+- ⚖️ **Veterinary Standards**: Specialized for equine gut microbiome with clinical reference ranges
+- 🚀 **Scalable Architecture**: Modular design supporting batch processing and web applications
+
+## 🏗️ Architecture
+
+```
+src/                          # Core modules
+├── data_models.py           # PatientInfo + MicrobiomeData classes
+├── csv_processor.py         # CSV → structured data conversion
+├── report_generator.py      # Main orchestrator with Jinja2
+├── pdf_builder.py          # ReportLab PDF generation
+└── llm_integration.py      # Week 2 LLM features
+
+templates/                   # Jinja2 templates
+├── base/                   # Layout components
+├── en/                     # English templates (Week 1)
+├── pl/                     # Polish templates (Week 2)
+└── jp/                     # Japanese templates (Week 2)
+
+config/                     # YAML configuration
+└── report_config.yaml     # Reference ranges, colors, settings
+```
+
+## 🚀 Installation
 
 This project uses [Poetry](https://python-poetry.org/) for dependency management.
 
@@ -28,7 +51,7 @@ This project uses [Poetry](https://python-poetry.org/) for dependency management
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/equine-microbiome-reporter.git
+git clone [repository-url]
 cd equine-microbiome-reporter
 
 # Install dependencies with Poetry
@@ -40,271 +63,262 @@ poetry shell
 
 ### Dependencies
 
-The project dependencies are managed through `pyproject.toml`:
+- **jinja2** - Template engine
+- **pyyaml** - Configuration management
+- **pandas** - Data processing
+- **matplotlib** - Visualization
+- **reportlab** - PDF generation
+- **numpy** - Numerical operations
 
-- pandas (>=1.3.0)
-- matplotlib (>=3.4.0)
-- numpy (>=1.21.0)
-- reportlab (>=3.6.0)
-- PyYAML (>=6.0)
-- Flask (>=2.3.0) - for web application
-- Werkzeug (>=2.3.0) - Flask dependency
+## ⚡ Quick Start
 
-## Quick Start
+### Generate a Single Report
 
-### Process a Single Sample
+```python
+from src.report_generator import ReportGenerator
+from src.data_models import PatientInfo
+
+# Create patient information
+patient = PatientInfo(
+    name="Montana",
+    age="20 years", 
+    sample_number="506",
+    performed_by="Julia Kończak",
+    requested_by="Dr. Alexandra Matusiak"
+)
+
+# Generate English report
+generator = ReportGenerator(language="en")
+success = generator.generate_report(
+    csv_path="data/sample_1.csv",
+    patient_info=patient,
+    output_path="reports/montana_report.pdf"
+)
+
+print("✅ Success!" if success else "❌ Failed!")
+```
+
+### Command Line Usage
 
 ```bash
 # Ensure you're in the Poetry environment
 poetry shell
 
-# Basic report generation
-python pdf_generator.py data/sample.csv -o reports/sample_report.pdf
+# Generate report using Python script
+poetry run python -c "
+from src.report_generator import ReportGenerator
+from src.data_models import PatientInfo
 
-# Advanced Polish laboratory format
-python advanced_pdf_generator.py data/sample.csv -o reports/sample_report.pdf \
-    --name "Montana" \
-    --age "20 lat" \
-    --sample "506"
+patient = PatientInfo(name='Montana', age='20 years', sample_number='506')
+generator = ReportGenerator(language='en')
+success = generator.generate_report('data/sample_1.csv', patient, 'reports/report.pdf')
+print('✅ Success!' if success else '❌ Failed!')
+"
 ```
 
-### Batch Process Multiple Samples
+## 📊 Input Data Format
 
-```bash
-# Process all CSV files in a directory
-python batch_processor.py -i data/ -o reports/
-
-# Process with configuration file
-python batch_processor.py -i data/ -o reports/ -c config.yaml
-
-# Process from manifest with patient details
-python batch_processor.py -m manifest.csv -o reports/
-```
-
-### Running Without Activating Poetry Shell
-
-You can also run scripts directly with Poetry:
-
-```bash
-poetry run python pdf_generator.py data/sample.csv -o reports/sample_report.pdf
-```
-
-## Input Data Format
-
-The tool expects CSV files with the following structure:
+The system expects CSV files with bacterial abundance data:
 
 ```csv
-species,barcode45,barcode46,...,barcode78,total,phylum,genus,family,...
-Streptomyces sp.,0,0,...,27,46,Actinomycetota,Streptomyces,Streptomycetaceae,...
+species,barcode45,barcode46,...,barcode78,phylum,genus
+Streptomyces sp.,0,0,...,27,Actinomycetota,Streptomyces
+Lactobacillus sp.,45,23,...,156,Bacillota,Lactobacillus
 ```
 
 ### Required Columns
 - `species`: Bacterial species name
-- `barcode[N]`: Abundance counts for each barcode/sample
+- `barcode[N]`: Abundance counts for each sample
 - `phylum`: Bacterial phylum classification
 - `genus`: Bacterial genus classification
 
-## Configuration
+## ⚙️ Configuration
 
-Create a configuration file (`config.yaml`) for batch processing:
+Configuration is managed through `config/report_config.yaml`:
 
 ```yaml
-# Default barcode column to analyze
-barcode_column: barcode59
+# Reference ranges for dysbiosis calculation
+reference_ranges:
+  Actinomycetota: [0.1, 8.0]
+  Bacillota: [20.0, 70.0]
+  Bacteroidota: [4.0, 40.0]
+  Pseudomonadota: [2.0, 35.0]
 
-# Default patient information
-default_species: Koń
-default_age: Unknown
-performed_by: Julia Kończak
-requested_by: Aleksandra Matusiak
+# Dysbiosis thresholds
+dysbiosis_thresholds:
+  normal: 20
+  mild: 50
 
-# Processing settings
-max_workers: 4
-log_level: INFO
+# Color scheme
+colors:
+  primary_blue: "#1E3A8A"
+  green: "#10B981"
+  teal: "#14B8A6"
 ```
 
-Save this as `config.yaml` in your project directory.
+## 🌍 Multi-Language Support
 
-## Manifest File Format
+### Current Implementation (Week 1)
+- **✅ English**: Complete template set with clinical interpretations
+- **🚧 Polish**: Directory structure ready for Week 2
+- **🚧 Japanese**: Directory structure ready for Week 2
 
-For batch processing with specific patient data, create a manifest CSV:
-
-```csv
-csv_file,patient_name,species,age,sample_number,date_received,performed_by,requested_by
-data/sample1.csv,Montana,Koń,20 lat,506,07.05.2025 r.,Julia Kończak,Aleksandra Matusiak
-data/sample2.csv,Thunder,Koń,15 lat,507,08.05.2025 r.,Julia Kończak,Dr. Smith
-```
-
-Save this as `manifest.csv` in your project directory.
-
-## Output
-
-The tool generates comprehensive PDF reports including:
-
-- Patient information header
-- Species distribution visualization
-- Phylum composition analysis with reference ranges
-- Dysbiosis index calculation
-- Clinical interpretation in Polish
-- Microscopic and biochemical analysis sections
-- Parasite screening results
-
-## Web Application
-
-### Running the Web Interface
-
-For a user-friendly web interface, run the Flask application:
-
-```bash
-# Using the startup script
-./run_web_app.sh
-
-# Or directly with Poetry
-poetry run python web_app.py
-```
-
-The web application will be available at `http://localhost:5001`
-
-### Web Application Features
-
-- **Easy Upload**: Drag-and-drop CSV file upload
-- **Interactive Configuration**: Configure patient information through web forms
-- **Barcode Selection**: Choose which sample (barcode) to analyze
-- **Instant Download**: Generate and download PDF reports immediately
-- **Example Data**: Download example CSV file to understand the format
-
-### Using the Web Interface
-
-1. Navigate to `http://localhost:5001`
-2. Upload your microbiome CSV file
-3. Select the barcode column to analyze
-4. Fill in patient information
-5. Click "Generate Report"
-6. Download your PDF report
-
-## Advanced Usage
-
-### Custom Phylum Reference Ranges
-
-Modify reference ranges in `advanced_pdf_generator.py`:
+### Language Selection
 
 ```python
-REFERENCE_RANGES = {
-    'Actinomycetota': (0.1, 8),
-    'Bacillota': (20, 70),
-    'Bacteroidota': (4, 40),
-    'Pseudomonadota': (2, 35)
-}
+# English (available now)
+generator = ReportGenerator(language="en")
+
+# Polish (Week 2)
+generator = ReportGenerator(language="pl")
+
+# Japanese (Week 2)
+generator = ReportGenerator(language="jp")
 ```
 
-### Custom Color Schemes
+## 📄 Report Structure
 
-Adjust visualization colors:
+The generated 5-page PDF reports include:
 
-```python
-PHYLUM_COLORS = {
-    'Actinomycetota': '#00BCD4',
-    'Bacillota': '#4CAF50',
-    'Bacteroidota': '#FF5722',
-    'Pseudomonadota': '#00E5FF'
-}
-```
+1. **Title Page**: Patient information, laboratory branding
+2. **Sequencing Results**: Species distribution charts, dysbiosis index
+3. **Clinical Analysis**: Interpretation, recommendations
+4. **Laboratory Results**: Parasitological, microscopic, biochemical data
+5. **Educational Content**: Microbiome health information
 
-## For LLM Agents
+## 🔬 Clinical Features
 
-### Repository Structure
+- **Dysbiosis Index**: Automated calculation based on phylum deviations
+- **Clinical Interpretations**: Evidence-based recommendations
+- **Reference Ranges**: Veterinary-specific normal values
+- **Risk Stratification**: Normal, mild, severe dysbiosis categories
+
+## 📁 Project Organization
+
 ```
 equine-microbiome-reporter/
-├── pdf_generator.py              # Basic PDF generation script
-├── advanced_pdf_generator.py     # Advanced Polish laboratory format generator
-├── batch_processor.py            # Batch processing automation
-├── pyproject.toml                # Poetry configuration and dependencies
-├── LICENSE                       # MIT License
-└── README.md                     # This file
+├── src/                    # ✅ Core architecture
+├── templates/              # ✅ Jinja2 templates  
+├── config/                 # ✅ YAML configuration
+├── data/                   # Sample CSV files
+├── reports/                # Generated PDF outputs
+├── assets/                 # Images and logos
+├── docs/                   # Documentation and planning
+├── legacy/                 # Archived original code
+├── examples/               # Tutorial notebooks
+└── tests/                  # Test files
 ```
 
-### Key Functions and Classes
+## 🚀 Development Roadmap
 
-#### `AdvancedMicrobiomeReportGenerator` (advanced_pdf_generator.py)
-- `__init__(csv_file, barcode_column)`: Initialize with CSV data
-- `generate_report(output_file, patient_info)`: Generate complete PDF report
-- `_calculate_species_data()`: Process species abundance data
-- `_calculate_phylum_distribution()`: Calculate phylum percentages
-- `_create_species_visualization()`: Generate species bar charts
-- `_generate_description_text()`: Create Polish clinical interpretation
+### ✅ Week 1 (MVP Complete)
+- Jinja2 template architecture
+- English report generation
+- Professional 5-page PDF layout
+- Clinical analysis and recommendations
 
-#### `BatchReportProcessor` (batch_processor.py)
-- `process_single_file(csv_file, output_dir, patient_data)`: Process one CSV file
-- `process_directory(input_dir, output_dir, pattern, parallel)`: Process multiple files
-- `process_from_manifest(manifest_file, output_dir)`: Process using manifest data
+### 🚧 Week 2 (In Progress)
+- Polish and Japanese template translations
+- LLM-powered clinical summaries
+- Enhanced recommendation engine
 
-### API Usage Example
+### 📋 Week 3 (Planned)
+- Jupyter notebook batch processing
+- FASTQ file processing pipeline
+- Quality control validation
+
+### 🌐 Phase 2 (Future)
+- Web application interface
+- Real-time processing dashboard
+- User management system
+
+## 🧪 Legacy Components
+
+Original implementations are preserved in the `legacy/` directory:
+
+```bash
+# Run legacy generators (for reference)
+poetry run python legacy/enhanced_pdf_generator_en.py data/sample.csv -o reports/legacy.pdf
+
+# Legacy web application
+./legacy/run_web_app.sh
+```
+
+## 🤝 For Developers
+
+### Key Classes
+
+- **`PatientInfo`**: Patient and test metadata
+- **`MicrobiomeData`**: Complete microbiome analysis results
+- **`CSVProcessor`**: Data processing and clinical calculations
+- **`ReportGenerator`**: Template orchestration
+- **`PDFBuilder`**: Professional PDF generation
+
+### Adding New Languages
+
+1. Create template directory: `templates/[language_code]/`
+2. Translate templates from `templates/en/`
+3. Update clinical interpretations for local terminology
+4. Test with `ReportGenerator(language="[language_code]")`
+
+### Template Customization
+
+Templates use Jinja2 syntax with data objects:
+
+```jinja2
+{# Clinical interpretation #}
+{% if data.dysbiosis_category == "normal" %}
+  Normal microbiota detected...
+{% elif data.dysbiosis_category == "mild" %}
+  Mild dysbiosis requires monitoring...
+{% endif %}
+
+{# Patient information #}
+Patient: {{ patient.name }} ({{ patient.age }})
+Sample: {{ patient.sample_number }}
+```
+
+## 📊 Example Usage
 
 ```python
-from advanced_pdf_generator import AdvancedMicrobiomeReportGenerator
+from src.report_generator import ReportGenerator
+from src.data_models import PatientInfo
 
-# Initialize generator
-generator = AdvancedMicrobiomeReportGenerator('data/sample.csv', 'barcode59')
+# Process multiple samples
+patients = [
+    PatientInfo(name="Montana", sample_number="506"),
+    PatientInfo(name="Thunder", sample_number="507"),
+]
 
-# Set patient information
-patient_info = {
-    'name': 'Montana',
-    'species': 'Koń',
-    'age': '20 lat',
-    'sample_number': '506',
-    'date_received': '07.05.2025 r.',
-    'performed_by': 'Julia Kończak',
-    'requested_by': 'Aleksandra Matusiak'
-}
+generator = ReportGenerator(language="en")
 
-# Generate report
-generator.generate_report('output/report.pdf', patient_info)
+for patient in patients:
+    csv_path = f"data/sample_{patient.sample_number}.csv"
+    output_path = f"reports/{patient.name}_report.pdf"
+    
+    success = generator.generate_report(csv_path, patient, output_path)
+    print(f"{patient.name}: {'✅' if success else '❌'}")
 ```
 
-### Data Processing Pipeline
+## 📝 Contributing
 
-1. **CSV Loading**: Read bacterial abundance data with pandas
-2. **Data Filtering**: Select samples with non-zero counts for specified barcode
-3. **Percentage Calculation**: Convert counts to percentages of total abundance
-4. **Phylum Aggregation**: Sum species counts by phylum classification
-5. **Visualization**: Create horizontal bar charts for species and phylum data
-6. **PDF Generation**: Compile visualizations and text into formatted PDF
-7. **Batch Processing**: Optionally process multiple files in parallel
+Contributions are welcome! Please see the `docs/` directory for architecture documentation and development guidelines.
 
-### Integration Notes
-
-- The tool expects UTF-8 encoded CSV files
-- Polish language characters are fully supported
-- PDF generation uses matplotlib for charts and reportlab for advanced formatting
-- Parallel processing uses Python's ProcessPoolExecutor
-- Logging follows Python standard logging format
-- All file paths support both Windows and Unix systems
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
-
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
+## 🏥 Acknowledgments
 
 - Developed for HippoVet+ veterinary laboratory
-- Based on 16S rRNA sequencing analysis workflows
+- Based on 16S rRNA sequencing analysis workflows  
 - Designed for equine gut microbiome research
-
-## Contact
-
-For questions or support, please open an issue on GitHub or contact the repository maintainers.
+- Reference PDF design provided by veterinary professionals
 
 ---
 
-## Example Output
+## 🔗 Links
 
-The generated PDF reports include:
-- Professional laboratory header with patient information
-- Species distribution visualization showing top bacterial species
-- Phylum composition analysis with reference ranges
-- Clinical interpretation in Polish language
-- Microscopic and biochemical analysis sections
+- **Documentation**: See `docs/` directory for detailed architecture and implementation plans
+- **Legacy Code**: Original implementations preserved in `legacy/` directory
+- **Examples**: Tutorial notebooks in `examples/` directory
