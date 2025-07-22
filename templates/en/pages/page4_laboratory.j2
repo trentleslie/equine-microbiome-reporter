@@ -1,0 +1,94 @@
+{# Page 4: Laboratory Results #}
+{% set page_num = 4 %}
+{% include 'base/page_header.j2' %}
+
+<div class="laboratory-content">
+    <div class="parasitological-examination">
+        <div class="green-header">
+            <h3>PARASITOLOGICAL EXAMINATION</h3>
+        </div>
+        <div class="results-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parasite Species</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for parasite in data.parasite_results %}
+                    <tr>
+                        <td>{{ parasite.name }}</td>
+                        <td>{{ parasite.result }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="microscopic-examination">
+        <div class="green-header">
+            <h3>MICROSCOPIC EXAMINATION</h3>
+        </div>
+        <div class="results-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Result</th>
+                        <th>Reference Range</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in data.microscopic_results %}
+                    <tr>
+                        <td>{{ result.parameter }}</td>
+                        <td>{{ result.result }}</td>
+                        <td>{{ result.reference }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="biochemical-examination">
+        <div class="green-header">
+            <h3>BIOCHEMICAL EXAMINATION</h3>
+        </div>
+        <div class="results-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Result</th>
+                        <th>Reference Range</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in data.biochemical_results %}
+                    <tr>
+                        <td>{{ result.parameter }}</td>
+                        <td>{{ result.result }}</td>
+                        <td>{{ result.reference }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="methodology">
+        <div class="green-header">
+            <h3>METHODOLOGY</h3>
+        </div>
+        <div class="methodology-content">
+            <p><strong>DNA Sequencing:</strong> 16S rRNA gene sequencing using Illumina MiSeq platform</p>
+            <p><strong>Analysis Pipeline:</strong> QIIME2 with SILVA database for taxonomic classification</p>
+            <p><strong>Dysbiosis Index:</strong> Calculated based on deviation from established reference ranges for equine gut microbiome</p>
+        </div>
+    </div>
+</div>
+
+{% include 'base/page_footer.j2' %}

@@ -1,0 +1,64 @@
+{# Page 3: Clinical Analysis #}
+{% set page_num = 3 %}
+{% include 'base/page_header.j2' %}
+
+<div class="clinical-content">
+    <div class="dysbiosis-interpretation">
+        <div class="green-header">
+            <h3>DYSBIOSIS INDEX INTERPRETATION</h3>
+        </div>
+        <div class="interpretation-text">
+            <div class="score-display">
+                Dysbiosis Index (DI): {{ "%.1f"|format(data.dysbiosis_index) }}
+            </div>
+            <div class="interpretation">
+                {{ data.clinical_interpretation }}
+            </div>
+        </div>
+    </div>
+    
+    <div class="unicellular-parasites">
+        <div class="green-header">
+            <h3>UNICELLULAR PARASITE PROFILE</h3>
+        </div>
+        <div class="parasite-content">
+            No unicellular parasite genome identified in the sample
+        </div>
+    </div>
+    
+    <div class="clinical-description">
+        <div class="green-header">
+            <h3>DESCRIPTION</h3>
+        </div>
+        <div class="description-content">
+            <p>The microbiome analysis reveals the composition of bacterial communities present in the fecal sample. The dysbiosis index provides a quantitative measure of microbiome imbalance compared to healthy reference ranges.</p>
+            
+            <p><strong>Key Findings:</strong></p>
+            <ul>
+                <li>Total species identified: {{ data.total_species_count }}</li>
+                <li>Dysbiosis Index: {{ "%.1f"|format(data.dysbiosis_index) }} ({{ data.dysbiosis_category }})</li>
+                <li>Dominant phyla: 
+                    {% set top_phyla = data.phylum_distribution.items() | list | sort(attribute='1', reverse=true) %}
+                    {% for phylum, percentage in top_phyla[:3] %}
+                        {{ phylum }} ({{ "%.1f"|format(percentage) }}%){% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="recommendations">
+        <div class="green-header">
+            <h3>RECOMMENDATIONS</h3>
+        </div>
+        <div class="recommendations-list">
+            {% for recommendation in data.recommendations %}
+            <div class="recommendation-item">
+                • {{ recommendation }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% include 'base/page_footer.j2' %}
