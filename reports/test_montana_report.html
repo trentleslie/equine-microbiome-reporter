@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Comprehensive Fecal Examination - Montana</title>
+    <style>
+        /* Base styles for PDF conversion */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            color: #1F2937;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .page {
+            page-break-after: always;
+            width: 210mm;
+            height: 297mm;
+            position: relative;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .page:last-child {
+            page-break-after: avoid;
+        }
+        
+        /* Color scheme from reference */
+        :root {
+            --primary-blue: #1E3A8A;
+            --dark-blue: #0F172A;
+            --teal: #14B8A6;
+            --light-teal: #5EEAD4;
+            --green: #10B981;
+            --gray-bg: #F8FAFC;
+            --light-gray: #F3F4F6;
+            --text-dark: #1F2937;
+            --text-light: #6B7280;
+            --white: #FFFFFF;
+            --border-gray: #E5E7EB;
+        }
+        
+        /* Page 1 specific - Title page with diagonal stripes */
+        .page-1 {
+            background: white;
+            padding: 0;
+        }
+        
+        /* Diagonal teal stripes pattern */
+        .diagonal-stripes {
+            position: absolute;
+            top: -50mm;
+            right: -50mm;
+            width: 150mm;
+            height: 150mm;
+            background: repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 10mm,
+                var(--light-teal) 10mm,
+                var(--light-teal) 15mm
+            );
+            opacity: 0.3;
+            z-index: 1;
+        }
+        
+        /* Title page content */
+        .title-page-content {
+            position: relative;
+            z-index: 2;
+            padding: 40mm 30mm;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .main-title {
+            color: var(--dark-blue);
+            font-size: 48pt;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -1px;
+            text-transform: uppercase;
+            margin-bottom: 10mm;
+        }
+        
+        .subtitle {
+            color: var(--text-dark);
+            font-size: 20pt;
+            font-weight: 300;
+            margin-bottom: 30mm;
+        }
+        
+        /* Pill box styling for patient info */
+        .pill-box {
+            display: inline-block;
+            background-color: var(--white);
+            border: 2px solid var(--border-gray);
+            border-radius: 25px;
+            padding: 8px 24px;
+            margin: 4px;
+            font-size: 14pt;
+            font-weight: 500;
+            color: var(--text-dark);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .pill-row {
+            margin: 8mm 0;
+            text-align: center;
+        }
+        
+        /* DNA background for page 1 */
+        .dna-background {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            background: linear-gradient(to top, rgba(20, 184, 166, 0.05), transparent);
+            z-index: 0;
+        }
+        
+        /* Footer styling for all pages */
+        .page-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30mm;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 25mm;
+            background: white;
+            border-top: 1px solid var(--border-gray);
+        }
+        
+        .logo {
+            height: 15mm;
+        }
+        
+        .page-number {
+            font-size: 12pt;
+            color: var(--text-light);
+        }
+        
+        /* Content pages header */
+        .content-header {
+            background-color: var(--gray-bg);
+            padding: 15mm 25mm;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-gray);
+        }
+        
+        /* Content area for pages 2-5 */
+        .content-area {
+            padding: 20mm 25mm 40mm 25mm;
+            position: relative;
+        }
+        
+        /* Section headers with green background */
+        .section-header {
+            background-color: var(--green);
+            color: var(--white);
+            padding: 10px 25mm;
+            margin: 0 -25mm 15mm -25mm;
+            font-weight: 700;
+            font-size: 16pt;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        /* Chart images */
+        .chart-img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 15mm auto;
+        }
+        
+        /* Clinical text styling */
+        .clinical-text {
+            text-align: justify;
+            margin: 10mm 0;
+            line-height: 1.8;
+            font-size: 11pt;
+        }
+        
+        .clinical-text p {
+            margin-bottom: 8mm;
+        }
+        
+        /* Dysbiosis index display */
+        .dysbiosis-index {
+            font-size: 18pt;
+            font-weight: 700;
+            color: var(--dark-blue);
+            margin: 15mm 0;
+            padding: 10mm;
+            background: var(--gray-bg);
+            border-left: 5px solid var(--teal);
+        }
+        
+        /* Important box */
+        .important-box {
+            background-color: var(--gray-bg);
+            border: 1px solid var(--border-gray);
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 15mm 0;
+            font-size: 11pt;
+        }
+        
+        .important-box p {
+            margin: 0;
+        }
+        
+        /* Table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10mm 0;
+        }
+        
+        table th {
+            background-color: var(--light-gray);
+            font-weight: 600;
+            text-align: left;
+            padding: 8px 12px;
+            border-bottom: 2px solid var(--border-gray);
+        }
+        
+        table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-gray);
+        }
+        
+        table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Lists */
+        ul, ol {
+            margin: 10mm 0;
+            padding-left: 20mm;
+        }
+        
+        li {
+            margin: 5mm 0;
+            line-height: 1.6;
+        }
+        
+        /* Educational content styling */
+        .educational-section {
+            margin: 20mm 0;
+        }
+        
+        .educational-section h4 {
+            color: var(--primary-blue);
+            font-size: 14pt;
+            margin-bottom: 8mm;
+            font-weight: 600;
+        }
+        
+        /* Recommendation list */
+        .recommendation-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .recommendation-list li {
+            position: relative;
+            padding-left: 20px;
+            margin: 8mm 0;
+        }
+        
+        .recommendation-list li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--teal);
+            font-weight: bold;
+            font-size: 16pt;
+        }
+        
+        /* Status badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 10pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-normal {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--green);
+        }
+        
+        .status-mild {
+            background-color: rgba(251, 146, 60, 0.1);
+            color: #FB923C;
+        }
+        
+        .status-severe {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #EF4444;
+        }
+    </style>
+</head>
+<body>
+<div class="page page-1">
+<div class="diagonal-stripes"></div>
+<div class="dna-background"></div>
+
+<div class="title-page-content">
+    <div>
+        <h1 class="main-title">COMPREHENSIVE<br>FECAL<br>EXAMINATION</h1>
+        <p class="subtitle">DNA sequencing</p>
+    </div>
+    
+    <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
+        <div class="pill-row">
+            <span style="font-size: 12pt; color: var(--text-light); margin-bottom: 5mm; display: block;">Patient Name:</span>
+            <span class="pill-box">Montana</span>
+            <span style="font-size: 12pt; color: var(--text-light); margin: 0 10mm;">Species and Age:</span>
+            <span class="pill-box">Horse, 20 years</span>
+            <span style="font-size: 12pt; color: var(--text-light); margin: 0 10mm;">Test Number:</span>
+            <span class="pill-box">506</span>
+        </div>
+        
+        <div class="pill-row" style="margin-top: 20mm;">
+            <span style="font-size: 12pt; color: var(--text-light); margin-bottom: 5mm; display: block;">Material Received:</span>
+            <span class="pill-box">07.05.2025</span>
+            <span style="font-size: 12pt; color: var(--text-light); margin: 0 10mm;">Analysis Date:</span>
+            <span class="pill-box">12.05.2025</span>
+        </div>
+        
+        <div class="pill-row" style="margin-top: 20mm;">
+            <span style="font-size: 12pt; color: var(--text-light); margin-bottom: 5mm; display: block;">Performed by:</span>
+            <span class="pill-box">Julia Kończak</span>
+            <span style="font-size: 12pt; color: var(--text-light); margin: 0 10mm;">Requested by:</span>
+            <span class="pill-box">Dr. Alexandra Matusiak</span>
+        </div>
+    </div>
+    
+    <div style="position: absolute; bottom: 80mm; left: 0; right: 0; text-align: center; z-index: 0;">
+        <img src="assets/dna_stock_photo.jpg" alt="" style="width: 100%; max-width: 200mm; opacity: 0.08;">
+    </div>
+</div>
+
+<div class="page-footer">
+    <div>
+        <img src="assets/hippovet_logo.png" alt="HippoVet" class="logo">
+    </div>
+    <div class="page-number">1/5</div>
+    <div style="text-align: right;">
+        <strong style="font-size: 14pt; color: var(--dark-blue);">MEMT LABORATORY</strong>
+    </div>
+</div></div>
+
+<div class="page page-2">
+<div class="content-header">
+    <div>
+        <img src="assets/hippovet_logo.png" alt="HippoVet" class="logo">
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <span class="pill-box">Montana</span>
+        <span class="pill-box">Horse, 20 years</span>
+        <span class="pill-box">Sample: 506</span>
+    </div>
+    <div style="text-align: right; font-size: 9pt; line-height: 1.4;">
+        <div>Received: 07.05.2025</div>
+        <div>Analyzed: 12.05.2025</div>
+        <div>Performed by: Julia Kończak</div>
+        <div>Requested by: Dr. Alexandra Matusiak</div>
+    </div>
+</div>
+
+<div class="content-area">
+    <div class="section-header">SEQUENCING RESULTS</div>
+    
+    <h3 style="color: var(--primary-blue); margin-bottom: 10mm; font-size: 16pt;">MICROBIOTIC PROFILE</h3>
+    
+    <img src="/home/trentleslie/Insync/projects/equine-microbiome-reporter/temp_charts/species_distribution.png" alt="Species Distribution" class="chart-img">
+    
+    <div class="section-header">PHYLUM DISTRIBUTION IN GUT MICROFLORA</div>
+    
+    <img src="/home/trentleslie/Insync/projects/equine-microbiome-reporter/temp_charts/phylum_distribution.png" alt="Phylum Distribution" class="chart-img">
+    
+    <div class="dysbiosis-index">
+        <div style="font-size: 24pt; margin-bottom: 5mm;">
+            Dysbiosis Index (DI): 500.0
+        </div>
+        <div style="font-size: 14pt;">
+            Category: 
+                <span class="status-badge status-severe">Severe dysbiosis</span>
+        </div>
+    </div>
+    
+    <p style="font-size: 10pt; color: var(--text-light); text-align: center; margin-top: 10mm;">
+        Scale: 0-5 normobiotic; 20 slight dysbiosis; 21-50 moderate; >50 severe dysbiosis microbiota
+    </p>
+</div>
+
+<div class="page-footer">
+    <div>
+        <strong>HippoVet Laboratory</strong><br>
+        <span style="font-size: 9pt;">Veterinary Microbiome Analysis Center</span>
+    </div>
+    <div class="page-number">2/5</div>
+    <div style="text-align: right;">
+        <strong>MEMT LABORATORY</strong><br>
+        <span style="font-size: 9pt;">www.hippovet.com</span>
+    </div>
+</div></div>
+
+<div class="page page-3">
+<div class="content-header">
+    <div>
+        <img src="assets/hippovet_logo.png" alt="HippoVet" class="logo">
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <span class="pill-box">Montana</span>
+        <span class="pill-box">Horse, 20 years</span>
+        <span class="pill-box">Sample: 506</span>
+    </div>
+    <div style="text-align: right; font-size: 9pt; line-height: 1.4;">
+        <div>Received: 07.05.2025</div>
+        <div>Analyzed: 12.05.2025</div>
+        <div>Performed by: Julia Kończak</div>
+        <div>Requested by: Dr. Alexandra Matusiak</div>
+    </div>
+</div>
+
+<div class="content-area">
+
+<div style="margin: 10mm 0;">
+    <div class="dysbiosis-index">Dysbiosis Index (DI): 500.0 - Severe microbiota</div>
+    <div style="font-size: 11pt; margin-top: 5mm;">Severe dysbiosis detected. Significant imbalance in gut microflora requiring intervention.</div>
+</div>
+
+<div class="section-header">UNICELLULAR PARASITE PROFILE</div>
+<div style="margin: 10mm 0; font-size: 11pt;">
+    No unicellular parasite genome identified in the sample
+</div>
+
+<div class="section-header">VIRAL PROFILE</div>
+<div style="margin: 10mm 0; font-size: 11pt;">
+    No viral genome identified in the sample
+</div>
+
+<div class="section-header">DESCRIPTION</div>
+<div class="clinical-text">
+    <p>Molecular examination revealed significant dysbiosis requiring immediate intervention. The severe imbalance in microbial populations indicates compromised gut health.</p>
+    
+    <p>Critical deviations detected in multiple phyla suggest systemic disruption of the normal microbiome architecture. This level of dysbiosis is associated with increased risk of colic, malabsorption, and immune dysfunction.</p>
+</div>
+
+<div class="section-header">IMPORTANT</div>
+<div style="margin: 10mm 0; font-size: 11pt; border: 1px solid var(--border-gray); padding: 5mm; background-color: var(--gray-bg);">
+    <p style="margin: 0;">The presented result is a microbiotic profile of the tested sample. Microbiotic results should be interpreted in conjunction with clinical signs and other diagnostic findings. For optimal results, samples should be collected before antibiotic therapy.</p>
+</div>
+
+<div class="footer">
+    <div class="footer-section">
+        <strong>HippoVet Laboratory</strong>
+        <div>Veterinary Microbiome Analysis Center</div>
+        <div>Accredited Laboratory - ISO 15189</div>
+    </div>
+    <div class="footer-section" style="text-align: center;">
+        <span class="page-number">3/5</span>
+    </div>
+    <div class="footer-section" style="text-align: right;">
+        <strong>MEMT LABORATORY</strong>
+        <div>Tel: +48 123 456 789</div>
+        <div>www.hippovet.com</div>
+    </div>
+</div></div>
+
+<div class="page page-4">
+<div class="header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <img src="assets/hippovet_logo.png" alt="HippoVet" style="height: 20mm;">
+        <div style="text-align: center;">
+            <div class="pill-box">Montana</div>
+            <div class="pill-box">Horse, 20 years</div>
+            <div class="pill-box">Sample: 506</div>
+        </div>
+        <div style="text-align: right; font-size: 8pt;">
+            <div>Received: 07.05.2025</div>
+            <div>Analyzed: 12.05.2025</div>
+            <div>Performed by: Julia Kończak</div>
+            <div>Requested by: Dr. Alexandra Matusiak</div>
+        </div>
+    </div>
+</div>
+
+<div class="section-header">EXAMINATION FOR PRESENCE OF PARASITES</div>
+<div style="margin: 10mm 0;">
+    <div style="margin: 3mm 0;">
+        <strong>Flotation method:</strong> No protozoan cysts detected
+    </div>
+    <div style="margin: 3mm 0;">
+        <strong>Sedimentation method:</strong> Larval forms of parasites were not observed
+    </div>
+    <div style="margin: 3mm 0;">
+        <strong>McMaster method:</strong> No parasitic eggs observed
+    </div>
+    <div style="margin: 3mm 0;">
+        <strong>Migration method - larval culture:</strong> No larval forms detected
+    </div>
+</div>
+
+<div class="section-header">MICROSCOPIC EXAMINATION</div>
+<div style="margin: 10mm 0;">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr style="border-bottom: 1px solid var(--border-gray);">
+            <td style="padding: 3mm 0; width: 50%;"><strong>Leukocytes</strong></td>
+            <td style="padding: 3mm 0; width: 25%;">Single in field of view</td>
+            <td style="padding: 3mm 0; width: 25%; text-align: right;">Normal: 0-5/hpf</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-gray);">
+            <td style="padding: 3mm 0;"><strong>Red blood cells</strong></td>
+            <td style="padding: 3mm 0;">Not observed</td>
+            <td style="padding: 3mm 0; text-align: right;">Normal: 0/hpf</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-gray);">
+            <td style="padding: 3mm 0;"><strong>Fat droplets</strong></td>
+            <td style="padding: 3mm 0;">Few</td>
+            <td style="padding: 3mm 0; text-align: right;">Normal: Few</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-gray);">
+            <td style="padding: 3mm 0;"><strong>Muscle fibers</strong></td>
+            <td style="padding: 3mm 0;">Not observed</td>
+            <td style="padding: 3mm 0; text-align: right;">Normal: Absent</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-gray);">
+            <td style="padding: 3mm 0;"><strong>Plant fibers</strong></td>
+            <td style="padding: 3mm 0;">Moderate amount</td>
+            <td style="padding: 3mm 0; text-align: right;">Normal: Present</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-gray);">
+            <td style="padding: 3mm 0;"><strong>Starch grains</strong></td>
+            <td style="padding: 3mm 0;">Not observed</td>
+            <td style="padding: 3mm 0; text-align: right;">Normal: Absent to few</td>
+        </tr>
+    </table>
+</div>
+
+<div class="section-header">BIOCHEMICAL EXAMINATION</div>
+<div style="margin: 10mm 0;">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr style="border-bottom: 1px solid var(--border-gray);">
+            <td style="padding: 3mm 0; width: 50%;"><strong>Occult blood</strong></td>
+            <td style="padding: 3mm 0; width: 25%;">Negative</td>
+            <td style="padding: 3mm 0; width: 25%; text-align: right;">Normal: Negative</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-gray);">
+            <td style="padding: 3mm 0;"><strong>pH</strong></td>
+            <td style="padding: 3mm 0;">6.8</td>
+            <td style="padding: 3mm 0; text-align: right;">Normal: 6.5-7.0</td>
+        </tr>
+    </table>
+</div>
+
+<div class="section-header">RECOMMENDATIONS</div>
+<div style="margin: 10mm 0;">
+    <ul style="list-style: none; padding: 0;">
+        <li style="margin: 3mm 0;">• Immediate dietary intervention required</li>
+        <li style="margin: 3mm 0;">• Veterinary consultation recommended</li>
+        <li style="margin: 3mm 0;">• Probiotic therapy indicated</li>
+        <li style="margin: 3mm 0;">• Follow-up testing in 2-3 weeks</li>
+    </ul>
+</div>
+
+<div class="footer">
+    <div class="footer-section">
+        <strong>HippoVet Laboratory</strong>
+        <div>Veterinary Microbiome Analysis Center</div>
+        <div>Accredited Laboratory - ISO 15189</div>
+    </div>
+    <div class="footer-section" style="text-align: center;">
+        <span class="page-number">4/5</span>
+    </div>
+    <div class="footer-section" style="text-align: right;">
+        <strong>MEMT LABORATORY</strong>
+        <div>Tel: +48 123 456 789</div>
+        <div>www.hippovet.com</div>
+    </div>
+</div></div>
+
+<div class="page page-5">
+<div class="header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <img src="assets/hippovet_logo.png" alt="HippoVet" style="height: 20mm;">
+        <div style="text-align: center;">
+            <div class="pill-box">Montana</div>
+            <div class="pill-box">Horse, 20 years</div>
+            <div class="pill-box">Sample: 506</div>
+        </div>
+        <div style="text-align: right; font-size: 8pt;">
+            <div>Received: 07.05.2025</div>
+            <div>Analyzed: 12.05.2025</div>
+            <div>Performed by: Julia Kończak</div>
+            <div>Requested by: Dr. Alexandra Matusiak</div>
+        </div>
+    </div>
+</div>
+
+<div class="section-header">UNDERSTANDING THE EQUINE MICROBIOME</div>
+<div style="margin: 10mm 0;">
+    <p style="margin-bottom: 5mm;">The equine gut microbiome consists of trillions of microorganisms that play crucial roles in:</p>
+    <ul style="list-style: none; padding-left: 5mm;">
+        <li style="margin: 2mm 0;"><strong>• Digestion:</strong> Breaking down complex carbohydrates and fiber from plant material</li>
+        <li style="margin: 2mm 0;"><strong>• Immunity:</strong> Supporting immune system development and pathogen resistance</li>
+        <li style="margin: 2mm 0;"><strong>• Metabolism:</strong> Producing essential vitamins (B vitamins, vitamin K) and short-chain fatty acids</li>
+        <li style="margin: 2mm 0;"><strong>• Health:</strong> Maintaining intestinal barrier function and preventing colonization by pathogens</li>
+    </ul>
+</div>
+
+<div class="section-header">WHAT IS DYSBIOSIS?</div>
+<div style="margin: 10mm 0;">
+    <p style="margin-bottom: 5mm;">Dysbiosis refers to an imbalance in the gut microbiome composition that can lead to:</p>
+    <ul style="list-style: none; padding-left: 5mm;">
+        <li style="margin: 2mm 0;">• Digestive disorders (colic, diarrhea, poor feed conversion)</li>
+        <li style="margin: 2mm 0;">• Increased susceptibility to infections</li>
+        <li style="margin: 2mm 0;">• Reduced nutrient absorption and weight loss</li>
+        <li style="margin: 2mm 0;">• Inflammatory conditions and metabolic dysfunction</li>
+    </ul>
+    
+    <div style="margin-top: 10mm; padding: 5mm; background-color: var(--gray-bg); border-radius: 5mm;">
+        <h4 style="margin-bottom: 5mm; color: var(--primary-blue);">Dysbiosis Index Interpretation:</h4>
+        <div style="margin: 2mm 0;"><span style="color: var(--green); font-weight: bold;">0-20:</span> Normal microbiome balance</div>
+        <div style="margin: 2mm 0;"><span style="color: orange; font-weight: bold;">21-50:</span> Mild dysbiosis - monitoring recommended</div>
+        <div style="margin: 2mm 0;"><span style="color: red; font-weight: bold;">51+:</span> Severe dysbiosis - intervention needed</div>
+    </div>
+</div>
+
+<div class="section-header">MAINTAINING MICROBIOME HEALTH</div>
+<div style="margin: 10mm 0;">
+    <div style="margin-bottom: 10mm;">
+        <h4 style="color: var(--primary-blue); margin-bottom: 3mm;">Dietary Considerations:</h4>
+        <ul style="list-style: none; padding-left: 5mm;">
+            <li style="margin: 2mm 0;">• Provide consistent, high-quality forage (pasture and hay)</li>
+            <li style="margin: 2mm 0;">• Minimize sudden dietary changes (transition over 7-14 days)</li>
+            <li style="margin: 2mm 0;">• Avoid excessive grain feeding and high-starch diets</li>
+            <li style="margin: 2mm 0;">• Consider prebiotic supplementation (FOS, MOS, psyllium)</li>
+        </ul>
+    </div>
+    
+    <div>
+        <h4 style="color: var(--primary-blue); margin-bottom: 3mm;">Management Practices:</h4>
+        <ul style="list-style: none; padding-left: 5mm;">
+            <li style="margin: 2mm 0;">• Reduce stress through consistent routines and socialization</li>
+            <li style="margin: 2mm 0;">• Limit unnecessary antibiotic use (use only when prescribed)</li>
+            <li style="margin: 2mm 0;">• Provide adequate exercise and daily turnout</li>
+            <li style="margin: 2mm 0;">• Monitor for signs of digestive upset (changes in appetite, manure)</li>
+        </ul>
+    </div>
+</div>
+
+<div class="footer">
+    <div class="footer-section">
+        <strong>HippoVet Laboratory</strong>
+        <div>Veterinary Microbiome Analysis Center</div>
+        <div>Accredited Laboratory - ISO 15189</div>
+    </div>
+    <div class="footer-section" style="text-align: center;">
+        <span class="page-number">5/5</span>
+    </div>
+    <div class="footer-section" style="text-align: right;">
+        <strong>MEMT LABORATORY</strong>
+        <div>Tel: +48 123 456 789</div>
+        <div>Email: lab@hippovet.com</div>
+    </div>
+</div></div>
+</body>
+</html>
