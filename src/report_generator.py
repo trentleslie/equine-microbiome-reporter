@@ -12,6 +12,7 @@ from typing import Optional
 from .data_models import PatientInfo, MicrobiomeData
 from .csv_processor import CSVProcessor
 from .pdf_builder import PDFBuilder
+from .chart_generator import ChartGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -66,11 +67,16 @@ class ReportGenerator:
             microbiome_data.clinical_interpretation = self._generate_clinical_text(microbiome_data)
             microbiome_data.recommendations = self._get_recommendations(microbiome_data)
             
-            # Step 3: Render template
-            content = self._render_template(patient_info, microbiome_data)
+            # Step 3: Generate charts for the report
+            chart_generator = ChartGenerator()
+            chart_paths = chart_generator.generate_all_charts(microbiome_data)
+            logger.info(f"Generated {len(chart_paths)} charts")
             
-            # Step 4: Build PDF (placeholder for now)
-            success = self._build_pdf(content, output_path, patient_info, microbiome_data)
+            # Step 4: Render template with charts
+            content = self._render_template(patient_info, microbiome_data, chart_paths)
+            
+            # Step 5: Build PDF
+            success = self._build_pdf(content, output_path, patient_info, microbiome_data, chart_paths, chart_generator)
             
             if success:
                 logger.info(f"Report successfully generated: {output_path}")
@@ -83,7 +89,7 @@ class ReportGenerator:
             logger.error(f"Report generation failed: {e}", exc_info=True)
             return False
     
-    def _render_template(self, patient_info: PatientInfo, microbiome_data: MicrobiomeData) -> str:
+    def _render_template(self, patient_info: PatientInfo, microbiome_data: MicrobiomeData, chart_paths: dict) -> str:
         """Render Jinja2 template with data"""
         try:
             template_path = f"{self.language}/{self.template_name}"
@@ -93,7 +99,8 @@ class ReportGenerator:
                 patient=patient_info,
                 data=microbiome_data,
                 config=self.config,
-                lang=self.language
+                lang=self.language,
+                charts=chart_paths
             )
             
             logger.info(f"Template rendered successfully: {template_path}")
@@ -138,7 +145,8 @@ class ReportGenerator:
                 "Follow-up testing in 2-3 weeks"
             ]
     
-    def _build_pdf(self, content: str, output_path: str, patient_info: PatientInfo, data: MicrobiomeData) -> bool:
+    def _build_pdf(self, content: str, output_path: str, patient_info: PatientInfo, 
+                   data: MicrobiomeData, chart_paths: dict, chart_generator: ChartGenerator) -> bool:
         """Build PDF from template content using PDFBuilder"""
         try:
             # Save HTML output for debugging
@@ -147,9 +155,13 @@ class ReportGenerator:
                 f.write(content)
             logger.info(f"Template output saved as HTML: {html_path}")
             
-            # Build PDF using PDFBuilder
+            # Build PDF using WeasyPrint PDFBuilder (charts already embedded in content)
             builder = PDFBuilder(self.config)
             success = builder.build_from_content(content, output_path, patient_info, data)
+            
+            # Cleanup temporary charts after PDF is built
+            if success:
+                chart_generator.cleanup()
             
             return success
             

@@ -1,64 +1,87 @@
 {# Page 3: Clinical Analysis #}
-{% set page_num = 3 %}
-{% include 'base/page_header.j2' %}
-
-<div class="clinical-content">
-    <div class="dysbiosis-interpretation">
-        <div class="green-header">
-            <h3>DYSBIOSIS INDEX INTERPRETATION</h3>
-        </div>
-        <div class="interpretation-text">
-            <div class="score-display">
-                Dysbiosis Index (DI): {{ "%.1f"|format(data.dysbiosis_index) }}
-            </div>
-            <div class="interpretation">
-                {{ data.clinical_interpretation }}
-            </div>
-        </div>
+<div class="content-header">
+    <div>
+        <img src="{{ config.assets_path }}/hippovet_logo.png" alt="HippoVet" class="logo">
     </div>
-    
-    <div class="unicellular-parasites">
-        <div class="green-header">
-            <h3>UNICELLULAR PARASITE PROFILE</h3>
-        </div>
-        <div class="parasite-content">
-            No unicellular parasite genome identified in the sample
-        </div>
+    <div style="display: flex; gap: 10px;">
+        <span class="pill-box">{{ patient.name }}</span>
+        <span class="pill-box">{{ patient.species }}, {{ patient.age }}</span>
+        <span class="pill-box">Sample: {{ patient.sample_number }}</span>
     </div>
-    
-    <div class="clinical-description">
-        <div class="green-header">
-            <h3>DESCRIPTION</h3>
-        </div>
-        <div class="description-content">
-            <p>The microbiome analysis reveals the composition of bacterial communities present in the fecal sample. The dysbiosis index provides a quantitative measure of microbiome imbalance compared to healthy reference ranges.</p>
-            
-            <p><strong>Key Findings:</strong></p>
-            <ul>
-                <li>Total species identified: {{ data.total_species_count }}</li>
-                <li>Dysbiosis Index: {{ "%.1f"|format(data.dysbiosis_index) }} ({{ data.dysbiosis_category }})</li>
-                <li>Dominant phyla: 
-                    {% set top_phyla = data.phylum_distribution.items() | list | sort(attribute='1', reverse=true) %}
-                    {% for phylum, percentage in top_phyla[:3] %}
-                        {{ phylum }} ({{ "%.1f"|format(percentage) }}%){% if not loop.last %}, {% endif %}
-                    {% endfor %}
-                </li>
-            </ul>
-        </div>
-    </div>
-    
-    <div class="recommendations">
-        <div class="green-header">
-            <h3>RECOMMENDATIONS</h3>
-        </div>
-        <div class="recommendations-list">
-            {% for recommendation in data.recommendations %}
-            <div class="recommendation-item">
-                • {{ recommendation }}
-            </div>
-            {% endfor %}
-        </div>
+    <div style="text-align: right; font-size: 9pt; line-height: 1.4;">
+        <div>Received: {{ patient.date_received }}</div>
+        <div>Analyzed: {{ patient.date_analyzed }}</div>
+        <div>Performed by: {{ patient.performed_by }}</div>
+        <div>Requested by: {{ patient.requested_by }}</div>
     </div>
 </div>
 
-{% include 'base/page_footer.j2' %}
+<div class="content-area">
+
+{# Dysbiosis Index at top #}
+<div style="margin: 10mm 0;">
+    <div class="dysbiosis-index">Dysbiosis Index (DI): {{ "%.1f"|format(data.dysbiosis_index) }} - {{ data.dysbiosis_category|title }} microbiota</div>
+    <div style="font-size: 11pt; margin-top: 5mm;">{{ data.clinical_interpretation }}</div>
+</div>
+
+<div class="section-header">UNICELLULAR PARASITE PROFILE</div>
+<div style="margin: 10mm 0; font-size: 11pt;">
+    No unicellular parasite genome identified in the sample
+</div>
+
+<div class="section-header">VIRAL PROFILE</div>
+<div style="margin: 10mm 0; font-size: 11pt;">
+    No viral genome identified in the sample
+</div>
+
+<div class="section-header">DESCRIPTION</div>
+<div class="clinical-text">
+    {% if data.dysbiosis_category == "normal" %}
+    <p>Molecular examination revealed gut microflora properly balanced with minor deviations. The bacterial diversity and phylum distribution are within expected ranges for healthy equine gut microbiome.</p>
+    
+    <p>The predominant bacterial phyla detected show appropriate proportions:
+    {% set sorted_phyla = data.phylum_distribution.items() | list | sort(attribute='1', reverse=true) %}
+    {% for phylum, percentage in sorted_phyla[:3] %}
+    {{ phylum }} ({{ "%.1f"|format(percentage) }}%){% if not loop.last %}, {% endif %}
+    {% endfor %}. This distribution supports proper digestive function and immune system balance.</p>
+    
+    <p>The low dysbiosis index indicates a stable microbial ecosystem with minimal disruption to the normal flora composition.</p>
+    {% elif data.dysbiosis_category == "mild" %}
+    <p>Molecular examination revealed moderate imbalance in gut microflora composition. While not critical, this dysbiosis may impact digestive efficiency and requires monitoring.</p>
+    
+    <p>Notable deviations from reference ranges were observed in:
+    {% for phylum, percentage in data.phylum_distribution.items() %}
+    {% set ref_range = config.reference_ranges.get(phylum, [0, 100]) %}
+    {% if percentage < ref_range[0] or percentage > ref_range[1] %}
+    {{ phylum }} ({{ "%.1f"|format(percentage) }}%, reference: {{ ref_range[0] }}-{{ ref_range[1] }}%){% if not loop.last %}, {% endif %}
+    {% endif %}
+    {% endfor %}</p>
+    
+    <p>These alterations suggest potential dietary or environmental factors affecting the microbiome balance.</p>
+    {% else %}
+    <p>Molecular examination revealed significant dysbiosis requiring immediate intervention. The severe imbalance in microbial populations indicates compromised gut health.</p>
+    
+    <p>Critical deviations detected in multiple phyla suggest systemic disruption of the normal microbiome architecture. This level of dysbiosis is associated with increased risk of colic, malabsorption, and immune dysfunction.</p>
+    {% endif %}
+</div>
+
+<div class="section-header">IMPORTANT</div>
+<div style="margin: 10mm 0; font-size: 11pt; border: 1px solid var(--border-gray); padding: 5mm; background-color: var(--gray-bg);">
+    <p style="margin: 0;">The presented result is a microbiotic profile of the tested sample. Microbiotic results should be interpreted in conjunction with clinical signs and other diagnostic findings. For optimal results, samples should be collected before antibiotic therapy.</p>
+</div>
+
+<div class="footer">
+    <div class="footer-section">
+        <strong>HippoVet Laboratory</strong>
+        <div>Veterinary Microbiome Analysis Center</div>
+        <div>Accredited Laboratory - ISO 15189</div>
+    </div>
+    <div class="footer-section" style="text-align: center;">
+        <span class="page-number">3/5</span>
+    </div>
+    <div class="footer-section" style="text-align: right;">
+        <strong>MEMT LABORATORY</strong>
+        <div>Tel: +48 123 456 789</div>
+        <div>www.hippovet.com</div>
+    </div>
+</div>

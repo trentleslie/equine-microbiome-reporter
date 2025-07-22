@@ -1,94 +1,110 @@
 {# Page 4: Laboratory Results #}
-{% set page_num = 4 %}
-{% include 'base/page_header.j2' %}
-
-<div class="laboratory-content">
-    <div class="parasitological-examination">
-        <div class="green-header">
-            <h3>PARASITOLOGICAL EXAMINATION</h3>
+<div class="header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <img src="{{ config.assets_path }}/hippovet_logo.png" alt="HippoVet" style="height: 20mm;">
+        <div style="text-align: center;">
+            <div class="pill-box">{{ patient.name }}</div>
+            <div class="pill-box">{{ patient.species }}, {{ patient.age }}</div>
+            <div class="pill-box">Sample: {{ patient.sample_number }}</div>
         </div>
-        <div class="results-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Parasite Species</th>
-                        <th>Result</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for parasite in data.parasite_results %}
-                    <tr>
-                        <td>{{ parasite.name }}</td>
-                        <td>{{ parasite.result }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <div class="microscopic-examination">
-        <div class="green-header">
-            <h3>MICROSCOPIC EXAMINATION</h3>
-        </div>
-        <div class="results-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Parameter</th>
-                        <th>Result</th>
-                        <th>Reference Range</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for result in data.microscopic_results %}
-                    <tr>
-                        <td>{{ result.parameter }}</td>
-                        <td>{{ result.result }}</td>
-                        <td>{{ result.reference }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <div class="biochemical-examination">
-        <div class="green-header">
-            <h3>BIOCHEMICAL EXAMINATION</h3>
-        </div>
-        <div class="results-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Parameter</th>
-                        <th>Result</th>
-                        <th>Reference Range</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for result in data.biochemical_results %}
-                    <tr>
-                        <td>{{ result.parameter }}</td>
-                        <td>{{ result.result }}</td>
-                        <td>{{ result.reference }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <div class="methodology">
-        <div class="green-header">
-            <h3>METHODOLOGY</h3>
-        </div>
-        <div class="methodology-content">
-            <p><strong>DNA Sequencing:</strong> 16S rRNA gene sequencing using Illumina MiSeq platform</p>
-            <p><strong>Analysis Pipeline:</strong> QIIME2 with SILVA database for taxonomic classification</p>
-            <p><strong>Dysbiosis Index:</strong> Calculated based on deviation from established reference ranges for equine gut microbiome</p>
+        <div style="text-align: right; font-size: 8pt;">
+            <div>Received: {{ patient.date_received }}</div>
+            <div>Analyzed: {{ patient.date_analyzed }}</div>
+            <div>Performed by: {{ patient.performed_by }}</div>
+            <div>Requested by: {{ patient.requested_by }}</div>
         </div>
     </div>
 </div>
 
-{% include 'base/page_footer.j2' %}
+<div class="section-header">EXAMINATION FOR PRESENCE OF PARASITES</div>
+<div style="margin: 10mm 0;">
+    <div style="margin: 3mm 0;">
+        <strong>Flotation method:</strong> No protozoan cysts detected
+    </div>
+    <div style="margin: 3mm 0;">
+        <strong>Sedimentation method:</strong> Larval forms of parasites were not observed
+    </div>
+    <div style="margin: 3mm 0;">
+        <strong>McMaster method:</strong> No parasitic eggs observed
+    </div>
+    <div style="margin: 3mm 0;">
+        <strong>Migration method - larval culture:</strong> No larval forms detected
+    </div>
+</div>
+
+<div class="section-header">MICROSCOPIC EXAMINATION</div>
+<div style="margin: 10mm 0;">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr style="border-bottom: 1px solid var(--border-gray);">
+            <td style="padding: 3mm 0; width: 50%;"><strong>Leukocytes</strong></td>
+            <td style="padding: 3mm 0; width: 25%;">Single in field of view</td>
+            <td style="padding: 3mm 0; width: 25%; text-align: right;">Normal: 0-5/hpf</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-gray);">
+            <td style="padding: 3mm 0;"><strong>Red blood cells</strong></td>
+            <td style="padding: 3mm 0;">Not observed</td>
+            <td style="padding: 3mm 0; text-align: right;">Normal: 0/hpf</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-gray);">
+            <td style="padding: 3mm 0;"><strong>Fat droplets</strong></td>
+            <td style="padding: 3mm 0;">Few</td>
+            <td style="padding: 3mm 0; text-align: right;">Normal: Few</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-gray);">
+            <td style="padding: 3mm 0;"><strong>Muscle fibers</strong></td>
+            <td style="padding: 3mm 0;">Not observed</td>
+            <td style="padding: 3mm 0; text-align: right;">Normal: Absent</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-gray);">
+            <td style="padding: 3mm 0;"><strong>Plant fibers</strong></td>
+            <td style="padding: 3mm 0;">Moderate amount</td>
+            <td style="padding: 3mm 0; text-align: right;">Normal: Present</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-gray);">
+            <td style="padding: 3mm 0;"><strong>Starch grains</strong></td>
+            <td style="padding: 3mm 0;">Not observed</td>
+            <td style="padding: 3mm 0; text-align: right;">Normal: Absent to few</td>
+        </tr>
+    </table>
+</div>
+
+<div class="section-header">BIOCHEMICAL EXAMINATION</div>
+<div style="margin: 10mm 0;">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr style="border-bottom: 1px solid var(--border-gray);">
+            <td style="padding: 3mm 0; width: 50%;"><strong>Occult blood</strong></td>
+            <td style="padding: 3mm 0; width: 25%;">Negative</td>
+            <td style="padding: 3mm 0; width: 25%; text-align: right;">Normal: Negative</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-gray);">
+            <td style="padding: 3mm 0;"><strong>pH</strong></td>
+            <td style="padding: 3mm 0;">6.8</td>
+            <td style="padding: 3mm 0; text-align: right;">Normal: 6.5-7.0</td>
+        </tr>
+    </table>
+</div>
+
+<div class="section-header">RECOMMENDATIONS</div>
+<div style="margin: 10mm 0;">
+    <ul style="list-style: none; padding: 0;">
+        {% for recommendation in data.recommendations %}
+        <li style="margin: 3mm 0;">• {{ recommendation }}</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<div class="footer">
+    <div class="footer-section">
+        <strong>HippoVet Laboratory</strong>
+        <div>Veterinary Microbiome Analysis Center</div>
+        <div>Accredited Laboratory - ISO 15189</div>
+    </div>
+    <div class="footer-section" style="text-align: center;">
+        <span class="page-number">4/5</span>
+    </div>
+    <div class="footer-section" style="text-align: right;">
+        <strong>MEMT LABORATORY</strong>
+        <div>Tel: +48 123 456 789</div>
+        <div>www.hippovet.com</div>
+    </div>
+</div>

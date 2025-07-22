@@ -23,6 +23,9 @@ colors:
   text_dark: "#1F2937"
   text_light: "#6B7280"
 
+# Asset paths
+assets_path: "assets"
+
 # Template settings
 templates:
   default: "report_full.j2"

@@ -1,88 +1,85 @@
 {# Page 5: Educational Content #}
-{% set page_num = 5 %}
-{% include 'base/page_header.j2' %}
-
-<div class="educational-content">
-    <div class="understanding-microbiome">
-        <div class="green-header">
-            <h3>UNDERSTANDING THE EQUINE MICROBIOME</h3>
+<div class="header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <img src="{{ config.assets_path }}/hippovet_logo.png" alt="HippoVet" style="height: 20mm;">
+        <div style="text-align: center;">
+            <div class="pill-box">{{ patient.name }}</div>
+            <div class="pill-box">{{ patient.species }}, {{ patient.age }}</div>
+            <div class="pill-box">Sample: {{ patient.sample_number }}</div>
         </div>
-        <div class="educational-text">
-            <p>The equine gut microbiome consists of trillions of microorganisms that play crucial roles in:</p>
-            <ul>
-                <li><strong>Digestion:</strong> Breaking down complex carbohydrates and fiber</li>
-                <li><strong>Immunity:</strong> Supporting immune system development and function</li>
-                <li><strong>Metabolism:</strong> Producing essential vitamins and metabolites</li>
-                <li><strong>Health:</strong> Protecting against pathogenic bacteria</li>
-            </ul>
-        </div>
-    </div>
-    
-    <div class="dysbiosis-explanation">
-        <div class="green-header">
-            <h3>WHAT IS DYSBIOSIS?</h3>
-        </div>
-        <div class="educational-text">
-            <p>Dysbiosis refers to an imbalance in the gut microbiome that can lead to:</p>
-            <ul>
-                <li>Digestive disorders</li>
-                <li>Increased susceptibility to infections</li>
-                <li>Reduced nutrient absorption</li>
-                <li>Inflammatory conditions</li>
-            </ul>
-            
-            <div class="dysbiosis-ranges">
-                <h4>Dysbiosis Index Interpretation:</h4>
-                <div class="range-item">
-                    <span class="range-label normal">0-20:</span> Normal microbiome balance
-                </div>
-                <div class="range-item">
-                    <span class="range-label mild">21-50:</span> Mild dysbiosis - monitoring recommended
-                </div>
-                <div class="range-item">
-                    <span class="range-label severe">51+:</span> Severe dysbiosis - intervention needed
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="maintaining-health">
-        <div class="green-header">
-            <h3>MAINTAINING MICROBIOME HEALTH</h3>
-        </div>
-        <div class="educational-text">
-            <p><strong>Dietary Considerations:</strong></p>
-            <ul>
-                <li>Provide consistent, high-quality forage</li>
-                <li>Minimize sudden dietary changes</li>
-                <li>Avoid excessive grain feeding</li>
-                <li>Consider prebiotic supplementation</li>
-            </ul>
-            
-            <p><strong>Management Practices:</strong></p>
-            <ul>
-                <li>Reduce stress through consistent routines</li>
-                <li>Limit unnecessary antibiotic use</li>
-                <li>Provide adequate exercise and turnout</li>
-                <li>Monitor for signs of digestive upset</li>
-            </ul>
-        </div>
-    </div>
-    
-    <div class="next-steps">
-        <div class="green-header">
-            <h3>NEXT STEPS</h3>
-        </div>
-        <div class="educational-text">
-            <p>Based on your results, consult with your veterinarian to:</p>
-            <ul>
-                <li>Discuss dietary modifications if needed</li>
-                <li>Consider probiotic or prebiotic supplements</li>
-                <li>Schedule follow-up testing if recommended</li>
-                <li>Monitor for clinical signs of digestive issues</li>
-            </ul>
+        <div style="text-align: right; font-size: 8pt;">
+            <div>Received: {{ patient.date_received }}</div>
+            <div>Analyzed: {{ patient.date_analyzed }}</div>
+            <div>Performed by: {{ patient.performed_by }}</div>
+            <div>Requested by: {{ patient.requested_by }}</div>
         </div>
     </div>
 </div>
 
-{% include 'base/page_footer.j2' %}
+<div class="section-header">UNDERSTANDING THE EQUINE MICROBIOME</div>
+<div style="margin: 10mm 0;">
+    <p style="margin-bottom: 5mm;">The equine gut microbiome consists of trillions of microorganisms that play crucial roles in:</p>
+    <ul style="list-style: none; padding-left: 5mm;">
+        <li style="margin: 2mm 0;"><strong>• Digestion:</strong> Breaking down complex carbohydrates and fiber from plant material</li>
+        <li style="margin: 2mm 0;"><strong>• Immunity:</strong> Supporting immune system development and pathogen resistance</li>
+        <li style="margin: 2mm 0;"><strong>• Metabolism:</strong> Producing essential vitamins (B vitamins, vitamin K) and short-chain fatty acids</li>
+        <li style="margin: 2mm 0;"><strong>• Health:</strong> Maintaining intestinal barrier function and preventing colonization by pathogens</li>
+    </ul>
+</div>
+
+<div class="section-header">WHAT IS DYSBIOSIS?</div>
+<div style="margin: 10mm 0;">
+    <p style="margin-bottom: 5mm;">Dysbiosis refers to an imbalance in the gut microbiome composition that can lead to:</p>
+    <ul style="list-style: none; padding-left: 5mm;">
+        <li style="margin: 2mm 0;">• Digestive disorders (colic, diarrhea, poor feed conversion)</li>
+        <li style="margin: 2mm 0;">• Increased susceptibility to infections</li>
+        <li style="margin: 2mm 0;">• Reduced nutrient absorption and weight loss</li>
+        <li style="margin: 2mm 0;">• Inflammatory conditions and metabolic dysfunction</li>
+    </ul>
+    
+    <div style="margin-top: 10mm; padding: 5mm; background-color: var(--gray-bg); border-radius: 5mm;">
+        <h4 style="margin-bottom: 5mm; color: var(--primary-blue);">Dysbiosis Index Interpretation:</h4>
+        <div style="margin: 2mm 0;"><span style="color: var(--green); font-weight: bold;">0-20:</span> Normal microbiome balance</div>
+        <div style="margin: 2mm 0;"><span style="color: orange; font-weight: bold;">21-50:</span> Mild dysbiosis - monitoring recommended</div>
+        <div style="margin: 2mm 0;"><span style="color: red; font-weight: bold;">51+:</span> Severe dysbiosis - intervention needed</div>
+    </div>
+</div>
+
+<div class="section-header">MAINTAINING MICROBIOME HEALTH</div>
+<div style="margin: 10mm 0;">
+    <div style="margin-bottom: 10mm;">
+        <h4 style="color: var(--primary-blue); margin-bottom: 3mm;">Dietary Considerations:</h4>
+        <ul style="list-style: none; padding-left: 5mm;">
+            <li style="margin: 2mm 0;">• Provide consistent, high-quality forage (pasture and hay)</li>
+            <li style="margin: 2mm 0;">• Minimize sudden dietary changes (transition over 7-14 days)</li>
+            <li style="margin: 2mm 0;">• Avoid excessive grain feeding and high-starch diets</li>
+            <li style="margin: 2mm 0;">• Consider prebiotic supplementation (FOS, MOS, psyllium)</li>
+        </ul>
+    </div>
+    
+    <div>
+        <h4 style="color: var(--primary-blue); margin-bottom: 3mm;">Management Practices:</h4>
+        <ul style="list-style: none; padding-left: 5mm;">
+            <li style="margin: 2mm 0;">• Reduce stress through consistent routines and socialization</li>
+            <li style="margin: 2mm 0;">• Limit unnecessary antibiotic use (use only when prescribed)</li>
+            <li style="margin: 2mm 0;">• Provide adequate exercise and daily turnout</li>
+            <li style="margin: 2mm 0;">• Monitor for signs of digestive upset (changes in appetite, manure)</li>
+        </ul>
+    </div>
+</div>
+
+<div class="footer">
+    <div class="footer-section">
+        <strong>HippoVet Laboratory</strong>
+        <div>Veterinary Microbiome Analysis Center</div>
+        <div>Accredited Laboratory - ISO 15189</div>
+    </div>
+    <div class="footer-section" style="text-align: center;">
+        <span class="page-number">5/5</span>
+    </div>
+    <div class="footer-section" style="text-align: right;">
+        <strong>MEMT LABORATORY</strong>
+        <div>Tel: +48 123 456 789</div>
+        <div>Email: lab@hippovet.com</div>
+    </div>
+</div>
