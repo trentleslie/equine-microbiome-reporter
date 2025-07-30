@@ -23,6 +23,7 @@ data/
 !manifest.csv
 !manifest_real_data.csv
 25_04_23 bact.csv
+prompts/
 
 # Generated reports
 #reports/
