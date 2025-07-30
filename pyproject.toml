@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Automated PDF report generation for equine gut microbiome analysis from 16S rRNA sequencing data"
 authors = ["HippoVet+"]
 readme = "README.md"
-packages = [{include = "*.py"}]
+packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
