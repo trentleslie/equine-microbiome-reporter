@@ -49,9 +49,9 @@ class CSVProcessor:
         species_list = []
         for _, row in filtered_df.iterrows():
             species_data = {
-                'species': row.get('Species', 'Unknown species'),
-                'genus': row.get('Genus', 'Unknown genus'),
-                'phylum': row.get('Phylum', 'Unknown phylum'),
+                'species': row.get('Species', row.get('species', 'Unknown species')),
+                'genus': row.get('Genus', row.get('genus', 'Unknown genus')),
+                'phylum': row.get('Phylum', row.get('phylum', 'Unknown phylum')),
                 'percentage': round(row['percentage'], 2),
                 'count': int(row[self.barcode_column])
             }
@@ -82,7 +82,7 @@ class CSVProcessor:
             'Fibrobacterota': (0.1, 5.0)
         }
         
-        dysbiosis_score = 0
+        dysbiosis_score = 0.0
         
         for phylum, (min_ref, max_ref) in reference_ranges.items():
             actual = phylum_dist.get(phylum, 0)
