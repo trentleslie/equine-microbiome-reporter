@@ -9,10 +9,6 @@ import os
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-# Add src to path for imports
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
 from src.csv_processor import CSVProcessor
 from src.data_models import MicrobiomeData
 

@@ -2,7 +2,7 @@
 name = "equine-microbiome-reporter"
 version = "0.1.0"
 description = "Automated PDF report generation for equine gut microbiome analysis from 16S rRNA sequencing data"
-authors = ["HippoVet+"]
+authors = ["HippoVet+ <noreply@hippovet.com>"]
 readme = "README.md"
 packages = [{include = "src"}]
 

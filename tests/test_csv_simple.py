@@ -7,9 +7,7 @@ import pandas as pd
 import os
 from pathlib import Path
 
-# Add project root to path
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+# Using installed package imports
 
 # Mock the data_models import to avoid circular dependencies
 class MockMicrobiomeData:
