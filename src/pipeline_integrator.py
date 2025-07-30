@@ -77,7 +77,8 @@ class MicrobiomePipelineIntegrator:
         converter = FASTQtoCSVConverter()
         df = converter.process_fastq_files(
             [fastq_file],
-            sample_names=[barcode_column.replace("barcode", "")]
+            sample_names=[barcode_column.replace("barcode", "")],
+            barcode_column=barcode_column
         )
         
         # Save CSV

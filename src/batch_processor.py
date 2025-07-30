@@ -136,8 +136,16 @@ class BatchProcessor:
                 return False, f"File not found: {csv_path}"
                 
             # Try to load with CSVProcessor
-            processor = CSVProcessor()
-            data = processor.process_csv(str(csv_path))
+            # First, auto-detect barcode column
+            import pandas as pd
+            df = pd.read_csv(csv_path)
+            barcode_columns = [col for col in df.columns if col.startswith('barcode')]
+            if not barcode_columns:
+                return False, "No barcode columns found in CSV"
+            
+            barcode_column = barcode_columns[0]  # Use first barcode column found
+            processor = CSVProcessor(str(csv_path), barcode_column)
+            data = processor.process()
             
             # Quality checks
             if data.total_species_count < self.config.min_species_count:
@@ -321,7 +329,8 @@ class BatchProcessor:
                     'patient_name': patient_info.name,
                     'success': success,
                     'output_file': str(output_path) if success else None,
-                    'processing_time': time.time() - start_time
+                    'processing_time': time.time() - start_time,
+                    'message': 'Report generated successfully' if success else 'Report generation failed'
                 })
                 
             except Exception as e:
@@ -330,6 +339,7 @@ class BatchProcessor:
                     'patient_name': patient_info.name,
                     'success': False,
                     'error': str(e),
+                    'message': f'Error: {str(e)}',
                     'processing_time': time.time() - start_time
                 })
             

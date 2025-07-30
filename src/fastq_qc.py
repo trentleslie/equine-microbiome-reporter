@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from Bio import SeqIO
-from Bio.SeqUtils import GC
+from Bio.SeqUtils import gc_fraction
 from collections import defaultdict
 from typing import Dict, Optional
 from pathlib import Path
@@ -61,7 +61,7 @@ class FASTQQualityControl:
             read_lengths.append(len(record.seq))
             
             # GC content
-            gc_contents.append(GC(record.seq))
+            gc_contents.append(gc_fraction(record.seq) * 100)
             
             # Base composition
             for base in str(record.seq):
