@@ -19,8 +19,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Current Architecture (Jinja2-based)
 
 ```bash
-# Install dependencies
+# Install dependencies (core)
 poetry install
+
+# Install with optional dependencies
+poetry install --with dev                    # Jupyter notebooks and development tools
+poetry install --with llm                   # LLM support (OpenAI, Anthropic, Gemini)
+poetry install --with translation           # Google Cloud Translation (API key required)
+poetry install --with translation-free      # Free translation services (no API key)
 
 # Activate virtual environment
 poetry shell
@@ -49,6 +55,19 @@ success = generator.generate_report(
 print('✅ Success!' if success else '❌ Failed!')
 "
 
+# Process FASTQ files (requires biopython)
+poetry run python -c "
+from src.pipeline_integrator import MicrobiomePipelineIntegrator
+from src.data_models import PatientInfo
+
+pipeline = MicrobiomePipelineIntegrator(output_dir='pipeline_output')
+patient = PatientInfo(name='Montana', sample_number='506')
+results = pipeline.process_sample('sample.fastq.gz', patient, language='en')
+"
+
+# Run interactive batch processing
+poetry run jupyter notebook notebooks/batch_processing.ipynb
+
 # Generate Polish report (Week 2)
 # generator = ReportGenerator(language='pl')
 
@@ -67,6 +86,38 @@ poetry run python legacy/enhanced_pdf_generator_en.py data/sample.csv -o reports
 
 # Legacy batch processing (to be updated for new architecture)
 poetry run python batch_processor.py -m manifest.csv -o reports/
+```
+
+### Testing and Quality Checks
+
+```bash
+# No formal test suite - validate by running generation commands
+# Check if dependencies work correctly
+poetry run python -c "import src.report_generator; print('✅ Core imports working')"
+
+# Validate sample data processing
+poetry run python -c "
+from src.csv_processor import CSVProcessor
+processor = CSVProcessor()
+try:
+    data = processor.load_csv('data/sample_1.csv', 'barcode59')  # Adjust barcode as needed
+    print(f'✅ CSV loaded: {len(data)} species')
+except Exception as e:
+    print(f'❌ CSV validation failed: {e}')
+"
+
+# Check template syntax
+poetry run python -c "
+from jinja2 import Environment, FileSystemLoader
+import os
+if os.path.exists('templates/en'):
+    env = Environment(loader=FileSystemLoader('templates/en'))
+    try:
+        template = env.get_template('report_full.j2')
+        print('✅ Template syntax valid')
+    except Exception as e:
+        print(f'❌ Template error: {e}')
+"
 ```
 
 ## Architecture Overview (v2 - Jinja2 Template System)
@@ -88,10 +139,16 @@ poetry run python batch_processor.py -m manifest.csv -o reports/
 - **Report Config** (`config/report_config.yaml`): Reference ranges, thresholds, laboratory info
 - **Template Selection**: Automatic language detection and template loading
 
-### 4. Legacy Components (being phased out)
-- **Enhanced PDF Generators** (`enhanced_pdf_generator*.py`): Original implementations for reference
-- **Batch Processor** (`batch_processor.py`): Will be updated to use new architecture
-- **Web Application** (`web_app.py`): Phase 2 enhancement
+### 4. Additional Components
+- **FASTQ Processing** (`src/fastq_qc.py`, `src/fastq_converter.py`): Complete pipeline from raw sequencing data
+- **LLM Integration** (`src/llm_recommendation_engine.py`): AI-powered clinical recommendations  
+- **Translation System** (`src/translation_service.py`, `src/template_translator.py`): Multi-language support
+- **Batch Processing** (`src/batch_processor.py`): Parallel processing with validation and progress tracking
+
+### 5. Legacy Components (being phased out)
+- **Enhanced PDF Generators** (`legacy/enhanced_pdf_generator*.py`): Original implementations for reference
+- **Legacy Batch Processor** (`batch_processor.py`): Root-level script being updated for new architecture
+- **Web Application** (`legacy/web_app.py`): Phase 2 enhancement
 
 ## New Processing Pipeline (Jinja2 Architecture)
 
@@ -143,9 +200,27 @@ REFERENCE_RANGES = {
 ```
 
 ### CSV Input Format Requirements:
-- Must contain columns: `species`, `phylum`, `genus`, and multiple `barcode[N]` columns
-- Species names should be in scientific format
-- Phylum names must match the reference ranges exactly
+
+**IMPORTANT**: The system supports two CSV formats. See `docs/csv_format_specification.md` for complete details.
+
+#### Quick Reference:
+- **Required columns**: `species`, `phylum`, `genus`, and at least one `barcode[N]` column
+- **Column names**: Case-sensitive in CSVProcessor (expects capitalized: 'Species', 'Phylum', 'Genus')
+  - Note: Current CSV files use lowercase, CSVProcessor handles with `.get()` fallback
+- **Barcode format**: `barcode` followed by number (e.g., barcode59, barcode45)
+- **Species names**: Scientific nomenclature (e.g., "Streptomyces albidoflavus")
+- **Phylum names**: Must match reference ranges exactly:
+  - `Actinomycetota` (0.1-8.0%)
+  - `Bacillota` (20.0-70.0%)
+  - `Bacteroidota` (4.0-40.0%)
+  - `Pseudomonadota` (2.0-35.0%)
+  - `Fibrobacterota` (0.1-5.0%)
+
+#### Validation Tool:
+```bash
+# Validate CSV format
+poetry run python scripts/validate_csv_format.py data/sample.csv [barcode_column]
+```
 
 ### New Data Models (Jinja2 Architecture):
 ```python
@@ -274,6 +349,11 @@ converter.convert_fastq_to_csv("sample.fastq.gz", "output.csv")
 - **"How do I configure settings?"** → `config/report_config.yaml`
 - **"Where are examples?"** → `notebooks/` directory has interactive examples
 - **"What about the old system?"** → `legacy/` directory (archived, not for new development)
+- **"How do I process FASTQ files?"** → Use `src/pipeline_integrator.py` or `notebooks/fastq_processing_pipeline.ipynb`
+- **"How do I use LLM recommendations?"** → Set up API keys, use `src/llm_recommendation_engine.py` or `notebooks/llm_recommendation_engine.ipynb`
+- **"How do I translate templates?"** → Use `notebooks/template_translation.ipynb`
+- **"Where are test reports?"** → `docs/test_reports/` for documentation, `temp/test_output/` for generated artifacts
+- **"Where are utility scripts?"** → `scripts/` for validation tools, `scripts/test_utilities/` for test runners
 
 ### Key Files to Know
 - **Main entry point**: `src/report_generator.py`
@@ -281,6 +361,9 @@ converter.convert_fastq_to_csv("sample.fastq.gz", "output.csv")
 - **Clinical logic**: `src/csv_processor.py` (dysbiosis calculation)
 - **PDF generation**: `src/pdf_builder.py`
 - **Configuration**: `config/report_config.yaml`
+- **FASTQ pipeline**: `src/pipeline_integrator.py`
+- **Batch processing**: `src/batch_processor.py`
+- **LLM recommendations**: `src/llm_recommendation_engine.py`
 
 ## Testing & Validation
 
