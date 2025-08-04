@@ -1,0 +1,27 @@
+{# Teal diagonal stripes decoration element #}
+
+{% macro diagonal_stripes(opacity=0.3, size="150mm", color="var(--light-teal)") %}
+<div class="diagonal-stripes" 
+     style="opacity: {{ opacity }}; 
+            width: {{ size }}; 
+            height: {{ size }};
+            background: repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 10mm,
+                {{ color }} 10mm,
+                {{ color }} 15mm
+            );"></div>
+{% endmacro %}
+
+{# DNA background element #}
+{% macro dna_background(opacity=0.1) %}
+<div class="dna-background" 
+     style="background: linear-gradient(to top, rgba(20, 184, 166, {{ opacity }}), transparent);"></div>
+{% endmacro %}
+
+{# Combined decorative elements for title page #}
+{% macro title_page_decorations(stripe_opacity=0.3, dna_opacity=0.1) %}
+{{ diagonal_stripes(stripe_opacity) }}
+{{ dna_background(dna_opacity) }}
+{% endmacro %}

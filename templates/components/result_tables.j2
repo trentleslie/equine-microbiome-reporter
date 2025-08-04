@@ -1,0 +1,76 @@
+{# Laboratory result table components #}
+
+{# Generic result table #}
+{% macro result_table(results, headers, table_class="lab-results-table") %}
+<table class="{{ table_class }}">
+    <thead>
+        <tr>
+            {% for header in headers %}
+            <th>{{ header }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for result in results %}
+        <tr>
+            {% for key in headers %}
+            <td>{{ result.get(key.lower().replace(' ', '_'), '-') }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endmacro %}
+
+{# Parasite examination results #}
+{% macro parasite_results_table(parasite_results) %}
+{{ result_table(
+    parasite_results, 
+    ['Parasite', 'Method', 'Result', 'Comments'],
+    'parasite-table'
+) }}
+{% endmacro %}
+
+{# Microscopic examination results #}
+{% macro microscopic_results_table(microscopic_results) %}
+{{ result_table(
+    microscopic_results,
+    ['Parameter', 'Observation', 'Assessment'],
+    'microscopic-table'
+) }}
+{% endmacro %}
+
+{# Biochemical analysis results #}
+{% macro biochemical_results_table(biochemical_results) %}
+{{ result_table(
+    biochemical_results,
+    ['Test', 'Value', 'Reference Range', 'Unit'],
+    'biochemical-table'
+) }}
+{% endmacro %}
+
+{# Comprehensive lab results section #}
+{% macro lab_results_section(microbiome_data) %}
+<div class="lab-results-section">
+    {% if microbiome_data.parasite_results %}
+    <div class="result-subsection">
+        <h4>Parasitological Examination</h4>
+        {{ parasite_results_table(microbiome_data.parasite_results) }}
+    </div>
+    {% endif %}
+    
+    {% if microbiome_data.microscopic_results %}
+    <div class="result-subsection">
+        <h4>Microscopic Examination</h4>
+        {{ microscopic_results_table(microbiome_data.microscopic_results) }}
+    </div>
+    {% endif %}
+    
+    {% if microbiome_data.biochemical_results %}
+    <div class="result-subsection">
+        <h4>Biochemical Analysis</h4>
+        {{ biochemical_results_table(microbiome_data.biochemical_results) }}
+    </div>
+    {% endif %}
+</div>
+{% endmacro %}

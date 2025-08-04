@@ -24,9 +24,11 @@ data/
 !manifest_real_data.csv
 25_04_23 bact.csv
 prompts/
+!notebooks/enhanced_results/combined_abundance_montana.csv
+!notebooks/enhanced_results/processed_abundance.csv
 
 # Generated reports
-#reports/
+reports/
 #*.pdf
 
 # IDE

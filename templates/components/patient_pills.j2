@@ -1,0 +1,46 @@
+{# Reusable patient information pill components #}
+
+{# Main patient pill row with name, species, age, sample number #}
+{% macro patient_basic_info(patient) %}
+<div class="pill-row">
+    <span class="pill-label">Patient Name:</span>
+    <span class="pill-box">{{ patient.name }}</span>
+    <span class="pill-label">Species and Age:</span>
+    <span class="pill-box">{{ patient.species }}, {{ patient.age }}</span>
+    <span class="pill-label">Test Number:</span>
+    <span class="pill-box">{{ patient.sample_number }}</span>
+</div>
+{% endmacro %}
+
+{# Date information pills #}
+{% macro patient_dates(patient) %}
+<div class="pill-row">
+    <span class="pill-label">Material Received:</span>
+    <span class="pill-box">{{ patient.date_received }}</span>
+    <span class="pill-label">Analysis Date:</span>
+    <span class="pill-box">{{ patient.date_analyzed }}</span>
+</div>
+{% endmacro %}
+
+{# Personnel information pills #}
+{% macro patient_personnel(patient) %}
+<div class="pill-row">
+    <span class="pill-label">Performed by:</span>
+    <span class="pill-box">{{ patient.performed_by }}</span>
+    <span class="pill-label">Requested by:</span>
+    <span class="pill-box">{{ patient.requested_by }}</span>
+</div>
+{% endmacro %}
+
+{# Complete patient information block #}
+{% macro patient_info_block(patient) %}
+<div class="patient-info-section">
+    {{ patient_basic_info(patient) }}
+    <div style="margin-top: 20mm;">
+        {{ patient_dates(patient) }}
+    </div>
+    <div style="margin-top: 20mm;">
+        {{ patient_personnel(patient) }}
+    </div>
+</div>
+{% endmacro %}

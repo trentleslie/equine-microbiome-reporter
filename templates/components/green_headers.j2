@@ -1,0 +1,33 @@
+{# Green section header components #}
+
+{# Standard green section header #}
+{% macro section_header(title, uppercase=true) %}
+<div class="section-header">
+    {% if uppercase %}
+        {{ title|upper }}
+    {% else %}
+        {{ title }}
+    {% endif %}
+</div>
+{% endmacro %}
+
+{# Section header with icon support #}
+{% macro section_header_with_icon(title, icon_class=None, uppercase=true) %}
+<div class="section-header">
+    {% if icon_class %}
+        <i class="{{ icon_class }}"></i>
+    {% endif %}
+    {% if uppercase %}
+        {{ title|upper }}
+    {% else %}
+        {{ title }}
+    {% endif %}
+</div>
+{% endmacro %}
+
+{# Subsection header (smaller, different styling) #}
+{% macro subsection_header(title) %}
+<div class="subsection-header">
+    {{ title }}
+</div>
+{% endmacro %}

@@ -1,0 +1,27 @@
+{# Page footer with logo and page numbering #}
+
+{% macro page_footer(page_number, total_pages, lab_name="MEMT LABORATORY", logo_path=None) %}
+<div class="page-footer">
+    <div class="footer-left">
+        {% if logo_path %}
+        <img src="{{ logo_path }}" alt="Logo" class="logo">
+        {% endif %}
+    </div>
+    <div class="footer-center">
+        <div class="page-number">{{ page_number }}/{{ total_pages }}</div>
+    </div>
+    <div class="footer-right">
+        <strong class="lab-name">{{ lab_name }}</strong>
+    </div>
+</div>
+{% endmacro %}
+
+{# Simplified footer for title page #}
+{% macro title_page_footer(logo_path=None, lab_name="MEMT LABORATORY") %}
+{{ page_footer(1, 5, lab_name, logo_path) }}
+{% endmacro %}
+
+{# Content page footer #}
+{% macro content_page_footer(page_number, logo_path=None, lab_name="MEMT LABORATORY") %}
+{{ page_footer(page_number, 5, lab_name, logo_path) }}
+{% endmacro %}

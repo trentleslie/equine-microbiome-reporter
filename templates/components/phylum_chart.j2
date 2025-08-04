@@ -1,0 +1,84 @@
+{# Phylum distribution chart with reference ranges #}
+
+{% macro phylum_reference_chart(phylum_data, reference_ranges) %}
+<div class="phylum-reference-chart">
+    {% for phylum, percentage in phylum_data.items() %}
+        {% set ref_range = reference_ranges.get(phylum, [0, 100]) %}
+        {% set min_ref = ref_range[0] %}
+        {% set max_ref = ref_range[1] %}
+        
+        <div class="phylum-row">
+            <div class="phylum-name">{{ phylum }}</div>
+            <div class="reference-bar-container">
+                {# Reference range background #}
+                <div class="reference-range" 
+                     style="left: {{ min_ref }}%; width: {{ max_ref - min_ref }}%; background: rgba(16, 185, 129, 0.2);"></div>
+                
+                {# Actual value bar #}
+                <div class="actual-value-bar" 
+                     style="width: {{ percentage }}%; 
+                            background: {% if percentage >= min_ref and percentage <= max_ref %}var(--green){% else %}#EF4444{% endif %};"></div>
+                
+                {# Value labels #}
+                <div class="value-labels">
+                    <span class="ref-min">{{ min_ref }}%</span>
+                    <span class="ref-max">{{ max_ref }}%</span>
+                    <span class="actual-value" style="left: {{ percentage }}%;">{{ "%.1f"|format(percentage) }}%</span>
+                </div>
+            </div>
+            
+            {# Status indicator #}
+            <div class="status-indicator">
+                {% if percentage >= min_ref and percentage <= max_ref %}
+                    <span class="status-badge status-normal">Normal</span>
+                {% elif percentage < min_ref %}
+                    <span class="status-badge status-low">Low</span>
+                {% else %}
+                    <span class="status-badge status-high">High</span>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endmacro %}
+
+{# Simple phylum pie chart data preparation #}
+{% macro phylum_pie_data(phylum_data) %}
+<div class="phylum-pie-chart">
+    {% set colors = ['#1E3A8A', '#14B8A6', '#10B981', '#60A5FA', '#A78BFA', '#F59E0B', '#EF4444'] %}
+    {% for phylum, percentage in phylum_data.items() %}
+        {% set color = colors[loop.index0 % colors|length] %}
+        <div class="pie-segment" data-value="{{ percentage }}" data-color="{{ color }}" data-label="{{ phylum }}"></div>
+    {% endfor %}
+</div>
+{% endmacro %}
+
+{# Phylum summary table #}
+{% macro phylum_summary_table(phylum_data, reference_ranges) %}
+<table class="phylum-summary-table">
+    <thead>
+        <tr>
+            <th>Phylum</th>
+            <th>Observed (%)</th>
+            <th>Reference Range (%)</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for phylum, percentage in phylum_data.items() %}
+            {% set ref_range = reference_ranges.get(phylum, [0, 100]) %}
+            {% set status = 'normal' if percentage >= ref_range[0] and percentage <= ref_range[1] else ('low' if percentage < ref_range[0] else 'high') %}
+            <tr>
+                <td>{{ phylum }}</td>
+                <td>{{ "%.2f"|format(percentage) }}</td>
+                <td>{{ ref_range[0] }} - {{ ref_range[1] }}</td>
+                <td>
+                    <span class="status-badge status-{{ status }}">
+                        {% if status == 'normal' %}Normal{% elif status == 'low' %}Below Range{% else %}Above Range{% endif %}
+                    </span>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endmacro %}

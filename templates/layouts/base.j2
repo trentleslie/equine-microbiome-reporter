@@ -1,0 +1,73 @@
+{# Enhanced base layout with component system #}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Microbiome Report{% endblock %}</title>
+    
+    {# Import component CSS styles #}
+    <style>
+        /* Base reset and page setup */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            color: #1F2937;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* CSS Variables */
+        :root {
+            --primary-blue: #1E3A8A;
+            --dark-blue: #0F172A;
+            --teal: #14B8A6;
+            --light-teal: #5EEAD4;
+            --green: #10B981;
+            --gray-bg: #F8FAFC;
+            --light-gray: #F3F4F6;
+            --text-dark: #1F2937;
+            --text-light: #6B7280;
+            --white: #FFFFFF;
+            --border-gray: #E5E7EB;
+        }
+        
+        /* Page structure */
+        .page {
+            page-break-after: always;
+            width: 210mm;
+            height: 297mm;
+            position: relative;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .page:last-child {
+            page-break-after: avoid;
+        }
+        
+        /* Import component styles */
+        {% include 'components/styles/pill_styles.css' ignore missing %}
+        {% include 'components/styles/header_styles.css' ignore missing %}
+        {% include 'components/styles/chart_styles.css' ignore missing %}
+        {% include 'components/styles/table_styles.css' ignore missing %}
+        {% include 'components/styles/decoration_styles.css' ignore missing %}
+        
+        /* Page-specific styles */
+        {% block page_styles %}{% endblock %}
+    </style>
+</head>
+<body>
+    {% block content %}{% endblock %}
+</body>
+</html>

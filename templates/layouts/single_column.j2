@@ -1,0 +1,46 @@
+{# Single column layout for pages 2-4 #}
+{% extends "layouts/base.j2" %}
+
+{% block content %}
+<div class="page single-column-page">
+    {# Page header #}
+    <div class="content-header">
+        {% block page_header %}{% endblock %}
+    </div>
+    
+    {# Main content area #}
+    <div class="content-area">
+        {% block main_content %}{% endblock %}
+    </div>
+    
+    {# Page footer #}
+    {% block page_footer %}{% endblock %}
+</div>
+{% endblock %}
+
+{% block page_styles %}
+.single-column-page .content-header {
+    background-color: var(--gray-bg);
+    padding: 15mm 25mm;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-gray);
+}
+
+.single-column-page .content-area {
+    padding: 20mm 25mm 40mm 25mm;
+    position: relative;
+}
+
+.single-column-page .section-header {
+    background-color: var(--green);
+    color: var(--white);
+    padding: 10px 25mm;
+    margin: 0 -25mm 15mm -25mm;
+    font-weight: 700;
+    font-size: 16pt;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+{% endblock %}
