@@ -19,11 +19,21 @@ from abc import ABC, abstractmethod
 from dotenv import load_dotenv
 
 from .clinical_templates import ClinicalTemplate, ClinicalScenario, get_template
+from .hippovet_clinical_templates import (
+    HippoVetClinicalTemplate, 
+    ClinicalScenario as HippoVetScenario,
+    get_hippovet_template,
+    select_hippovet_scenario,
+    generate_hippovet_context_prompt,
+    HIPPOVET_SUPPLEMENTS
+)
 from .data_models import MicrobiomeData, PatientInfo
 from .template_selector import TemplateSelector
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from project root
+project_root = Path(__file__).parent.parent
+env_path = project_root / '.env'
+load_dotenv(env_path)
 
 logger = logging.getLogger(__name__)
 
@@ -477,52 +487,192 @@ Format your response as a structured JSON object with the following keys:
         
         return result
     
-    def process_sample(
+    def generate_hippovet_recommendations(
         self,
+        template: HippoVetClinicalTemplate,
         microbiome_data: MicrobiomeData,
         patient_info: PatientInfo,
         clinical_history: Optional[Dict] = None
     ) -> Dict[str, Any]:
-        """Complete pipeline for generating recommendations"""
+        """Generate recommendations using HippoVet+ clinical protocols"""
         
-        # Select appropriate template
-        selected_scenario = self.template_selector.select_template(
-            microbiome_data,
-            patient_info,
-            clinical_history
-        )
-        selected_template = get_template(selected_scenario)
+        # If LLM is enabled, enhance with AI
+        if self.enabled:
+            try:
+                # Generate context prompt using HippoVet+ template
+                context_prompt = generate_hippovet_context_prompt(template, patient_info.name)
+                
+                # Add microbiome-specific details
+                microbiome_context = f"""
+CURRENT MICROBIOME STATUS:
+• Dysbiosis Index: {microbiome_data.dysbiosis_index}
+• Category: {microbiome_data.dysbiosis_category}
+• Phylum Distribution:
+{chr(10).join(f'  - {phylum}: {percentage:.1f}%' for phylum, percentage in microbiome_data.phylum_distribution.items())}
+• Total Species Count: {microbiome_data.total_species_count}
+"""
+                
+                full_prompt = context_prompt + microbiome_context
+                
+                if clinical_history:
+                    full_prompt += f"\nCLINICAL HISTORY: {clinical_history}"
+                
+                # Generate LLM response
+                response = self.provider.generate(full_prompt)
+                
+                if response:
+                    # Parse LLM response and combine with template
+                    recommendations = self._parse_hippovet_llm_response(response, template)
+                    recommendations["llm_generated"] = True
+                    recommendations["from_cache"] = False
+                    return recommendations
+                    
+            except Exception as e:
+                logger.warning(f"LLM generation failed, using template: {e}")
         
-        # Calculate confidence
-        confidence = self.template_selector.calculate_confidence(
-            microbiome_data,
-            selected_scenario
-        )
-        
-        # Generate recommendations
-        recommendations = self.generate_recommendations(
-            selected_template,
-            microbiome_data,
-            patient_info,
-            additional_context=str(clinical_history) if clinical_history else None
-        )
-        
-        # Combine all results
+        # Fallback to template-based recommendations
         return {
-            "patient_info": patient_info.__dict__,
-            "microbiome_analysis": {
-                "dysbiosis_index": microbiome_data.dysbiosis_index,
-                "category": microbiome_data.dysbiosis_category,
-                "phylum_distribution": microbiome_data.phylum_distribution,
-                "total_species": microbiome_data.total_species_count
-            },
-            "template_info": {
-                "scenario": selected_scenario.value,
-                "title": selected_template.title,
-                "confidence": confidence
-            },
-            "recommendations": recommendations
+            "llm_generated": False,
+            "clinical_interpretation": template.clinical_significance,
+            "dietary_modifications": template.dietary_modifications,
+            "supplement_protocol": template.supplement_protocol,
+            "management_changes": template.management_changes,
+            "monitoring_plan": template.monitoring_plan,
+            "follow_up": template.follow_up_timeline,
+            "clinical_notes": template.clinical_notes,
+            "key_findings": template.key_findings,
+            "possible_symptoms": template.possible_symptoms
         }
+    
+    def _parse_hippovet_llm_response(self, response: str, template: HippoVetClinicalTemplate) -> Dict[str, Any]:
+        """Parse LLM response into structured HippoVet+ format"""
+        result = {
+            "llm_generated": True,
+            "clinical_interpretation": template.clinical_significance,
+            "dietary_modifications": template.dietary_modifications.copy(),
+            "supplement_protocol": template.supplement_protocol.copy(),
+            "management_changes": template.management_changes.copy(),
+            "monitoring_plan": template.monitoring_plan,
+            "follow_up": template.follow_up_timeline,
+            "clinical_notes": template.clinical_notes,
+            "key_findings": template.key_findings,
+            "possible_symptoms": template.possible_symptoms
+        }
+        
+        # Parse LLM response for enhancements
+        lines = response.split('\n')
+        current_section = None
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+                
+            # Identify sections
+            if "DIETARY MODIFICATIONS" in line.upper():
+                current_section = "dietary_modifications"
+                result[current_section] = []
+            elif "SUPPLEMENT PROTOCOL" in line.upper():
+                current_section = "supplement_protocol"
+                result[current_section] = []
+            elif "MANAGEMENT CHANGES" in line.upper():
+                current_section = "management_changes"
+                result[current_section] = []
+            elif "MONITORING PLAN" in line.upper():
+                current_section = "monitoring_plan"
+            elif "FOLLOW-UP" in line.upper():
+                current_section = "follow_up"
+            elif line.startswith(('•', '-', '1.', '2.', '3.', '4.', '5.')):
+                # Extract recommendation items
+                if current_section in ["dietary_modifications", "supplement_protocol", "management_changes"]:
+                    clean_line = line.lstrip('•-123456789. ').strip()
+                    if clean_line:
+                        result[current_section].append(clean_line)
+            elif current_section in ["monitoring_plan", "follow_up"] and line:
+                result[current_section] = line
+        
+        return result
+    
+    def process_sample(
+        self,
+        microbiome_data: MicrobiomeData,
+        patient_info: PatientInfo,
+        clinical_history: Optional[Dict] = None,
+        use_hippovet_templates: bool = True
+    ) -> Dict[str, Any]:
+        """Complete pipeline for generating recommendations using HippoVet+ clinical protocols"""
+        
+        if use_hippovet_templates:
+            # Use HippoVet+ clinical templates
+            selected_scenario = select_hippovet_scenario(
+                microbiome_data.phylum_distribution,
+                microbiome_data.dysbiosis_index
+            )
+            selected_template = get_hippovet_template(selected_scenario)
+            
+            # Generate HippoVet+ specific recommendations
+            recommendations = self.generate_hippovet_recommendations(
+                selected_template,
+                microbiome_data,
+                patient_info,
+                clinical_history
+            )
+            
+            return {
+                "patient_info": patient_info.__dict__,
+                "microbiome_analysis": {
+                    "dysbiosis_index": microbiome_data.dysbiosis_index,
+                    "category": microbiome_data.dysbiosis_category,
+                    "phylum_distribution": microbiome_data.phylum_distribution,
+                    "total_species": microbiome_data.total_species_count
+                },
+                "template_info": {
+                    "scenario": selected_scenario.value,
+                    "title": selected_template.title,
+                    "dysbiosis_level": selected_template.dysbiosis_level.value,
+                    "confidence": 0.95  # High confidence with HippoVet+ templates
+                },
+                "recommendations": recommendations
+            }
+        else:
+            # Legacy template system
+            selected_scenario = self.template_selector.select_template(
+                microbiome_data,
+                patient_info,
+                clinical_history
+            )
+            selected_template = get_template(selected_scenario)
+            
+            # Calculate confidence
+            confidence = self.template_selector.calculate_confidence(
+                microbiome_data,
+                selected_scenario
+            )
+            
+            # Generate recommendations
+            recommendations = self.generate_recommendations(
+                selected_template,
+                microbiome_data,
+                patient_info,
+                additional_context=str(clinical_history) if clinical_history else None
+            )
+            
+            # Combine all results
+            return {
+                "patient_info": patient_info.__dict__,
+                "microbiome_analysis": {
+                    "dysbiosis_index": microbiome_data.dysbiosis_index,
+                    "category": microbiome_data.dysbiosis_category,
+                    "phylum_distribution": microbiome_data.phylum_distribution,
+                    "total_species": microbiome_data.total_species_count
+                },
+                "template_info": {
+                    "scenario": selected_scenario.value,
+                    "title": selected_template.title,
+                    "confidence": confidence
+                },
+                "recommendations": recommendations
+            }
 
 
 # Convenience function for quick setup
