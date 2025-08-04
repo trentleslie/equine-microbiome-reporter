@@ -21,6 +21,8 @@ openpyxl = "^3.1.0"  # For Excel export/import
 python-dotenv = "^1.0.0"  # For environment configuration
 biopython = "^1.84.0"  # For FASTQ parsing and bioinformatics
 seaborn = "^0.13.0"  # For enhanced plotting
+psutil = "^7.0.0"
+scipy = "^1.11.0"  # For statistical analysis and correlation validation
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"
