@@ -26,6 +26,12 @@ try:
 except ImportError:
     GOOGLETRANS_AVAILABLE = False
 
+try:
+    from deep_translator import GoogleTranslator as DeepGoogleTranslator
+    DEEP_TRANSLATOR_AVAILABLE = True
+except ImportError:
+    DEEP_TRANSLATOR_AVAILABLE = False
+
 
 @dataclass
 class GlossaryEntry:
@@ -306,19 +312,25 @@ class GoogleCloudTranslationService(TranslationService):
 
 
 class FreeTranslationService(TranslationService):
-    """Translation service using free googletrans library"""
+    """Translation service using free translation libraries"""
     
     def __init__(self, cache_dir: Optional[Path] = None):
         super().__init__(cache_dir)
         
-        if not GOOGLETRANS_AVAILABLE:
-            raise ImportError("googletrans not available. "
+        # Prefer deep-translator as it's more reliable
+        if DEEP_TRANSLATOR_AVAILABLE:
+            self.translator_type = "deep_translator"
+            print("Using deep-translator for free translation service")
+        elif GOOGLETRANS_AVAILABLE:
+            self.translator_type = "googletrans"
+            self.translator = GoogleTransFree()
+            print("Using googletrans for free translation service")
+        else:
+            raise ImportError("No free translation library available. "
                             "Install with: poetry install --with translation-free")
-        
-        self.translator = GoogleTransFree()
     
     def translate_text(self, text: str, target_language: str) -> str:
-        """Translate text using googletrans"""
+        """Translate text using available free translation service"""
         # Check cache first
         cache_key = self._get_cache_key(text, target_language)
         if cache_key in self.cache.get(target_language, {}):
@@ -330,10 +342,26 @@ class FreeTranslationService(TranslationService):
         # Apply glossary
         processed_text, term_placeholders = self._apply_glossary(processed_text, target_language)
         
-        # Translate
+        # Translate using appropriate service
         try:
-            result = self.translator.translate(processed_text, src='en', dest=target_language)
-            translated_text = result.text
+            if self.translator_type == "deep_translator":
+                # Use deep-translator (more reliable)
+                translator = DeepGoogleTranslator(source='en', target=target_language)
+                translated_text = translator.translate(processed_text)
+            else:
+                # Use googletrans (fallback)
+                result = self.translator.translate(processed_text, src='en', dest=target_language)
+                
+                # Handle both sync and async results
+                if hasattr(result, 'text'):
+                    translated_text = result.text
+                elif hasattr(result, 'result'):
+                    translated_text = result.result
+                else:
+                    # Fallback: return original text if translation fails
+                    print(f"Translation warning: Unexpected result format, returning original text")
+                    translated_text = processed_text
+                
         except Exception as e:
             print(f"Translation error: {e}")
             return text

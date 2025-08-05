@@ -11,7 +11,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 
-from .translation_service import TranslationService, get_translation_service
+from translation_service import TranslationService, get_translation_service
 
 
 class TemplateTranslationWorkflow:
