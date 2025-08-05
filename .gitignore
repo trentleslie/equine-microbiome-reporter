@@ -49,3 +49,4 @@ tmp/
 .env
 .env.local
 .env.production
+notebooks/translation_cache/
