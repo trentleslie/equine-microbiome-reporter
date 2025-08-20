@@ -6,7 +6,10 @@ Converts CSV files to MicrobiomeData objects
 import pandas as pd
 import numpy as np
 from typing import Dict, List, Tuple
-from .data_models import MicrobiomeData
+try:
+    from .data_models import MicrobiomeData
+except ImportError:
+    from data_models import MicrobiomeData
 
 
 class CSVProcessor:
@@ -88,9 +91,9 @@ class CSVProcessor:
             actual = phylum_dist.get(phylum, 0)
             
             if actual < min_ref:
-                dysbiosis_score += (min_ref - actual) / min_ref * 100
+                dysbiosis_score += (min_ref - actual) / min_ref * 18
             elif actual > max_ref:
-                dysbiosis_score += (actual - max_ref) / max_ref * 100
+                dysbiosis_score += (actual - max_ref) / max_ref * 18
         
         return round(dysbiosis_score, 1)
     

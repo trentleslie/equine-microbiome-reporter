@@ -147,14 +147,14 @@ def generate_simple_pdf_report(csv_path: str, patient_info: PatientInfo, output_
         bool: True if successful
     """
     try:
-        # Use the NotebookPDFGenerator for professional template-based reports
-        from notebook_pdf_generator import NotebookPDFGenerator
+        # Use the new ReportGenerator with working visualizations
+        from report_generator import ReportGenerator
         import logging
         
         logger = logging.getLogger(__name__)
-        logger.info(f"Generating professional PDF report for {patient_info.name}")
+        logger.info(f"Generating professional PDF report with charts for {patient_info.name}")
         
-        generator = NotebookPDFGenerator(language="en")
+        generator = ReportGenerator(language="en", template_name="simple_report.j2")
         success = generator.generate_report(csv_path, patient_info, output_path, barcode_column)
         
         if success:

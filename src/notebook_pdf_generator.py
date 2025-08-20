@@ -177,9 +177,9 @@ class NotebookPDFGenerator:
             if phylum in reference_ranges:
                 min_val, max_val = reference_ranges[phylum]
                 if percentage < min_val:
-                    dysbiosis_score += (min_val - percentage) / min_val * 100
+                    dysbiosis_score += (min_val - percentage) / min_val * 18
                 elif percentage > max_val:
-                    dysbiosis_score += (percentage - max_val) / max_val * 100
+                    dysbiosis_score += (percentage - max_val) / max_val * 18
             else:
                 # Unknown phylum contributes to dysbiosis
                 dysbiosis_score += percentage * 0.1

@@ -10,7 +10,10 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 import logging
 
-from .data_models import MicrobiomeData
+try:
+    from .data_models import MicrobiomeData
+except ImportError:
+    from data_models import MicrobiomeData
 
 logger = logging.getLogger(__name__)
 
@@ -31,18 +34,26 @@ class ChartGenerator:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
         
-        # Set professional style
+        # Set professional medical report style
         plt.style.use('seaborn-v0_8-whitegrid')
         
-        # Set default font sizes
+        # Enhanced font settings for professional medical charts
         plt.rcParams.update({
-            'font.size': 10,
-            'axes.titlesize': 14,
-            'axes.labelsize': 12,
-            'xtick.labelsize': 10,
-            'ytick.labelsize': 10,
-            'legend.fontsize': 10,
-            'figure.dpi': 300
+            'font.family': 'sans-serif',
+            'font.sans-serif': ['Arial', 'Helvetica', 'DejaVu Sans'],
+            'font.size': 11,
+            'axes.titlesize': 16,
+            'axes.labelsize': 13,
+            'xtick.labelsize': 11,
+            'ytick.labelsize': 11,
+            'legend.fontsize': 11,
+            'figure.dpi': 300,
+            'savefig.dpi': 300,
+            'savefig.bbox': 'tight',
+            'axes.linewidth': 1.2,
+            'axes.edgecolor': '#2F2F2F',
+            'grid.alpha': 0.3,
+            'grid.linewidth': 0.8
         })
     
     def generate_all_charts(self, data: MicrobiomeData) -> Dict[str, str]:
@@ -66,8 +77,10 @@ class ChartGenerator:
         # Get top 20 species
         top_species = data.species_list[:20]
         
-        # Create figure
-        fig, ax = plt.subplots(figsize=(10, 8))
+        # Create professional figure with optimal dimensions
+        fig, ax = plt.subplots(figsize=(12, 9))
+        fig.patch.set_facecolor('white')
+        ax.set_facecolor('#FAFBFC')
         
         # Prepare data
         species_names = []
@@ -87,14 +100,21 @@ class ChartGenerator:
         # Create gradient colors based on phylum
         colors = [PHYLUM_COLORS.get(phylum, PHYLUM_COLORS['Other']) for phylum in phyla]
         
-        # Create bars
+        # Create professional gradient bars
         y_positions = np.arange(len(species_names))
-        bars = ax.barh(y_positions, percentages, color=colors, alpha=0.8)
+        bars = ax.barh(y_positions, percentages, color=colors, alpha=0.85, height=0.7)
         
-        # Add percentage labels
+        # Add subtle background effect for depth
+        for i in range(len(species_names)):
+            ax.barh(y_positions[i], percentages[i], color='#E5E7EB', 
+                   alpha=0.2, height=0.7, zorder=0)
+        
+        # Add enhanced percentage labels with better positioning
         for i, (bar, pct) in enumerate(zip(bars, percentages)):
-            ax.text(bar.get_width() + 0.1, bar.get_y() + bar.get_height()/2, 
-                    f'{pct:.2f}%', va='center', fontsize=9)
+            label_x = bar.get_width() + max(percentages) * 0.01
+            ax.text(label_x, bar.get_y() + bar.get_height()/2, 
+                    f'{pct:.1f}%', va='center', ha='left', 
+                    fontsize=10, fontweight='600', color='#374151')
         
         # Customize axes
         ax.set_yticks(y_positions)
@@ -102,14 +122,14 @@ class ChartGenerator:
                           fontsize=9)
         ax.set_xlabel('Percentage (%)')
         ax.set_title('MICROBIOTIC PROFILE - Top Species Distribution', 
-                    fontweight='bold', pad=20)
+                    fontweight='bold', pad=25, fontsize=18, color='#1F2937')
         
         # Add grid
         ax.grid(axis='x', alpha=0.3)
         ax.set_axisbelow(True)
         
-        # Set x-axis limit
-        ax.set_xlim(0, max(percentages) * 1.15)
+        # Set x-axis limit with proper margin for labels
+        ax.set_xlim(0, max(percentages) * 1.2)
         
         # Remove top and right spines
         ax.spines['top'].set_visible(False)
@@ -117,16 +137,19 @@ class ChartGenerator:
         
         plt.tight_layout()
         
-        # Save
+        # Save with enhanced quality settings
         output_path = self.output_dir / "species_distribution.png"
-        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+        plt.savefig(output_path, dpi=300, bbox_inches='tight', 
+                   facecolor='white', edgecolor='none', pad_inches=0.2)
         plt.close()
         
-        return str(output_path.absolute())
+        return f"temp_charts/{output_path.name}"
     
     def _create_phylum_distribution_chart(self, data: MicrobiomeData) -> str:
         """Create horizontal bar chart showing phylum distribution with reference ranges"""
-        fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots(figsize=(12, 7))
+        fig.patch.set_facecolor('white')
+        ax.set_facecolor('#FAFBFC')
         
         # Get phylum data
         phyla = list(data.phylum_distribution.keys())
@@ -141,32 +164,43 @@ class ChartGenerator:
             'Fibrobacterota': (0.1, 5.0)
         }
         
-        # Create bars
+        # Create professional bars with enhanced styling
         y_positions = np.arange(len(phyla))
-        bars = ax.barh(y_positions, percentages, height=0.6, 
-                      color=[PHYLUM_COLORS.get(p, PHYLUM_COLORS['Other']) for p in phyla],
-                      alpha=0.8)
+        colors = [PHYLUM_COLORS.get(p, PHYLUM_COLORS['Other']) for p in phyla]
+        bars = ax.barh(y_positions, percentages, height=0.65, 
+                      color=colors, alpha=0.85, edgecolor='white', linewidth=1.5)
         
-        # Add reference range indicators
+        # Add subtle gradient backgrounds
+        for i, color in enumerate(colors):
+            ax.barh(y_positions[i], percentages[i], height=0.65,
+                   color=color, alpha=0.15, zorder=0)
+        
+        # Enhanced reference range indicators with professional styling
         for i, phylum in enumerate(phyla):
             if phylum in reference_ranges:
                 ref_min, ref_max = reference_ranges[phylum]
-                # Draw reference range as a line
-                ax.plot([ref_min, ref_max], [i, i], 'k-', linewidth=8, alpha=0.2, zorder=0)
-                ax.plot([ref_min, ref_min], [i-0.2, i+0.2], 'k-', linewidth=2, alpha=0.5)
-                ax.plot([ref_max, ref_max], [i-0.2, i+0.2], 'k-', linewidth=2, alpha=0.5)
+                # Draw reference range as enhanced background
+                ax.fill_betweenx([i-0.25, i+0.25], ref_min, ref_max, 
+                                color='#6B7280', alpha=0.15, zorder=1)
+                # Add range markers
+                ax.plot([ref_min, ref_max], [i, i], color='#374151', 
+                       linewidth=3, alpha=0.6, zorder=2)
+                ax.scatter([ref_min, ref_max], [i, i], color='#374151', 
+                          s=40, alpha=0.8, zorder=3)
         
-        # Add percentage labels
+        # Add enhanced percentage labels
         for i, (bar, pct) in enumerate(zip(bars, percentages)):
-            ax.text(bar.get_width() + 0.5, bar.get_y() + bar.get_height()/2,
-                    f'{pct:.1f}%', va='center', fontweight='bold')
+            label_x = bar.get_width() + 1.0
+            ax.text(label_x, bar.get_y() + bar.get_height()/2,
+                    f'{pct:.1f}%', va='center', ha='left', 
+                    fontsize=12, fontweight='700', color='#1F2937')
         
         # Customize axes
         ax.set_yticks(y_positions)
         ax.set_yticklabels(phyla, fontsize=11, fontweight='bold')
         ax.set_xlabel('Percentage (%)', fontsize=12)
         ax.set_title('PHYLUM DISTRIBUTION IN GUT MICROFLORA', 
-                    fontweight='bold', fontsize=14, pad=20)
+                    fontweight='bold', fontsize=18, pad=25, color='#1F2937')
         
         # Add legend for reference ranges
         ax.text(0.98, 0.02, 'Gray bars indicate reference ranges', 
@@ -184,12 +218,13 @@ class ChartGenerator:
         
         plt.tight_layout()
         
-        # Save
+        # Save with enhanced quality settings
         output_path = self.output_dir / "phylum_distribution.png"
-        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+        plt.savefig(output_path, dpi=300, bbox_inches='tight', 
+                   facecolor='white', edgecolor='none', pad_inches=0.2)
         plt.close()
         
-        return str(output_path.absolute())
+        return f"temp_charts/{output_path.name}"
     
     def _create_phylum_comparison_chart(self, data: MicrobiomeData) -> str:
         """Create visual comparison chart for phylum levels vs reference ranges"""
@@ -265,7 +300,7 @@ class ChartGenerator:
         plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
         plt.close()
         
-        return str(output_path.absolute())
+        return f"temp_charts/{output_path.name}"
     
     def cleanup(self):
         """Remove temporary chart files"""

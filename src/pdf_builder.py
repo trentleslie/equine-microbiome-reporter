@@ -10,8 +10,12 @@ from typing import Dict, Optional
 from weasyprint import HTML, CSS
 from weasyprint.text.fonts import FontConfiguration
 
-from .data_models import PatientInfo, MicrobiomeData
-from .chart_generator import ChartGenerator
+try:
+    from .data_models import PatientInfo, MicrobiomeData
+    from .chart_generator import ChartGenerator
+except ImportError:
+    from data_models import PatientInfo, MicrobiomeData
+    from chart_generator import ChartGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -43,12 +47,12 @@ class PDFBuilder:
         try:
             logger.info(f"Building PDF with WeasyPrint: {output_path}")
             
-            # Get the base URL for resolving relative paths
-            template_dir = Path(__file__).parent.parent / "templates"
-            assets_dir = Path(__file__).parent.parent / "assets"
+            # Get the base URL for resolving relative paths (current working directory)
+            # This allows charts to be found regardless of where the script is run from
+            current_dir = Path.cwd().absolute()
             
-            # Create base URL for WeasyPrint
-            base_url = f"file://{str(template_dir.absolute())}/"
+            # Create base URL for WeasyPrint - use current working directory
+            base_url = f"file://{str(current_dir)}/"
             
             # Generate the PDF
             html = HTML(string=content, base_url=base_url)

@@ -9,10 +9,20 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 from typing import Optional
 
-from .data_models import PatientInfo, MicrobiomeData
-from .csv_processor import CSVProcessor
-from .pdf_builder import PDFBuilder
-from .chart_generator import ChartGenerator
+try:
+    # Try relative imports first (for package usage)
+    from .data_models import PatientInfo, MicrobiomeData
+    from .csv_processor import CSVProcessor
+    from .pdf_builder import PDFBuilder
+    from .chart_generator import ChartGenerator
+    from .layout_analyzer import analyze_and_optimize_layout
+except ImportError:
+    # Fall back to absolute imports (for direct execution and notebooks)
+    from data_models import PatientInfo, MicrobiomeData
+    from csv_processor import CSVProcessor
+    from pdf_builder import PDFBuilder
+    from chart_generator import ChartGenerator
+    from layout_analyzer import analyze_and_optimize_layout
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +30,10 @@ logger = logging.getLogger(__name__)
 class ReportGenerator:
     """Main report generation orchestrator"""
     
-    def __init__(self, language: str = "en", template_name: str = "report_full.j2"):
+    def __init__(self, language: str = "en", template_name: str = "report_full.j2", auto_optimize: bool = True):
         self.language = language
         self.template_name = template_name
+        self.auto_optimize = auto_optimize
         
         # Setup Jinja2 environment
         template_path = Path(__file__).parent.parent / "templates"
@@ -37,13 +48,20 @@ class ReportGenerator:
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
                 self.config = yaml.safe_load(f)
+                
+            # Make assets_path absolute to work from any directory
+            if 'assets_path' in self.config:
+                project_root = Path(__file__).parent.parent
+                assets_path = project_root / self.config['assets_path']
+                self.config['assets_path'] = str(assets_path.absolute())
+                
         except FileNotFoundError:
             logger.warning(f"Config file not found: {config_path}")
             self.config = self._get_default_config()
         
         logger.info(f"ReportGenerator initialized for language: {language}")
     
-    def generate_report(self, csv_path: str, patient_info: PatientInfo, output_path: str) -> bool:
+    def generate_report(self, csv_path: str, patient_info: PatientInfo, output_path: str, barcode_column: str = None) -> bool:
         """
         Generate complete PDF report
         
@@ -51,6 +69,7 @@ class ReportGenerator:
             csv_path: Path to CSV data file
             patient_info: Patient and test information
             output_path: Where to save the generated PDF
+            barcode_column: Specific barcode column to process (e.g., 'barcode59', 'total_combined')
             
         Returns:
             bool: True if successful, False otherwise
@@ -58,8 +77,13 @@ class ReportGenerator:
         try:
             logger.info(f"Starting report generation for {patient_info.name}")
             
-            # Step 1: Process CSV data
-            processor = CSVProcessor(csv_path)
+            # Step 1: Process CSV data with specified barcode column
+            if barcode_column:
+                processor = CSVProcessor(csv_path, barcode_column)
+                logger.info(f"Processing CSV with barcode column: {barcode_column}")
+            else:
+                processor = CSVProcessor(csv_path)
+                logger.info("Processing CSV with default barcode column")
             microbiome_data = processor.process()
             logger.info(f"Processed {microbiome_data.total_species_count} species")
             
@@ -102,6 +126,26 @@ class ReportGenerator:
                 lang=self.language,
                 charts=chart_paths
             )
+            
+            # Apply automated layout optimization if enabled
+            if self.auto_optimize:
+                logger.info("Running automated layout analysis and optimization...")
+                optimized_content, analysis_report = analyze_and_optimize_layout(content)
+                
+                # Log analysis results
+                if analysis_report['fixes_applied']:
+                    logger.info(f"Layout optimizations applied: {len(analysis_report['fixes_applied'])} fixes")
+                    for fix in analysis_report['fixes_applied']:
+                        logger.info(f"  • {fix}")
+                
+                if analysis_report['remaining_issues']:
+                    remaining_count = sum(len(issues) for issues in analysis_report['remaining_issues'].values())
+                    if remaining_count > 0:
+                        logger.warning(f"Layout analysis: {remaining_count} issues remain after optimization")
+                    else:
+                        logger.info("✅ Layout analysis: Professional formatting achieved")
+                
+                content = optimized_content
             
             logger.info(f"Template rendered successfully: {template_path}")
             return content
@@ -159,9 +203,9 @@ class ReportGenerator:
             builder = PDFBuilder(self.config)
             success = builder.build_from_content(content, output_path, patient_info, data)
             
-            # Cleanup temporary charts after PDF is built
-            if success:
-                chart_generator.cleanup()
+            # Note: Keep chart files for PDF generation - cleanup handled elsewhere if needed
+            # if success:
+            #     chart_generator.cleanup()
             
             return success
             

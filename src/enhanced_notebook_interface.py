@@ -299,33 +299,90 @@ def run_simple_pipeline(data_dir: str, barcode_dirs: List[str],
 def generate_simple_pdf_report(csv_path: str, patient_info: PatientInfo, 
                              output_path: str, barcode_column: str = None) -> bool:
     """
-    Generate PDF report - enhanced to work with combined CSV data
+    Generate PDF report using new ReportGenerator with working visualizations
     """
     try:
-        from notebook_pdf_generator import NotebookPDFGenerator
+        # Import the fixed ReportGenerator with working charts
+        try:
+            from .report_generator import ReportGenerator
+        except ImportError:
+            # Handle notebook execution context
+            import sys
+            from pathlib import Path
+            current_dir = Path(__file__).parent if hasattr(__file__, '__file__') else Path.cwd()
+            parent_dir = current_dir.parent
+            sys.path.insert(0, str(parent_dir / 'src'))
+            from report_generator import ReportGenerator
         
-        # Determine which CSV to use
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Generating professional PDF report with charts for {patient_info.name}")
+        
+        # Determine which CSV to use and barcode column
         csv_file = Path(csv_path)
         
         # If this is a combined CSV, use it directly
         if 'combined_abundance' in csv_file.name:
             barcode_column = 'total_combined'  # Use combined column
             logger.info(f"Generating report from combined CSV: {csv_file.name}")
+        elif barcode_column is None:
+            # Try to detect barcode column from CSV
+            import pandas as pd
+            df = pd.read_csv(csv_path)
+            barcode_cols = [col for col in df.columns if col.startswith('barcode')]
+            if barcode_cols:
+                barcode_column = barcode_cols[0]
+                logger.info(f"Auto-detected barcode column: {barcode_column}")
+            else:
+                logger.warning("No barcode column specified or detected")
         else:
-            logger.info(f"Generating report from original CSV with barcode: {barcode_column}")
+            logger.info(f"Using specified barcode column: {barcode_column}")
         
-        generator = NotebookPDFGenerator(language="en")
-        success = generator.generate_report(csv_path, patient_info, output_path, barcode_column)
+        # Use the new ReportGenerator with fixed visualizations
+        generator = ReportGenerator(language="en", template_name="simple_report.j2")
+        
+        # Convert PatientInfo to the expected data model
+        try:
+            from .data_models import PatientInfo as DataModelPatientInfo
+        except ImportError:
+            from data_models import PatientInfo as DataModelPatientInfo
+        
+        # Create proper data model instance
+        patient_data = DataModelPatientInfo(
+            name=patient_info.name,
+            species=patient_info.species,
+            age=patient_info.age,
+            sample_number=patient_info.sample_number,
+            date_received=patient_info.date_received,
+            date_analyzed=patient_info.date_analyzed,
+            performed_by=patient_info.performed_by,
+            requested_by=patient_info.requested_by
+        )
+        
+        success = generator.generate_report(csv_path, patient_data, output_path, barcode_column)
         
         if success:
-            logger.info(f"PDF report generated successfully: {output_path}")
+            # Check file size to verify charts are included
+            try:
+                file_size = Path(output_path).stat().st_size
+                logger.info(f"✅ PDF generated: {output_path} ({file_size:,} bytes)")
+                if file_size > 400000:  # 400KB+ indicates charts are included
+                    logger.info("📊 Charts successfully embedded in PDF")
+                else:
+                    logger.warning("⚠️  PDF file size suggests charts may be missing")
+            except:
+                pass
         else:
-            logger.error(f"PDF report generation failed")
+            logger.error("❌ PDF report generation failed")
             
         return success
         
     except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
         logger.error(f"PDF generation failed: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 
