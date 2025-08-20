@@ -1,40 +1,41 @@
 {# Page 5: Educational Content #}
-<div class="header">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <img src="{{ config.assets_path }}/hippovet_logo.png" alt="HippoVet" style="height: 20mm;">
-        <div style="text-align: center;">
-            <div class="pill-box">{{ patient.name }}</div>
-            <div class="pill-box">{{ patient.species }}, {{ patient.age }}</div>
-            <div class="pill-box">Sample: {{ patient.sample_number }}</div>
-        </div>
-        <div style="text-align: right; font-size: 8pt;">
-            <div>Received: {{ patient.date_received }}</div>
-            <div>Analyzed: {{ patient.date_analyzed }}</div>
-            <div>Performed by: {{ patient.performed_by }}</div>
-            <div>Requested by: {{ patient.requested_by }}</div>
-        </div>
+<div class="page-content">
+<div class="content-header">
+    <div>
+        <img src="{{ config.assets_path }}/hippovet_logo.png" alt="HippoVet" class="logo">
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <span class="pill-box">{{ patient.name }}</span>
+        <span class="pill-box">{{ patient.species }}, {{ patient.age }}</span>
+        <span class="pill-box">Sample: {{ patient.sample_number }}</span>
+    </div>
+    <div style="text-align: right; font-size: 9pt; line-height: 1.4;">
+        <div>Received: {{ patient.date_received }}</div>
+        <div>Analyzed: {{ patient.date_analyzed }}</div>
+        <div>Performed by: {{ patient.performed_by }}</div>
+        <div>Requested by: {{ patient.requested_by }}</div>
     </div>
 </div>
 
+<div class="content-area">
+
 <div class="section-header">UNDERSTANDING THE EQUINE MICROBIOME</div>
-<div style="margin: 10mm 0;">
+<div style="margin: 6mm 0;">
     <p style="margin-bottom: 5mm;">The equine gut microbiome consists of trillions of microorganisms that play crucial roles in:</p>
     <ul style="list-style: none; padding-left: 5mm;">
-        <li style="margin: 2mm 0;"><strong>• Digestion:</strong> Breaking down complex carbohydrates and fiber from plant material</li>
-        <li style="margin: 2mm 0;"><strong>• Immunity:</strong> Supporting immune system development and pathogen resistance</li>
-        <li style="margin: 2mm 0;"><strong>• Metabolism:</strong> Producing essential vitamins (B vitamins, vitamin K) and short-chain fatty acids</li>
-        <li style="margin: 2mm 0;"><strong>• Health:</strong> Maintaining intestinal barrier function and preventing colonization by pathogens</li>
+        <li style="margin: 1.5mm 0;"><strong>• Digestion:</strong> Breaking down fiber and complex carbohydrates</li>
+        <li style="margin: 1.5mm 0;"><strong>• Immunity:</strong> Supporting immune system and pathogen resistance</li>
+        <li style="margin: 1.5mm 0;"><strong>• Health:</strong> Producing vitamins and maintaining intestinal barrier</li>
     </ul>
 </div>
 
 <div class="section-header">WHAT IS DYSBIOSIS?</div>
-<div style="margin: 10mm 0;">
+<div style="margin: 6mm 0;">
     <p style="margin-bottom: 5mm;">Dysbiosis refers to an imbalance in the gut microbiome composition that can lead to:</p>
     <ul style="list-style: none; padding-left: 5mm;">
-        <li style="margin: 2mm 0;">• Digestive disorders (colic, diarrhea, poor feed conversion)</li>
-        <li style="margin: 2mm 0;">• Increased susceptibility to infections</li>
-        <li style="margin: 2mm 0;">• Reduced nutrient absorption and weight loss</li>
-        <li style="margin: 2mm 0;">• Inflammatory conditions and metabolic dysfunction</li>
+        <li style="margin: 1.5mm 0;">• Digestive disorders (colic, diarrhea, poor feed conversion)</li>
+        <li style="margin: 1.5mm 0;">• Increased infection susceptibility and reduced nutrient absorption</li>
+        <li style="margin: 1.5mm 0;">• Inflammatory conditions and metabolic dysfunction</li>
     </ul>
     
     <div style="margin-top: 10mm; padding: 5mm; background-color: var(--gray-bg); border-radius: 5mm;">
@@ -46,26 +47,26 @@
 </div>
 
 <div class="section-header">MAINTAINING MICROBIOME HEALTH</div>
-<div style="margin: 10mm 0;">
+<div style="margin: 6mm 0;">
     <div style="margin-bottom: 10mm;">
         <h4 style="color: var(--primary-blue); margin-bottom: 3mm;">Dietary Considerations:</h4>
         <ul style="list-style: none; padding-left: 5mm;">
-            <li style="margin: 2mm 0;">• Provide consistent, high-quality forage (pasture and hay)</li>
-            <li style="margin: 2mm 0;">• Minimize sudden dietary changes (transition over 7-14 days)</li>
-            <li style="margin: 2mm 0;">• Avoid excessive grain feeding and high-starch diets</li>
-            <li style="margin: 2mm 0;">• Consider prebiotic supplementation (FOS, MOS, psyllium)</li>
+            <li style="margin: 1.5mm 0;">• Provide consistent, high-quality forage</li>
+            <li style="margin: 1.5mm 0;">• Minimize sudden dietary changes</li>
+            <li style="margin: 1.5mm 0;">• Avoid excessive grain and high-starch diets</li>
         </ul>
     </div>
     
     <div>
         <h4 style="color: var(--primary-blue); margin-bottom: 3mm;">Management Practices:</h4>
         <ul style="list-style: none; padding-left: 5mm;">
-            <li style="margin: 2mm 0;">• Reduce stress through consistent routines and socialization</li>
-            <li style="margin: 2mm 0;">• Limit unnecessary antibiotic use (use only when prescribed)</li>
-            <li style="margin: 2mm 0;">• Provide adequate exercise and daily turnout</li>
-            <li style="margin: 2mm 0;">• Monitor for signs of digestive upset (changes in appetite, manure)</li>
+            <li style="margin: 1.5mm 0;">• Reduce stress through consistent routines</li>
+            <li style="margin: 1.5mm 0;">• Limit unnecessary antibiotic use</li>
+            <li style="margin: 1.5mm 0;">• Provide adequate exercise and monitor digestive health</li>
         </ul>
     </div>
+</div>
+
 </div>
 
 <div class="footer">
@@ -75,11 +76,11 @@
         <div>Accredited Laboratory - ISO 15189</div>
     </div>
     <div class="footer-section" style="text-align: center;">
-        <span class="page-number">5/5</span>
     </div>
     <div class="footer-section" style="text-align: right;">
         <strong>MEMT LABORATORY</strong>
         <div>Tel: +48 123 456 789</div>
         <div>Email: lab@hippovet.com</div>
     </div>
+</div>
 </div>

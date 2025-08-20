@@ -26,12 +26,12 @@
         }
         
         .page {
-            page-break-after: always;
             width: 210mm;
-            height: 297mm;
+            min-height: 150mm;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
             background: white;
+            margin-bottom: 3mm;
         }
         
         .page:last-child {
@@ -81,7 +81,7 @@
         .title-page-content {
             position: relative;
             z-index: 2;
-            padding: 40mm 30mm;
+            padding: 25mm 20mm;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -90,7 +90,7 @@
         
         .main-title {
             color: var(--dark-blue);
-            font-size: 48pt;
+            font-size: 68pt;
             font-weight: 800;
             line-height: 1.1;
             letter-spacing: -1px;
@@ -105,18 +105,21 @@
             margin-bottom: 30mm;
         }
         
-        /* Pill box styling for patient info */
+        /* Pill box styling for patient info - width constrained */
         .pill-box {
             display: inline-block;
             background-color: var(--white);
             border: 2px solid var(--border-gray);
-            border-radius: 25px;
-            padding: 8px 24px;
-            margin: 4px;
+            border-radius: 20px;
+            padding: 12px 20px;
+            margin: 6px;
             font-size: 14pt;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-dark);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+            max-width: 45mm;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .pill-row {
@@ -159,10 +162,20 @@
             color: var(--text-light);
         }
         
+        /* Unified width system for professional PDF alignment - WeasyPrint compatible */
+        .page-content {
+            max-width: 170mm;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 5mm;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        
         /* Content pages header */
         .content-header {
             background-color: var(--gray-bg);
-            padding: 15mm 25mm;
+            padding: 15mm 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -171,7 +184,7 @@
         
         /* Content area for pages 2-5 */
         .content-area {
-            padding: 20mm 25mm 40mm 25mm;
+            padding: 20mm 0 40mm 0;
             position: relative;
         }
         
@@ -179,20 +192,22 @@
         .section-header {
             background-color: var(--green);
             color: var(--white);
-            padding: 10px 25mm;
-            margin: 0 -25mm 15mm -25mm;
+            padding: 10px 0;
+            margin: 0 0 15mm 0;
             font-weight: 700;
             font-size: 16pt;
             letter-spacing: 0.5px;
             text-transform: uppercase;
+            text-align: center;
         }
         
-        /* Chart images */
+        /* Chart images - explicit width constraints */
         .chart-img {
-            max-width: 100%;
+            max-width: 160mm !important;
+            width: 100%;
             height: auto;
             display: block;
-            margin: 15mm auto;
+            margin: 12mm auto;
         }
         
         /* Clinical text styling */
@@ -232,11 +247,13 @@
             margin: 0;
         }
         
-        /* Table styling */
+        /* Table styling - constrained width */
         table {
+            max-width: 160mm;
             width: 100%;
             border-collapse: collapse;
-            margin: 10mm 0;
+            margin: 10mm auto;
+            table-layout: fixed;
         }
         
         table th {
