@@ -1,0 +1,219 @@
+{# Ultra-simple layout for reliable WeasyPrint PDF generation #}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Microbiome Report{% endblock %}</title>
+    <style>
+        /* Reset and basic setup */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #1F2937;
+            line-height: 1.5;
+            font-size: 11pt;
+        }
+        
+        /* Simple page container */
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            position: relative;
+            background: white;
+            page-break-after: always;
+        }
+        
+        .page:last-child {
+            page-break-after: avoid;
+        }
+        
+        /* Content container - simple and reliable */
+        .content {
+            max-width: 160mm;
+            margin: 0 auto;
+            padding: 20mm 0;
+        }
+        
+        /* Color scheme */
+        :root {
+            --primary-blue: #1E3A8A;
+            --dark-blue: #0F172A;
+            --teal: #14B8A6;
+            --green: #10B981;
+            --gray-bg: #F8FAFC;
+            --text-dark: #1F2937;
+            --text-light: #6B7280;
+            --white: #FFFFFF;
+            --border-gray: #E5E7EB;
+        }
+        
+        /* Typography */
+        .main-title {
+            color: var(--dark-blue);
+            font-size: 48pt;
+            font-weight: 800;
+            line-height: 1.1;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 10mm;
+        }
+        
+        .subtitle {
+            color: var(--text-dark);
+            font-size: 18pt;
+            font-weight: 300;
+            text-align: center;
+            margin-bottom: 20mm;
+        }
+        
+        /* Section headers */
+        .section-header {
+            background-color: var(--green);
+            color: var(--white);
+            padding: 8px 0;
+            margin: 15mm 0 10mm 0;
+            font-weight: 700;
+            font-size: 14pt;
+            text-transform: uppercase;
+            text-align: center;
+        }
+        
+        /* Simple pill boxes */
+        .pill-box {
+            display: inline-block;
+            background-color: var(--white);
+            border: 2px solid var(--border-gray);
+            border-radius: 15px;
+            padding: 8px 16px;
+            margin: 4px;
+            font-size: 12pt;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .pill-row {
+            text-align: center;
+            margin: 10mm 0;
+        }
+        
+        /* Images */
+        .chart-img {
+            max-width: 160mm;
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 10mm auto;
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            max-width: 160mm;
+            border-collapse: collapse;
+            margin: 10mm auto;
+        }
+        
+        table th {
+            background-color: var(--gray-bg);
+            font-weight: 600;
+            text-align: left;
+            padding: 6px 10px;
+            border-bottom: 2px solid var(--border-gray);
+            font-size: 10pt;
+        }
+        
+        table td {
+            padding: 6px 10px;
+            border-bottom: 1px solid var(--border-gray);
+            font-size: 10pt;
+        }
+        
+        /* Clinical text */
+        .clinical-text {
+            text-align: justify;
+            margin: 8mm 0;
+            font-size: 11pt;
+            line-height: 1.6;
+        }
+        
+        .clinical-text p {
+            margin-bottom: 6mm;
+        }
+        
+        /* Dysbiosis index display */
+        .dysbiosis-index {
+            font-size: 16pt;
+            font-weight: 700;
+            color: var(--dark-blue);
+            margin: 10mm 0;
+            padding: 8mm;
+            background: var(--gray-bg);
+            border-left: 4px solid var(--teal);
+            text-align: center;
+        }
+        
+        /* Footer */
+        .footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 10mm 25mm;
+            background: white;
+            border-top: 1px solid var(--border-gray);
+            font-size: 9pt;
+            display: table;
+            width: 100%;
+        }
+        
+        .footer-section {
+            display: table-cell;
+            vertical-align: middle;
+            width: 33.33%;
+        }
+        
+        .logo {
+            height: 12mm;
+        }
+        
+        /* Diagonal stripes for title page */
+        .diagonal-stripes {
+            position: absolute;
+            top: -50mm;
+            right: -50mm;
+            width: 150mm;
+            height: 150mm;
+            background: repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 10mm,
+                var(--teal) 10mm,
+                var(--teal) 15mm
+            );
+            opacity: 0.2;
+            z-index: 1;
+        }
+        
+        /* Title page specific */
+        .title-page-content {
+            position: relative;
+            z-index: 2;
+            padding: 40mm 20mm;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    {% block content %}{% endblock %}
+</body>
+</html>
