@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Comprehensive Fecal Examination - Montana</title>
+    <style>
+        /* Reset and basic setup */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #1F2937;
+            line-height: 1.5;
+            font-size: 11pt;
+        }
+        
+        /* Simple page container */
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            position: relative;
+            background: white;
+            page-break-after: always;
+        }
+        
+        .page:last-child {
+            page-break-after: avoid;
+        }
+        
+        /* Content container - simple and reliable */
+        .content {
+            max-width: 160mm;
+            margin: 0 auto;
+            padding: 20mm 0;
+        }
+        
+        /* Color scheme */
+        :root {
+            --primary-blue: #1E3A8A;
+            --dark-blue: #0F172A;
+            --teal: #14B8A6;
+            --green: #10B981;
+            --gray-bg: #F8FAFC;
+            --text-dark: #1F2937;
+            --text-light: #6B7280;
+            --white: #FFFFFF;
+            --border-gray: #E5E7EB;
+        }
+        
+        /* Typography */
+        .main-title {
+            color: var(--dark-blue);
+            font-size: 48pt;
+            font-weight: 800;
+            line-height: 1.1;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 10mm;
+        }
+        
+        .subtitle {
+            color: var(--text-dark);
+            font-size: 18pt;
+            font-weight: 300;
+            text-align: center;
+            margin-bottom: 20mm;
+        }
+        
+        /* Section headers */
+        .section-header {
+            background-color: var(--green);
+            color: var(--white);
+            padding: 8px 0;
+            margin: 15mm 0 10mm 0;
+            font-weight: 700;
+            font-size: 14pt;
+            text-transform: uppercase;
+            text-align: center;
+        }
+        
+        /* Simple pill boxes */
+        .pill-box {
+            display: inline-block;
+            background-color: var(--white);
+            border: 2px solid var(--border-gray);
+            border-radius: 15px;
+            padding: 8px 16px;
+            margin: 4px;
+            font-size: 12pt;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .pill-row {
+            text-align: center;
+            margin: 10mm 0;
+        }
+        
+        /* Images */
+        .chart-img {
+            max-width: 160mm;
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 10mm auto;
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            max-width: 160mm;
+            border-collapse: collapse;
+            margin: 10mm auto;
+        }
+        
+        table th {
+            background-color: var(--gray-bg);
+            font-weight: 600;
+            text-align: left;
+            padding: 6px 10px;
+            border-bottom: 2px solid var(--border-gray);
+            font-size: 10pt;
+        }
+        
+        table td {
+            padding: 6px 10px;
+            border-bottom: 1px solid var(--border-gray);
+            font-size: 10pt;
+        }
+        
+        /* Clinical text */
+        .clinical-text {
+            text-align: justify;
+            margin: 8mm 0;
+            font-size: 11pt;
+            line-height: 1.6;
+        }
+        
+        .clinical-text p {
+            margin-bottom: 6mm;
+        }
+        
+        /* Dysbiosis index display */
+        .dysbiosis-index {
+            font-size: 16pt;
+            font-weight: 700;
+            color: var(--dark-blue);
+            margin: 10mm 0;
+            padding: 8mm;
+            background: var(--gray-bg);
+            border-left: 4px solid var(--teal);
+            text-align: center;
+        }
+        
+        /* Footer */
+        .footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 10mm 25mm;
+            background: white;
+            border-top: 1px solid var(--border-gray);
+            font-size: 9pt;
+            display: table;
+            width: 100%;
+        }
+        
+        .footer-section {
+            display: table-cell;
+            vertical-align: middle;
+            width: 33.33%;
+        }
+        
+        .logo {
+            height: 12mm;
+        }
+        
+        /* Diagonal stripes for title page */
+        .diagonal-stripes {
+            position: absolute;
+            top: -50mm;
+            right: -50mm;
+            width: 150mm;
+            height: 150mm;
+            background: repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 10mm,
+                var(--teal) 10mm,
+                var(--teal) 15mm
+            );
+            opacity: 0.2;
+            z-index: 1;
+        }
+        
+        /* Title page specific */
+        .title-page-content {
+            position: relative;
+            z-index: 2;
+            padding: 40mm 20mm;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="diagonal-stripes"></div>
+    
+    <div class="title-page-content">
+        <h1 class="main-title">COMPREHENSIVE<br>FECAL<br>EXAMINATION</h1>
+        <p class="subtitle">DNA sequencing</p>
+        
+        <div class="pill-row">
+            <span class="pill-box">Montana</span>
+            <span class="pill-box">Horse, 20 years</span>
+            <span class="pill-box">Sample: 004-006_combined</span>
+        </div>
+        
+        <div class="pill-row">
+            <span class="pill-box">Received: 2024-08-04</span>
+            <span class="pill-box">Analyzed: 2024-08-04</span>
+        </div>
+        
+        <div class="pill-row">
+            <span class="pill-box">Performed by: Julia Kończak</span>
+            <span class="pill-box">Requested by: Dr. Alexandra Matusiak</span>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <div class="footer-section">
+            <img src="/home/trentleslie/Insync/projects/equine-microbiome-reporter/assets/hippovet_logo.png" alt="HippoVet" class="logo">
+        </div>
+        <div class="footer-section" style="text-align: center;">
+            <!-- No page numbers for clean professional look -->
+        </div>
+        <div class="footer-section" style="text-align: right;">
+            <strong style="font-size: 12pt; color: var(--dark-blue);">MEMT LABORATORY</strong>
+        </div>
+    </div>
+</div>
+
+<div class="page">
+    <div class="content">
+        
+        <div class="section-header">SEQUENCING RESULTS</div>
+        
+        <h3 style="color: var(--primary-blue); margin-bottom: 10mm; font-size: 16pt; text-align: center;">MICROBIOTIC PROFILE</h3>
+        
+        <div class="dysbiosis-index">
+            <div style="font-size: 20pt; margin-bottom: 5mm;">
+                Dysbiosis Index (DI): 42.6
+            </div>
+            <div style="font-size: 14pt;">
+                Mild microbiota
+            </div>
+        </div>
+        
+        <div class="clinical-text">
+            <p><strong>Interpretation:</strong> Mild dysbiosis detected. Moderate imbalance in gut microflora composition requiring monitoring.</p>
+        </div>
+        
+        <div class="section-header">SPECIES DISTRIBUTION</div>
+        <img src="temp_charts/species_distribution.png" alt="Species Distribution" class="chart-img">
+        
+        <div class="section-header">PHYLUM DISTRIBUTION IN GUT MICROFLORA</div>
+        <img src="temp_charts/phylum_distribution.png" alt="Phylum Distribution" class="chart-img">
+        
+        <div class="section-header">PHYLUM COMPARISON WITH REFERENCE RANGES</div>
+        <img src="temp_charts/phylum_comparison.png" alt="Phylum Comparison" class="chart-img">
+        
+        <p style="font-size: 9pt; color: var(--text-light); text-align: center; margin-top: 8mm;">
+            Scale: 0-20 normobiotic; 21-50 moderate dysbiosis; >50 severe dysbiosis microbiota
+        </p>
+        
+    </div>
+    
+    <div class="footer">
+        <div class="footer-section">
+            <strong>HippoVet Laboratory</strong><br>
+            <span style="font-size: 8pt;">Veterinary Microbiome Analysis Center</span>
+        </div>
+        <div class="footer-section" style="text-align: center;">
+            <!-- No page numbers -->
+        </div>
+        <div class="footer-section" style="text-align: right;">
+            <strong>MEMT LABORATORY</strong><br>
+            <span style="font-size: 8pt;">www.hippovet.com</span>
+        </div>
+    </div>
+</div>
+
+<div class="page">
+    <div class="content">
+        
+        <div class="section-header">CLINICAL ANALYSIS</div>
+        
+        <div class="clinical-text">
+            <p>Molecular examination revealed moderate imbalance in gut microflora composition. While not critical, this dysbiosis may impact digestive efficiency and requires monitoring.</p>
+        </div>
+        
+        <div class="section-header">RECOMMENDATIONS</div>
+        <div class="clinical-text">
+            <p>• Review current diet composition</p>
+            <p>• Consider probiotic supplementation</p>
+            <p>• Monitor for clinical symptoms</p>
+            <p>• Retest in 4-6 weeks</p>
+        </div>
+        
+        <div class="section-header">LABORATORY EXAMINATIONS</div>
+        <table>
+            <tr><th>Test</th><th>Result</th><th>Reference</th></tr>
+            <tr><td>Flotation method</td><td>No protozoan cysts detected</td><td>Negative</td></tr>
+            <tr><td>Sedimentation method</td><td>No larval forms observed</td><td>Negative</td></tr>
+            <tr><td>McMaster method</td><td>No parasitic eggs observed</td><td>Negative</td></tr>
+            <tr><td>Occult blood</td><td>Negative</td><td>Negative</td></tr>
+            <tr><td>pH</td><td>6.8</td><td>6.5-7.0</td></tr>
+        </table>
+        
+    </div>
+    
+    <div class="footer">
+        <div class="footer-section">
+            <strong>HippoVet Laboratory</strong><br>
+            <span style="font-size: 8pt;">Accredited Laboratory - ISO 15189</span>
+        </div>
+        <div class="footer-section" style="text-align: center;">
+            <!-- No page numbers -->
+        </div>
+        <div class="footer-section" style="text-align: right;">
+            <strong>MEMT LABORATORY</strong><br>
+            <span style="font-size: 8pt;">Tel: +48 123 456 789</span>
+        </div>
+    </div>
+</div>
+
+<div class="page">
+    <div class="content">
+        
+        <div class="section-header">UNDERSTANDING THE EQUINE MICROBIOME</div>
+        
+        <div class="clinical-text">
+            <p>The equine gut microbiome consists of trillions of microorganisms that play crucial roles in:</p>
+            <p><strong>• Digestion:</strong> Breaking down fiber and complex carbohydrates</p>
+            <p><strong>• Immunity:</strong> Supporting immune system and pathogen resistance</p>
+            <p><strong>• Health:</strong> Producing vitamins and maintaining intestinal barrier</p>
+        </div>
+        
+        <div class="section-header">WHAT IS DYSBIOSIS?</div>
+        
+        <div class="clinical-text">
+            <p>Dysbiosis refers to an imbalance in the gut microbiome composition that can lead to:</p>
+            <p>• Digestive disorders (colic, diarrhea, poor feed conversion)</p>
+            <p>• Increased infection susceptibility and reduced nutrient absorption</p>
+            <p>• Inflammatory conditions and metabolic dysfunction</p>
+        </div>
+        
+        <div style="margin: 8mm 0; padding: 8mm; background-color: var(--gray-bg); border-radius: 5mm;">
+            <h4 style="margin-bottom: 5mm; color: var(--primary-blue); text-align: center;">Dysbiosis Index Interpretation:</h4>
+            <div style="margin: 3mm 0;"><span style="color: var(--green); font-weight: bold;">0-20:</span> Normal microbiome balance</div>
+            <div style="margin: 3mm 0;"><span style="color: orange; font-weight: bold;">21-50:</span> Mild dysbiosis - monitoring recommended</div>
+            <div style="margin: 3mm 0;"><span style="color: red; font-weight: bold;">51+:</span> Severe dysbiosis - intervention needed</div>
+        </div>
+        
+        <div class="section-header">MAINTAINING MICROBIOME HEALTH</div>
+        
+        <div class="clinical-text">
+            <p><strong>Dietary Considerations:</strong></p>
+            <p>• Provide consistent, high-quality forage</p>
+            <p>• Minimize sudden dietary changes</p>
+            <p>• Avoid excessive grain and high-starch diets</p>
+            
+            <p><strong>Management Practices:</strong></p>
+            <p>• Reduce stress through consistent routines</p>
+            <p>• Limit unnecessary antibiotic use</p>
+            <p>• Provide adequate exercise and monitor digestive health</p>
+        </div>
+        
+        <div class="section-header">IMPORTANT</div>
+        
+        <div style="margin: 8mm 0; font-size: 10pt; border: 1px solid var(--border-gray); padding: 8mm; background-color: var(--gray-bg);">
+            <p style="margin: 0;">The presented result is a microbiotic profile of the tested sample. Microbiotic results should be interpreted in conjunction with clinical signs and other diagnostic findings. For optimal results, samples should be collected before antibiotic therapy.</p>
+        </div>
+        
+    </div>
+    
+    <div class="footer">
+        <div class="footer-section">
+            <strong>HippoVet Laboratory</strong><br>
+            <span style="font-size: 8pt;">Veterinary Microbiome Analysis Center<br>Accredited Laboratory - ISO 15189</span>
+        </div>
+        <div class="footer-section" style="text-align: center;">
+            <!-- Clean professional layout without page numbers -->
+        </div>
+        <div class="footer-section" style="text-align: right;">
+            <strong>MEMT LABORATORY</strong><br>
+            <span style="font-size: 8pt;">Tel: +48 123 456 789<br>Email: lab@hippovet.com</span>
+        </div>
+    </div>
+</div>
+</body>
+</html>
