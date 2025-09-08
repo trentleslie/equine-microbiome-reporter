@@ -2,11 +2,12 @@
 
 ## ✅ What's Ready for You
 
-### Complete Pipeline System
-- **FASTQ → PDF Reports**: Fully automated pipeline
+### Complete Pipeline System (Phase 1)
+- **FASTQ → PDF Reports**: Complete pipeline (manual execution)
 - **Clinical Filtering**: 75% reduction in manual curation time
-- **Excel Review Files**: 3-sheet workbooks for species verification
+- **Excel Review Files**: Color-coded workbooks for species verification
 - **Batch Processing**: Handle your 15-sample weekly batches
+- **Note**: Requires manual execution after Epi2Me completes (not automatic monitoring yet)
 
 ### Files Created for Your Testing
 
@@ -67,12 +68,14 @@ python scripts/test_installation.py
 
 ### 2. Process Your First Sample
 ```bash
-# With your Kraken2 report
+# After Epi2Me/Nextflow completes, run:
+
+# Option A: With your Kraken2 reports (RECOMMENDED)
 python scripts/continue_pipeline.py \
     --kreport-dir /path/to/your/kreports \
     --output-dir results
 
-# Or with FASTQ files
+# Option B: With FASTQ files (if needed)
 python scripts/full_pipeline.py \
     --input-dir /path/to/fastq \
     --output-dir results
@@ -174,6 +177,16 @@ The `.env.hippovet` file contains example paths that **YOU MUST UPDATE**:
 - No need to change your current FASTQ processing workflow
 - Clinical filtering rules are fully customizable
 - Excel files allow you to maintain quality control
+
+## 🚀 Phase 2 Enhancements (After Testing)
+
+Based on your feedback, Phase 2 could include:
+- **Automatic monitoring** of Epi2Me instances
+- **Background processing** service
+- **Database-specific rules** for PlusPFP-16, EuPathDB, Viral
+- **Expanded pathogen database** with veterinary expertise
+- **Desktop integration** with shortcuts and notifications
+- **Advanced analytics** and longitudinal tracking
 
 **Everything is tested and ready for your Monday deployment!**
 
