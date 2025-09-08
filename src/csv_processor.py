@@ -15,11 +15,25 @@ except ImportError:
 class CSVProcessor:
     """Process microbiome CSV data into structured format"""
     
-    def __init__(self, csv_path: str, barcode_column: str = "barcode59"):
+    def __init__(self, csv_path: str, barcode_column: str = None):
         self.csv_path = csv_path
         self.df = pd.read_csv(csv_path)
-        self.barcode_column = barcode_column
-        self.total_count = self.df[barcode_column].sum()
+        
+        # Auto-detect barcode column if not specified
+        if barcode_column is None:
+            barcode_cols = [col for col in self.df.columns if col.startswith('barcode')]
+            if barcode_cols:
+                self.barcode_column = barcode_cols[0]
+            else:
+                # Fall back to any numeric column that isn't a standard column
+                standard_cols = ['species', 'phylum', 'genus', 'family', 'order', 'class']
+                numeric_cols = [col for col in self.df.columns 
+                               if col not in standard_cols and pd.api.types.is_numeric_dtype(self.df[col])]
+                self.barcode_column = numeric_cols[0] if numeric_cols else "barcode59"
+        else:
+            self.barcode_column = barcode_column
+            
+        self.total_count = self.df[self.barcode_column].sum()
     
     def process(self) -> MicrobiomeData:
         """Convert CSV to MicrobiomeData object"""
