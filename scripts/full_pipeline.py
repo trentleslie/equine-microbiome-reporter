@@ -265,23 +265,17 @@ class FullPipeline:
         filtered_csv = self.csv_dir / f"{sample_name}_filtered.csv"
         filtered_df.to_csv(filtered_csv, index=False)
         
-        # Generate Excel review file
+        # Generate enhanced Excel review file with clinical assessment
         excel_file = self.excel_dir / f"{sample_name}_review.xlsx"
         
-        # Create Excel file with multiple sheets for review
-        with pd.ExcelWriter(excel_file, engine='openpyxl') as writer:
-            # Sheet 1: Filtered data with clinical relevance
-            filtered_df.to_excel(writer, sheet_name='Filtered_Species', index=False)
-            
-            # Sheet 2: Summary statistics
-            summary_df = pd.DataFrame({
-                'Metric': ['Total Species', 'After Filtering', 'Reduction'],
-                'Value': [len(df), len(filtered_df), f"{(1-len(filtered_df)/len(df))*100:.1f}%"]
-            })
-            summary_df.to_excel(writer, sheet_name='Summary', index=False)
-            
-            # Sheet 3: Original data for comparison
-            df.to_excel(writer, sheet_name='Original_Data', index=False)
+        # Import and use the enhanced generator
+        from generate_clinical_excel import ClinicalExcelGenerator
+        excel_generator = ClinicalExcelGenerator()
+        excel_generator.generate_review_excel(
+            filtered_csv, 
+            excel_file,
+            sample_name=sample_name
+        )
         
         logger.info(f"  Filtered {len(df)} → {len(filtered_df)} species")
         logger.info(f"  Excel review file created: {excel_file.name}")
