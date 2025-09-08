@@ -5,6 +5,7 @@ Processes: kreport → CSV → Clinical filtering → PDF reports
 """
 
 import sys
+import argparse
 import logging
 from pathlib import Path
 
@@ -21,15 +22,26 @@ logger = logging.getLogger(__name__)
 def main():
     """Process existing Kraken2 reports through the rest of the pipeline."""
     
-    # Initialize pipeline
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description='Process existing Kraken2 reports')
+    parser.add_argument('--kreport-dir', type=Path, required=True,
+                        help='Directory containing Kraken2 .kreport files')
+    parser.add_argument('--output-dir', type=Path, default=Path('pipeline_output'),
+                        help='Output directory for results (default: pipeline_output)')
+    args = parser.parse_args()
+    
+    # Create output directory if it doesn't exist
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Initialize pipeline with proper directories
     pipeline = FullPipeline(
-        input_dir=Path("data"),
-        output_dir=Path("pipeline_output"),
+        input_dir=args.kreport_dir,  # Use kreport_dir as input
+        output_dir=args.output_dir,
         kraken2_db=Path.home() / "kraken2_db"
     )
     
-    # Find existing kreport files
-    kreport_files = list(pipeline.kraken_dir.glob("*.kreport"))
+    # Find existing kreport files in the specified directory
+    kreport_files = list(args.kreport_dir.glob("*.kreport"))
     logger.info(f"Found {len(kreport_files)} Kraken2 reports to process")
     
     for kreport_file in kreport_files:
@@ -59,10 +71,10 @@ def main():
     
     logger.info("\n" + "="*60)
     logger.info("Pipeline continuation complete!")
-    logger.info(f"Results in: pipeline_output/")
+    logger.info(f"Results in: {args.output_dir}/")
     
     # List all outputs
-    pdf_files = list(Path("pipeline_output/pdf_reports").glob("*.pdf"))
+    pdf_files = list((args.output_dir / "pdf_reports").glob("*.pdf"))
     if pdf_files:
         logger.info(f"\n📄 Generated PDF reports:")
         for pdf in pdf_files:
