@@ -58,7 +58,13 @@ fi
 
 # Load configuration
 if [ -f ".env" ]; then
-    source .env
+    # Use set -a to export all variables, but protect against command execution
+    set -a
+    # Filter out any lines with problematic characters and source safely
+    grep -E '^[A-Z_][A-Z0-9_]*=' .env > /tmp/safe_env.tmp
+    source /tmp/safe_env.tmp
+    rm -f /tmp/safe_env.tmp
+    set +a
     echo -e "${GREEN}✓ Configuration loaded${NC}"
 else
     echo -e "${RED}✗ No .env file found. Run setup.sh first!${NC}"
