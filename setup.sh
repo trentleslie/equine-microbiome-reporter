@@ -104,44 +104,35 @@ download_test_data() {
     # Download from Google Drive (handles virus scan warning)
     echo "Downloading test data package (this may take a moment)..."
     
-    # Method 1: Try with gdown if available (handles large files better)
+    # Method 1: Try with gdown if available
     if command -v gdown &> /dev/null; then
         gdown --id ${GDRIVE_FILE_ID} -O test_data.tar.gz
     else
-        # Method 2: Check if we should install gdown
-        echo "Installing gdown for better Google Drive support..."
-        pip install --quiet gdown
+        # Method 2: Handle Google Drive virus scan warning
+        # First request to get the warning page
+        wget --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate \
+            "https://drive.google.com/uc?export=download&id=${GDRIVE_FILE_ID}" \
+            -O /tmp/gdrive_page.html 2>/dev/null
         
-        if command -v gdown &> /dev/null; then
-            gdown --id ${GDRIVE_FILE_ID} -O test_data.tar.gz
+        # Extract the confirmation token and UUID from the HTML
+        CONFIRM_TOKEN=$(grep -o 'name="confirm" value="[^"]*"' /tmp/gdrive_page.html | sed 's/.*value="//;s/"//')
+        UUID=$(grep -o 'name="uuid" value="[^"]*"' /tmp/gdrive_page.html | sed 's/.*value="//;s/"//')
+        
+        if [ -n "$CONFIRM_TOKEN" ] && [ -n "$UUID" ]; then
+            # Download with confirmation
+            echo "Large file detected, confirming download..."
+            wget --load-cookies /tmp/cookies.txt \
+                "https://drive.usercontent.google.com/download?id=${GDRIVE_FILE_ID}&export=download&confirm=${CONFIRM_TOKEN}&uuid=${UUID}" \
+                -O test_data.tar.gz
         else
-            # Method 3: Manual download with virus scan handling
-            echo "Using wget (this may be slower for large files)..."
-            # First request to get the warning page
-            wget --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate \
+            # Try direct download (for smaller files)
+            wget --load-cookies /tmp/cookies.txt \
                 "https://drive.google.com/uc?export=download&id=${GDRIVE_FILE_ID}" \
-                -O /tmp/gdrive_page.html 2>/dev/null
-            
-            # Extract the confirmation token and UUID from the HTML
-            CONFIRM_TOKEN=$(grep -o 'name="confirm" value="[^"]*"' /tmp/gdrive_page.html | sed 's/.*value="//;s/"//')
-            UUID=$(grep -o 'name="uuid" value="[^"]*"' /tmp/gdrive_page.html | sed 's/.*value="//;s/"//')
-            
-            if [ -n "$CONFIRM_TOKEN" ] && [ -n "$UUID" ]; then
-                # Download with confirmation
-                echo "Large file detected, confirming download..."
-                wget --load-cookies /tmp/cookies.txt \
-                    "https://drive.usercontent.google.com/download?id=${GDRIVE_FILE_ID}&export=download&confirm=${CONFIRM_TOKEN}&uuid=${UUID}" \
-                    -O test_data.tar.gz
-            else
-                # Try direct download (for smaller files)
-                wget --load-cookies /tmp/cookies.txt \
-                    "https://drive.google.com/uc?export=download&id=${GDRIVE_FILE_ID}" \
-                    -O test_data.tar.gz
-            fi
-            
-            # Clean up temp files
-            rm -f /tmp/cookies.txt /tmp/gdrive_page.html
+                -O test_data.tar.gz
         fi
+        
+        # Clean up temp files
+        rm -f /tmp/cookies.txt /tmp/gdrive_page.html
     fi
     
     # Check if download was successful
@@ -200,13 +191,30 @@ setup_environment() {
 install_dependencies() {
     echo -e "${GREEN}[Step 5/8] Installing dependencies...${NC}"
     
+    # Make sure we're in the right environment
+    eval "$(conda shell.bash hook)"
+    conda activate equine-microbiome
+    
     # Install conda packages
     echo "Installing scientific packages (this may take 5-10 minutes)..."
-    conda install -c conda-forge \
-        pandas numpy matplotlib seaborn scipy \
-        jinja2 pyyaml flask werkzeug \
-        biopython openpyxl python-dotenv \
-        jupyter notebook ipykernel tqdm psutil \
+    echo "  Installing core packages..."
+    conda install -n equine-microbiome -c conda-forge \
+        pandas numpy matplotlib seaborn scipy -y > /dev/null 2>&1
+    
+    echo "  Installing web and template packages..."
+    conda install -n equine-microbiome -c conda-forge \
+        jinja2 pyyaml flask werkzeug -y > /dev/null 2>&1
+    
+    echo "  Installing bio and data packages..."
+    conda install -n equine-microbiome -c conda-forge \
+        biopython openpyxl python-dotenv -y > /dev/null 2>&1
+    
+    echo "  Installing notebook and utility packages..."
+    conda install -n equine-microbiome -c conda-forge \
+        jupyter notebook ipykernel tqdm psutil -y > /dev/null 2>&1
+    
+    echo "  Installing system libraries for PDF generation..."
+    conda install -n equine-microbiome -c conda-forge \
         cairo pango gdk-pixbuf libffi -y > /dev/null 2>&1
     
     # Install pip packages
@@ -480,6 +488,10 @@ EOF
 validate_installation() {
     echo -e "${GREEN}[Step 7/8] Validating installation...${NC}"
     
+    # Make sure we're in the conda environment
+    eval "$(conda shell.bash hook)"
+    conda activate equine-microbiome
+    
     # Test Python imports
     python -c "
 import sys
@@ -536,6 +548,10 @@ print('✓ Installation validated successfully!')
 # Function to generate demo report
 generate_demo() {
     echo -e "${GREEN}[Step 8/8] Generating demo report...${NC}"
+    
+    # Make sure we're in the conda environment
+    eval "$(conda shell.bash hook)"
+    conda activate equine-microbiome
     
     python -c "
 from src.report_generator import ReportGenerator
