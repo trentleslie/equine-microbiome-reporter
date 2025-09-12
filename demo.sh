@@ -58,8 +58,17 @@ fi
 
 # Load configuration
 if [ -f ".env" ]; then
-    # Export variables from .env file safely
-    export $(grep -v '^#' .env | grep -v '^$' | xargs -d '\n')
+    # Load .env file line by line, handling inline comments
+    while IFS='=' read -r key value; do
+        # Skip comments and empty lines
+        if [[ ! "$key" =~ ^#.*$ ]] && [[ -n "$key" ]]; then
+            # Remove inline comments and trim whitespace
+            value="${value%%#*}"
+            value="${value%"${value##*[![:space:]]}"}"
+            # Export the variable
+            export "$key=$value" 2>/dev/null
+        fi
+    done < .env
     echo -e "${GREEN}✓ Configuration loaded${NC}"
 else
     echo -e "${RED}✗ No .env file found. Run setup.sh first!${NC}"
