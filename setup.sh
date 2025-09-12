@@ -488,12 +488,17 @@ EOF
 validate_installation() {
     echo -e "${GREEN}[Step 7/8] Validating installation...${NC}"
     
-    # Make sure we're in the conda environment
-    eval "$(conda shell.bash hook)"
-    conda activate equine-microbiome
+    # Use the conda environment's Python directly
+    CONDA_PYTHON="$HOME/miniconda3/envs/equine-microbiome/bin/python"
+    if [ ! -f "$CONDA_PYTHON" ]; then
+        CONDA_PYTHON="$HOME/anaconda3/envs/equine-microbiome/bin/python"
+    fi
+    if [ ! -f "$CONDA_PYTHON" ]; then
+        CONDA_PYTHON="/opt/conda/envs/equine-microbiome/bin/python"
+    fi
     
     # Test Python imports
-    python -c "
+    $CONDA_PYTHON -c "
 import sys
 import os
 
@@ -504,7 +509,7 @@ try:
     import numpy
     import jinja2
     import yaml
-    import biopython
+    import Bio  # BioPython imports as Bio, not biopython
     import openpyxl
     import reportlab
     import weasyprint
@@ -549,11 +554,16 @@ print('✓ Installation validated successfully!')
 generate_demo() {
     echo -e "${GREEN}[Step 8/8] Generating demo report...${NC}"
     
-    # Make sure we're in the conda environment
-    eval "$(conda shell.bash hook)"
-    conda activate equine-microbiome
+    # Use the conda environment's Python directly
+    CONDA_PYTHON="$HOME/miniconda3/envs/equine-microbiome/bin/python"
+    if [ ! -f "$CONDA_PYTHON" ]; then
+        CONDA_PYTHON="$HOME/anaconda3/envs/equine-microbiome/bin/python"
+    fi
+    if [ ! -f "$CONDA_PYTHON" ]; then
+        CONDA_PYTHON="/opt/conda/envs/equine-microbiome/bin/python"
+    fi
     
-    python -c "
+    $CONDA_PYTHON -c "
 from src.report_generator import ReportGenerator
 from src.data_models import PatientInfo
 import os
