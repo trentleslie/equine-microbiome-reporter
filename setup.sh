@@ -101,31 +101,47 @@ download_test_data() {
         return
     fi
     
-    # Download from Google Drive (handles the redirect)
+    # Download from Google Drive (handles virus scan warning)
     echo "Downloading test data package (this may take a moment)..."
     
-    # Method 1: Try with gdown if available
+    # Method 1: Try with gdown if available (handles large files better)
     if command -v gdown &> /dev/null; then
         gdown --id ${GDRIVE_FILE_ID} -O test_data.tar.gz
     else
-        # Method 2: Use wget with cookie handling
-        wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate \
-            "https://docs.google.com/uc?export=download&id=${GDRIVE_FILE_ID}" -O- | \
-            sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p' > /tmp/confirm.txt
+        # Method 2: Check if we should install gdown
+        echo "Installing gdown for better Google Drive support..."
+        pip install --quiet gdown
         
-        if [ -s /tmp/confirm.txt ]; then
-            CONFIRM=$(cat /tmp/confirm.txt)
-            wget --load-cookies /tmp/cookies.txt \
-                "https://docs.google.com/uc?export=download&confirm=${CONFIRM}&id=${GDRIVE_FILE_ID}" \
-                -O test_data.tar.gz
+        if command -v gdown &> /dev/null; then
+            gdown --id ${GDRIVE_FILE_ID} -O test_data.tar.gz
         else
-            wget --no-check-certificate \
+            # Method 3: Manual download with virus scan handling
+            echo "Using wget (this may be slower for large files)..."
+            # First request to get the warning page
+            wget --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate \
                 "https://drive.google.com/uc?export=download&id=${GDRIVE_FILE_ID}" \
-                -O test_data.tar.gz
+                -O /tmp/gdrive_page.html 2>/dev/null
+            
+            # Extract the confirmation token and UUID from the HTML
+            CONFIRM_TOKEN=$(grep -o 'name="confirm" value="[^"]*"' /tmp/gdrive_page.html | sed 's/.*value="//;s/"//')
+            UUID=$(grep -o 'name="uuid" value="[^"]*"' /tmp/gdrive_page.html | sed 's/.*value="//;s/"//')
+            
+            if [ -n "$CONFIRM_TOKEN" ] && [ -n "$UUID" ]; then
+                # Download with confirmation
+                echo "Large file detected, confirming download..."
+                wget --load-cookies /tmp/cookies.txt \
+                    "https://drive.usercontent.google.com/download?id=${GDRIVE_FILE_ID}&export=download&confirm=${CONFIRM_TOKEN}&uuid=${UUID}" \
+                    -O test_data.tar.gz
+            else
+                # Try direct download (for smaller files)
+                wget --load-cookies /tmp/cookies.txt \
+                    "https://drive.google.com/uc?export=download&id=${GDRIVE_FILE_ID}" \
+                    -O test_data.tar.gz
+            fi
+            
+            # Clean up temp files
+            rm -f /tmp/cookies.txt /tmp/gdrive_page.html
         fi
-        
-        # Clean up temp files
-        rm -f /tmp/cookies.txt /tmp/confirm.txt
     fi
     
     # Check if download was successful
