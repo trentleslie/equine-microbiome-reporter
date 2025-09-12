@@ -69,12 +69,8 @@ fi
 # Check for .env file
 if [ -f ".env" ]; then
     echo -e "${GREEN}✓ Configuration file (.env) found${NC}"
-    # Safe loading of .env file
-    set -a
-    grep -E '^[A-Z_][A-Z0-9_]*=' .env > /tmp/safe_env.tmp
-    source /tmp/safe_env.tmp
-    rm -f /tmp/safe_env.tmp
-    set +a
+    # Export variables from .env file safely
+    export $(grep -v '^#' .env | grep -v '^$' | xargs -d '\n')
 else
     echo -e "${RED}✗ Configuration file (.env) not found${NC}"
     echo "Please run setup.sh first"
