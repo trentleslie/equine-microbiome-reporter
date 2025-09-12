@@ -80,7 +80,7 @@ clone_repository() {
         rm -rf equine-microbiome-reporter
     fi
     
-    git clone https://github.com/ai-asa/equine-microbiome-reporter.git
+    git clone https://github.com/trentleslie/equine-microbiome-reporter.git
     cd equine-microbiome-reporter
     echo "✓ Repository cloned"
     echo ""

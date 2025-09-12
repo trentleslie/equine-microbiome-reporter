@@ -3,7 +3,7 @@
 ## One-Line Installation
 
 ```bash
-wget https://raw.githubusercontent.com/ai-asa/equine-microbiome-reporter/main/setup.sh && chmod +x setup.sh && ./setup.sh
+wget https://raw.githubusercontent.com/trentleslie/equine-microbiome-reporter/main/setup.sh && chmod +x setup.sh && ./setup.sh
 ```
 
 That's it! The script will handle everything.
@@ -168,7 +168,7 @@ You can edit this file anytime to change settings.
 
 - **Documentation**: Check `DEPLOYMENT_WSL2_COMPLETE.md` for detailed info
 - **Clinical Filtering**: See `CLINICAL_FILTERING_IMPLEMENTATION.md`
-- **Issues**: https://github.com/ai-asa/equine-microbiome-reporter/issues
+- **Issues**: https://github.com/trentleslie/equine-microbiome-reporter/issues
 
 ## Quick Test After Setup
 
