@@ -59,16 +59,32 @@ config/                     # YAML configuration
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### Quick Installation (Recommended)
 
-- Python 3.8+
-- [Poetry](https://python-poetry.org/) for dependency management
+Use our automated setup script for a complete installation with interactive configuration:
 
-### Installation
+```bash
+# One-line installation
+wget https://raw.githubusercontent.com/trentleslie/equine-microbiome-reporter/main/setup.sh && chmod +x setup.sh && ./setup.sh
+```
+
+The setup script will:
+- Install conda and git if needed
+- Clone the repository
+- Download test data (20MB) from Google Drive
+- Create conda environment with all dependencies
+- **Interactively configure your paths** (Kraken2 database, data directories, etc.)
+- Generate a customized `.env` file
+- Validate the installation
+- Generate a demo PDF report
+
+Total installation time: ~15-20 minutes
+
+### Manual Installation (Using Poetry)
 
 ```bash
 # Clone and navigate to project
-git clone [repository-url]
+git clone https://github.com/trentleslie/equine-microbiome-reporter.git
 cd equine-microbiome-reporter
 
 # Install core dependencies
@@ -92,6 +108,42 @@ poetry shell
 **Development**: `jupyter`, `ipywidgets`, `tqdm`  
 **LLM (optional)**: `openai`, `anthropic`, `google-generativeai`  
 **Translation (optional)**: `googletrans`, `google-cloud-translate`
+
+## 📚 Interactive Tutorials
+
+After installation, use our interactive scripts to learn the pipeline:
+
+### Tutorial Script - Learn the Concepts
+```bash
+# Activate environment
+conda activate equine-microbiome
+
+# Run interactive tutorial
+./tutorial.sh
+```
+
+This educational walkthrough explains:
+- Understanding FASTQ input data format
+- How Kraken2 classification works
+- Clinical filtering process (removing plant parasites, identifying pathogens)
+- Report generation workflow
+- Time savings (87% reduction in manual curation)
+
+**Features**: Step-by-step explanations • Color-coded output • Press Enter to continue • Works with or without Kraken2 database
+
+### Demo Script - See It In Action
+```bash
+# Run live demo with actual commands
+./demo.sh
+```
+
+This script actually processes test data and shows:
+- Real commands being executed
+- Actual output files being created
+- Processing time for each step
+- Generated Excel and PDF reports
+
+**Output**: Creates a timestamped `demo_output_*/` directory with all results
 
 ## ⚡ Quick Start
 
@@ -124,19 +176,20 @@ print("✅ Success!" if success else "❌ Failed!")
 ### Command Line Usage
 
 ```bash
-# Ensure you're in the Poetry environment
-poetry shell
+# Process test data with full pipeline
+python scripts/full_pipeline.py --input-dir data --output-dir results
 
-# Generate report using Python script
-poetry run python -c "
-from src.report_generator import ReportGenerator
-from src.data_models import PatientInfo
+# Process specific barcodes
+python scripts/full_pipeline.py --input-dir data --output-dir results --barcodes barcode04,barcode05,barcode06
 
-patient = PatientInfo(name='Montana', age='20 years', sample_number='506')
-generator = ReportGenerator(language='en')
-success = generator.generate_report('data/sample_1.csv', patient, 'reports/report.pdf')
-print('✅ Success!' if success else '❌ Failed!')
-"
+# Process with Kraken2 database (if configured)
+python scripts/full_pipeline.py \
+  --input-dir /path/to/fastq \
+  --output-dir results \
+  --kraken2-db /path/to/database
+
+# Get help on all options
+python scripts/full_pipeline.py --help
 ```
 
 ## 🧬 FASTQ Processing Pipeline
