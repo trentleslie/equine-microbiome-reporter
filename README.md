@@ -59,7 +59,7 @@ config/                     # YAML configuration
 
 ## 🚀 Getting Started
 
-### Quick Installation (Recommended)
+### Installation
 
 Use our automated setup script for a complete installation with interactive configuration:
 
@@ -80,34 +80,19 @@ The setup script will:
 
 Total installation time: ~15-20 minutes
 
-### Manual Installation (Using Poetry)
+### Prerequisites
 
-```bash
-# Clone and navigate to project
-git clone https://github.com/trentleslie/equine-microbiome-reporter.git
-cd equine-microbiome-reporter
-
-# Install core dependencies
-poetry install
-
-# Optional: Add LLM support for AI recommendations
-poetry install --with llm
-
-# Optional: Add translation support
-poetry install --with translation-free  # No API key required
-# OR
-poetry install --with translation       # Google Cloud (API key required)
-
-# Activate environment
-poetry shell
-```
+- WSL2 (Windows Subsystem for Linux) or Linux environment
+- 20GB disk space (for Kraken2 database)
+- 8GB RAM minimum (16GB recommended)
 
 ### Key Dependencies
 
-**Core**: `jinja2`, `reportlab`, `pandas`, `matplotlib`, `pyyaml`, `numpy`, `biopython`  
-**Development**: `jupyter`, `ipywidgets`, `tqdm`  
-**LLM (optional)**: `openai`, `anthropic`, `google-generativeai`  
-**Translation (optional)**: `googletrans`, `google-cloud-translate`
+The conda environment includes all necessary packages:
+- **Core**: pandas, numpy, matplotlib, jinja2, pyyaml, biopython
+- **PDF Generation**: reportlab, weasyprint
+- **Data Processing**: openpyxl, python-dotenv
+- **Development**: jupyter notebook, tqdm
 
 ## 📚 Interactive Tutorials
 
@@ -236,7 +221,7 @@ The easiest way to process multiple files is using the batch processing notebook
 
 ```bash
 # Launch the batch processing notebook
-poetry run jupyter notebook notebooks/batch_processing.ipynb
+jupyter notebook notebooks/batch_processing.ipynb
 ```
 
 The notebook provides:
@@ -362,7 +347,7 @@ The system includes an AI-powered recommendation engine that enhances clinical i
    LLM_PROVIDER=openai  # or anthropic, gemini
    ENABLE_LLM_RECOMMENDATIONS=true
    ```
-3. Install LLM dependencies: `poetry install --with llm`
+3. LLM packages are included in the conda environment
 
 ### Usage
 
@@ -504,7 +489,7 @@ Original implementations are preserved in the `legacy/` directory:
 
 ```bash
 # Run legacy generators (for reference)
-poetry run python legacy/enhanced_pdf_generator_en.py data/sample.csv -o reports/legacy.pdf
+python legacy/enhanced_pdf_generator_en.py data/sample.csv -o reports/legacy.pdf
 
 # Legacy web application
 ./legacy/run_web_app.sh
