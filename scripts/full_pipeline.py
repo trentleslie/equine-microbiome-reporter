@@ -26,13 +26,14 @@ from datetime import datetime
 from typing import Dict, List, Tuple, Optional
 import logging
 
-# Add src to path
+# Add src and scripts to path
 sys.path.append(str(Path(__file__).parent.parent / 'src'))
+sys.path.append(str(Path(__file__).parent.parent))
 
-from report_generator import ReportGenerator
-from data_models import PatientInfo
-from clinical_filter import ClinicalFilter
-from csv_processor import CSVProcessor
+from src.data_models import PatientInfo
+from src.clinical_filter import ClinicalFilter
+from src.csv_processor import CSVProcessor
+from scripts.generate_clean_report import generate_clean_report
 
 # Configure logging
 logging.basicConfig(
@@ -303,16 +304,20 @@ class FullPipeline:
             requested_by="Testing"
         )
         
-        # Generate report
-        generator = ReportGenerator(language="en")
+        # Generate report using clean template
         pdf_file = self.pdf_dir / f"{sample_name}_report.pdf"
-        
-        success = generator.generate_report(
-            str(csv_file),
-            patient,
-            str(pdf_file)
-        )
-        
+
+        try:
+            generate_clean_report(
+                str(csv_file),
+                patient,
+                str(pdf_file)
+            )
+            success = True
+        except Exception as e:
+            logger.error(f"Failed to generate PDF: {e}")
+            success = False
+
         if not success:
             raise RuntimeError(f"Failed to generate PDF for {sample_name}")
             

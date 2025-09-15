@@ -49,10 +49,18 @@ else
     echo -e "${YELLOW}⚠ No .env file found, using defaults${NC}"
 fi
 
-# Check conda environment
+# Check conda environment and find Python path dynamically
 if conda info --envs | grep -q equine-microbiome; then
     echo -e "${GREEN}✓ Conda environment 'equine-microbiome' found${NC}"
-    PYTHON_CMD="/home/trent/miniconda3/envs/equine-microbiome/bin/python"
+    # Get the conda base path dynamically
+    CONDA_BASE=$(conda info --base)
+    PYTHON_CMD="${CONDA_BASE}/envs/equine-microbiome/bin/python"
+
+    # If the Python binary doesn't exist at that path, try to find it
+    if [ ! -f "$PYTHON_CMD" ]; then
+        # Try to activate and find python
+        PYTHON_CMD=$(conda run -n equine-microbiome which python 2>/dev/null || echo "python")
+    fi
 else
     echo -e "${YELLOW}⚠ Using system Python${NC}"
     PYTHON_CMD="python3"
