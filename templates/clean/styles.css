@@ -1,0 +1,312 @@
+/* Clean, modern report styles for pages 2-5 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 10pt;
+    line-height: 1.5;
+    color: #1f2937;
+    background: white;
+}
+
+/* Page setup for PDF */
+@page {
+    size: A4;
+    margin: 15mm;
+}
+
+.page {
+    page-break-after: always;
+    position: relative;
+    min-height: 100vh;
+    padding: 0;
+}
+
+.page:last-child {
+    page-break-after: avoid;
+}
+
+/* Header styles */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 3mm;
+    border-bottom: 2px solid #0ea5e9;
+    margin-bottom: 5mm;
+}
+
+.header-left {
+    flex: 1;
+}
+
+.header-center {
+    flex: 1;
+    text-align: center;
+}
+
+.header-right {
+    flex: 1;
+    text-align: right;
+}
+
+.patient-info {
+    display: inline-block;
+    background: #f0f9ff;
+    padding: 2mm 4mm;
+    border-radius: 3mm;
+    font-size: 9pt;
+    color: #0369a1;
+    margin-right: 2mm;
+}
+
+.sample-badge {
+    display: inline-block;
+    background: #dbeafe;
+    padding: 2mm 4mm;
+    border-radius: 3mm;
+    font-size: 9pt;
+    font-weight: 600;
+    color: #0369a1;
+}
+
+/* Section headers */
+.section-title {
+    font-size: 18pt;
+    font-weight: 700;
+    color: #0369a1;
+    margin-bottom: 5mm;
+    letter-spacing: -0.5px;
+}
+
+.subsection-title {
+    font-size: 12pt;
+    font-weight: 600;
+    color: #0c4a6e;
+    margin-top: 4mm;
+    margin-bottom: 3mm;
+}
+
+/* Content containers */
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5mm;
+    margin-bottom: 5mm;
+}
+
+.content-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 3mm;
+    padding: 4mm;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+/* Charts */
+.chart-container {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 3mm;
+    padding: 3mm;
+    margin-bottom: 5mm;
+}
+
+.chart-img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Dysbiosis indicator */
+.dysbiosis-card {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 2px solid #0ea5e9;
+    border-radius: 4mm;
+    padding: 5mm;
+    text-align: center;
+    margin: 5mm 0;
+}
+
+.dysbiosis-value {
+    font-size: 36pt;
+    font-weight: 700;
+    color: #0369a1;
+    line-height: 1;
+}
+
+.dysbiosis-label {
+    font-size: 10pt;
+    color: #64748b;
+    margin-top: 2mm;
+}
+
+.dysbiosis-category {
+    display: inline-block;
+    padding: 2mm 6mm;
+    border-radius: 10mm;
+    font-weight: 600;
+    margin-top: 3mm;
+    font-size: 11pt;
+}
+
+.category-normal {
+    background: #10b981;
+    color: white;
+}
+
+.category-mild {
+    background: #f59e0b;
+    color: white;
+}
+
+.category-severe {
+    background: #ef4444;
+    color: white;
+}
+
+/* Tables */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 4mm;
+}
+
+.data-table th {
+    background: #0369a1;
+    color: white;
+    padding: 3mm;
+    text-align: left;
+    font-weight: 600;
+    font-size: 9pt;
+}
+
+.data-table td {
+    padding: 2.5mm 3mm;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 9pt;
+}
+
+.data-table tr:hover {
+    background: #f8fafc;
+}
+
+.value-normal {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.value-abnormal {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+/* Clinical recommendations */
+.recommendation-list {
+    list-style: none;
+    padding: 0;
+}
+
+.recommendation-list li {
+    position: relative;
+    padding-left: 8mm;
+    margin-bottom: 3mm;
+    font-size: 10pt;
+}
+
+.recommendation-list li:before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: #0ea5e9;
+    font-weight: 700;
+}
+
+/* Key findings boxes */
+.finding-card {
+    background: white;
+    border-left: 4px solid #0ea5e9;
+    padding: 3mm 4mm;
+    margin-bottom: 3mm;
+}
+
+.finding-card.critical {
+    border-left-color: #ef4444;
+    background: #fef2f2;
+}
+
+.finding-card.warning {
+    border-left-color: #f59e0b;
+    background: #fffbeb;
+}
+
+.finding-card.normal {
+    border-left-color: #10b981;
+    background: #f0fdf4;
+}
+
+/* Educational content */
+.info-box {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 3mm;
+    padding: 4mm;
+    margin-bottom: 4mm;
+}
+
+.info-box h4 {
+    color: #0369a1;
+    font-size: 11pt;
+    margin-bottom: 2mm;
+}
+
+.info-box p {
+    font-size: 9.5pt;
+    line-height: 1.6;
+}
+
+/* Footer */
+.page-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 3mm;
+    border-top: 1px solid #e2e8f0;
+    font-size: 8pt;
+    color: #64748b;
+}
+
+.footer-left {
+    font-weight: 600;
+}
+
+.footer-right {
+    text-align: right;
+}
+
+/* Print optimization */
+@media print {
+    .page {
+        page-break-after: always;
+        page-break-inside: avoid;
+    }
+
+    .chart-container,
+    .content-box,
+    .data-table {
+        page-break-inside: avoid;
+    }
+}

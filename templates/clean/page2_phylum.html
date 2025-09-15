@@ -1,0 +1,67 @@
+<!-- Page 2: Phylum Analysis (formerly part of Page 2) -->
+<div class="page">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <div class="patient-info">{{ patient.name }}</div>
+            <div class="patient-info">{{ patient.species }}</div>
+        </div>
+        <div class="header-center">
+            <div class="sample-badge">Sample #{{ patient.sample_number }}</div>
+        </div>
+        <div class="header-right">
+            <div style="font-size: 8pt; color: #64748b;">
+                <div>Analyzed: {{ patient.date_analyzed }}</div>
+                <div>Report: {{ report_date }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Title -->
+    <h1 class="section-title">Phylum Distribution Analysis</h1>
+
+    <!-- Phylum Distribution Chart -->
+    <div class="chart-container">
+        <img src="{{ charts.phylum_distribution }}" alt="Phylum Distribution" class="chart-img">
+    </div>
+
+    <!-- Phylum Comparison -->
+    <h2 class="subsection-title">Phylum Levels vs. Reference Range</h2>
+    <div class="chart-container">
+        <img src="{{ charts.phylum_comparison }}" alt="Phylum Comparison" class="chart-img">
+    </div>
+
+    <!-- Phylum Data Table -->
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Phylum</th>
+                <th>Patient (%)</th>
+                <th>Normal Range (%)</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for phylum, percentage in data.phylum_distribution.items() %}
+            {% set ref_range = config.reference_ranges.get(phylum, [0, 100]) %}
+            {% set is_normal = ref_range[0] <= percentage <= ref_range[1] %}
+            <tr>
+                <td>{{ phylum }}</td>
+                <td>{{ "%.2f"|format(percentage) }}</td>
+                <td>{{ "%.1f"|format(ref_range[0]) }} - {{ "%.1f"|format(ref_range[1]) }}</td>
+                <td>
+                    <span class="{% if is_normal %}value-normal{% else %}value-abnormal{% endif %}">
+                        {% if is_normal %}Normal{% else %}Abnormal{% endif %}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Footer -->
+    <div class="page-footer">
+        <div class="footer-left">MEMT Genetics Laboratory</div>
+        <div class="footer-right">Page 2 of 4</div>
+    </div>
+</div>

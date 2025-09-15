@@ -1,0 +1,70 @@
+<!-- Page 1: Sequencing Results (formerly Page 2) -->
+<div class="page">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <div class="patient-info">{{ patient.name }}</div>
+            <div class="patient-info">{{ patient.species }}</div>
+        </div>
+        <div class="header-center">
+            <div class="sample-badge">Sample #{{ patient.sample_number }}</div>
+        </div>
+        <div class="header-right">
+            <div style="font-size: 8pt; color: #64748b;">
+                <div>Analyzed: {{ patient.date_analyzed }}</div>
+                <div>Report: {{ report_date }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Title -->
+    <h1 class="section-title">Microbiome Sequencing Results</h1>
+
+    <!-- Dysbiosis Index Card -->
+    <div class="dysbiosis-card">
+        <div class="dysbiosis-value">{{ "%.1f"|format(data.dysbiosis_index) }}</div>
+        <div class="dysbiosis-label">Dysbiosis Index</div>
+        <div class="dysbiosis-category category-{{ data.dysbiosis_category }}">
+            {% if data.dysbiosis_category == "normal" %}
+                Normal Microbiota
+            {% elif data.dysbiosis_category == "mild" %}
+                Mild Dysbiosis
+            {% else %}
+                Severe Dysbiosis
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Species Distribution Chart -->
+    <h2 class="subsection-title">Bacterial Species Distribution</h2>
+    <div class="chart-container">
+        <img src="{{ charts.species_distribution }}" alt="Species Distribution" class="chart-img">
+    </div>
+
+    <!-- Top Species Table -->
+    <h2 class="subsection-title">Dominant Species</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Species</th>
+                <th>Abundance (%)</th>
+                <th>Phylum</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for species in data.species_list[:10] %}
+            <tr>
+                <td>{{ species.species }}</td>
+                <td>{{ "%.2f"|format(species.percentage) }}%</td>
+                <td>{{ species.phylum }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Footer -->
+    <div class="page-footer">
+        <div class="footer-left">MEMT Genetics Laboratory</div>
+        <div class="footer-right">Page 1 of 4</div>
+    </div>
+</div>

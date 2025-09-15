@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microbiome Analysis Report - {{ patient.name }}</title>
+    <style>
+        {{ css_content }}
+    </style>
+</head>
+<body>
+    <!-- Page 1: Sequencing Results -->
+    {{ page1_content }}
+
+    <!-- Page 2: Phylum Analysis -->
+    {{ page2_content }}
+
+    <!-- Page 3: Clinical Interpretation -->
+    {{ page3_content }}
+
+    <!-- Page 4: Summary & Guidelines -->
+    {{ page4_content }}
+</body>
+</html>

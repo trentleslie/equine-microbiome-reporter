@@ -1,6 +1,6 @@
 #!/bin/bash
-# Equine Microbiome Reporter - Live Demo Script
-# This script runs the actual pipeline with explanations
+# Equine Microbiome Reporter - Clean Demo Script
+# Uses the new clean template system
 
 # Color codes
 RED='\033[0;31m'
@@ -18,305 +18,157 @@ pause() {
     read -r
 }
 
-# Function to run command with explanation
-run_with_explanation() {
-    local explanation="$1"
-    local command="$2"
-    
-    echo -e "${CYAN}$explanation${NC}"
-    echo -e "${BOLD}Running: $command${NC}"
-    echo ""
-    pause
-    eval "$command"
-    echo ""
-    echo -e "${GREEN}✓ Complete${NC}"
-    pause
-}
-
 # Header
 clear
 echo -e "${BLUE}════════════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}     Equine Microbiome Reporter - Live Demo             ${NC}"
+echo -e "${BLUE}     Equine Microbiome Reporter - Clean Demo            ${NC}"
 echo -e "${BLUE}════════════════════════════════════════════════════════${NC}"
 echo ""
-echo "This demo will process real test data through the pipeline."
-echo "We'll use the test FASTQ files with 100 reads each."
+echo "This demo generates a clean, modern 4-page report"
+echo "using the simplified template system."
 echo ""
 pause
 
 # Check environment
-echo -e "${BLUE}═══ Checking Environment ═══${NC}"
+echo -e "${BLUE}═══ Step 1: Checking Environment ═══${NC}"
 echo ""
 
-# Activate conda if needed
-if [[ "$CONDA_DEFAULT_ENV" != "equine-microbiome" ]]; then
-    echo "Activating conda environment..."
-    source ~/miniconda3/etc/profile.d/conda.sh
-    conda activate equine-microbiome
-    echo -e "${GREEN}✓ Environment activated${NC}"
-fi
-
-# Load configuration
-if [ -f ".env" ]; then
-    # Load .env file line by line, handling inline comments
+# Load environment if exists
+if [ -f .env ]; then
+    echo -e "${GREEN}✓ Loading configuration from .env${NC}"
+    # Parse .env file safely
     while IFS='=' read -r key value; do
-        # Skip comments and empty lines
         if [[ ! "$key" =~ ^#.*$ ]] && [[ -n "$key" ]]; then
             # Remove inline comments and trim whitespace
             value="${value%%#*}"
             value="${value%"${value##*[![:space:]]}"}"
-            # Export the variable
             export "$key=$value" 2>/dev/null
         fi
     done < .env
-    echo -e "${GREEN}✓ Configuration loaded${NC}"
 else
-    echo -e "${RED}✗ No .env file found. Run setup.sh first!${NC}"
+    echo -e "${YELLOW}⚠ No .env file found, using defaults${NC}"
+fi
+
+# Check conda environment
+if conda info --envs | grep -q equine-microbiome; then
+    echo -e "${GREEN}✓ Conda environment 'equine-microbiome' found${NC}"
+    PYTHON_CMD="/home/trent/miniconda3/envs/equine-microbiome/bin/python"
+else
+    echo -e "${YELLOW}⚠ Using system Python${NC}"
+    PYTHON_CMD="python3"
+fi
+
+# Check for sample data
+if [ -f "data/sample_1.csv" ]; then
+    echo -e "${GREEN}✓ Sample data found${NC}"
+    SAMPLE_CSV="data/sample_1.csv"
+elif [ -f "data/barcode04.csv" ]; then
+    echo -e "${GREEN}✓ Barcode data found${NC}"
+    SAMPLE_CSV="data/barcode04.csv"
+else
+    echo -e "${RED}✗ No sample data found${NC}"
+    echo "Please run the pipeline first to generate sample data."
     exit 1
 fi
 
+pause
+
 # Create output directory
 OUTPUT_DIR="demo_output_$(date +%Y%m%d_%H%M%S)"
+echo -e "${BLUE}═══ Step 2: Creating Output Directory ═══${NC}"
+echo ""
+echo -e "${CYAN}Creating: $OUTPUT_DIR/${NC}"
 mkdir -p "$OUTPUT_DIR"
-echo -e "${GREEN}✓ Output directory created: $OUTPUT_DIR${NC}"
+echo -e "${GREEN}✓ Directory created${NC}"
 pause
 
-# Step 1: Show input data
-clear
-echo -e "${BLUE}═══ Step 1: Input Data ═══${NC}"
+# Process the data
+echo -e "${BLUE}═══ Step 3: Processing Sample Data ═══${NC}"
 echo ""
-run_with_explanation \
-    "Let's see what FASTQ files we have:" \
-    "ls -lh data/*test.fastq | head -5"
-
-# Step 2: Check if we can use Kraken2
-clear
-echo -e "${BLUE}═══ Step 2: Classification Method ═══${NC}"
+echo -e "${CYAN}Input: $SAMPLE_CSV${NC}"
+echo -e "${CYAN}This will:${NC}"
+echo "  1. Load and process CSV data"
+echo "  2. Calculate dysbiosis index"
+echo "  3. Generate professional charts"
+echo "  4. Create clean 4-page PDF report"
 echo ""
-
-if [ "$USE_MOCK_KRAKEN" = "true" ] || [ ! -d "$KRAKEN2_DB_PATH" ]; then
-    echo -e "${YELLOW}Note: Running in mock mode (no Kraken2 database)${NC}"
-    echo "We'll generate sample data to demonstrate the pipeline."
-    USE_MOCK=true
-else
-    echo -e "${GREEN}Kraken2 database found at: $KRAKEN2_DB_PATH${NC}"
-    USE_MOCK=false
-fi
 pause
 
-# Step 3: Process a single sample
-clear
-echo -e "${BLUE}═══ Step 3: Processing Single Sample ═══${NC}"
+# Run the clean report generator
+echo -e "${BOLD}Running clean report generator...${NC}"
 echo ""
 
-if [ "$USE_MOCK" = "true" ]; then
-    # Create mock processing script
-    cat > process_mock.py << 'EOF'
-#!/usr/bin/env python3
-import pandas as pd
-import numpy as np
-from pathlib import Path
-import sys
-
-output_dir = Path(sys.argv[1])
-output_dir.mkdir(parents=True, exist_ok=True)
-
-# Create mock data
-species_data = {
-    'species': [
-        'Lactobacillus_reuteri', 'Streptococcus_equi', 'E_coli',
-        'Bifidobacterium_longum', 'Clostridium_difficile'
-    ],
-    'barcode04': [450, 23, 156, 89, 12],
-    'phylum': ['Bacillota', 'Bacillota', 'Pseudomonadota', 'Actinomycetota', 'Bacillota'],
-    'genus': ['Lactobacillus', 'Streptococcus', 'Escherichia', 'Bifidobacterium', 'Clostridium']
-}
-
-df = pd.DataFrame(species_data)
-csv_file = output_dir / 'barcode04.csv'
-df.to_csv(csv_file, index=False)
-print(f"✓ Created mock CSV: {csv_file}")
-
-# Calculate stats
-total = df['barcode04'].sum()
-print(f"\nSummary for barcode04:")
-print(f"  Total reads: {total}")
-print(f"  Species detected: {len(df)}")
-print(f"  Top species: {df.iloc[0]['species']} ({df.iloc[0]['barcode04']/total*100:.1f}%)")
-EOF
-    
-    run_with_explanation \
-        "Creating mock classification data for barcode04:" \
-        "python process_mock.py $OUTPUT_DIR"
-    
-    rm process_mock.py
-else
-    run_with_explanation \
-        "Running Kraken2 classification on barcode04:" \
-        "kraken2 --db $KRAKEN2_DB_PATH --threads 2 --memory-mapping \
-                 --report $OUTPUT_DIR/barcode04.kreport \
-                 --output $OUTPUT_DIR/barcode04.out \
-                 data/barcode04_test.fastq"
-    
-    run_with_explanation \
-        "Converting Kraken report to CSV:" \
-        "python scripts/kreport_to_csv.py \
-                 $OUTPUT_DIR/barcode04.kreport \
-                 $OUTPUT_DIR/barcode04.csv"
-fi
-
-# Step 4: Apply clinical filtering
-clear
-echo -e "${BLUE}═══ Step 4: Clinical Filtering ═══${NC}"
-echo ""
-
-cat > apply_filter.py << 'EOF'
-#!/usr/bin/env python3
-import pandas as pd
+QT_QPA_PLATFORM=offscreen $PYTHON_CMD << EOF
 import sys
 from pathlib import Path
+sys.path.append('.')
 
-input_csv = Path(sys.argv[1])
-output_dir = Path(sys.argv[2])
-
-df = pd.read_csv(input_csv)
-print(f"Before filtering: {len(df)} species")
-
-# Simple filter - remove any with 'plant' or very low abundance
-filtered = df[~df['species'].str.contains('plant', case=False, na=False)]
-barcode_col = [c for c in df.columns if 'barcode' in c][0]
-total = filtered[barcode_col].sum()
-filtered = filtered[filtered[barcode_col] / total > 0.001]  # >0.1% abundance
-
-print(f"After filtering: {len(filtered)} species")
-print(f"Reduction: {(1 - len(filtered)/len(df))*100:.1f}%")
-
-output_csv = output_dir / f"{input_csv.stem}_filtered.csv"
-filtered.to_csv(output_csv, index=False)
-print(f"\n✓ Saved filtered data to: {output_csv}")
-EOF
-
-run_with_explanation \
-    "Applying clinical filters to remove irrelevant species:" \
-    "python apply_filter.py $OUTPUT_DIR/barcode04.csv $OUTPUT_DIR"
-
-rm apply_filter.py
-
-# Step 5: Generate Excel review file
-clear
-echo -e "${BLUE}═══ Step 5: Excel Review File ═══${NC}"
-echo ""
-
-run_with_explanation \
-    "Creating Excel file with clinical categorization:" \
-    "python scripts/generate_clinical_excel.py \
-             $OUTPUT_DIR/barcode04_filtered.csv \
-             $OUTPUT_DIR/barcode04_review.xlsx"
-
-echo "The Excel file contains:"
-echo "  • Color-coded species by clinical relevance"
-echo "  • Summary statistics"
-echo "  • Review instructions"
-pause
-
-# Step 6: Generate PDF report
-clear
-echo -e "${BLUE}═══ Step 6: PDF Report Generation ═══${NC}"
-echo ""
-
-cat > generate_report.py << 'EOF'
-#!/usr/bin/env python3
-from src.report_generator import ReportGenerator
+from scripts.generate_clean_report import generate_clean_report
 from src.data_models import PatientInfo
-import sys
 
-csv_file = sys.argv[1]
-output_pdf = sys.argv[2]
-
+# Sample patient info
 patient = PatientInfo(
     name="Demo Horse",
-    sample_number="DEMO-04",
-    age="5 years",
-    performed_by="Lab Technician",
-    requested_by="Dr. Smith"
+    age="10 years",
+    species="Equine",
+    sample_number="DEMO-001",
+    date_received="$(date +%Y-%m-%d)",
+    date_analyzed="$(date +%Y-%m-%d)",
+    performed_by="Demo Lab",
+    requested_by="Demo Veterinarian"
 )
 
-try:
-    generator = ReportGenerator(language="en")
-    success = generator.generate_report(csv_file, patient, output_pdf)
-    if success:
-        print(f"✓ PDF report generated: {output_pdf}")
-    else:
-        print("⚠ Report generation completed with warnings")
-except Exception as e:
-    print(f"⚠ PDF generation requires additional setup: {e}")
-    print("  The data processing is complete - PDF is optional")
+# Generate report
+output_path = Path("$OUTPUT_DIR/clean_report.pdf")
+success = generate_clean_report("$SAMPLE_CSV", patient, output_path)
+
+if success:
+    print("✅ Report generated successfully!")
+else:
+    print("❌ Report generation failed")
+    sys.exit(1)
 EOF
 
-run_with_explanation \
-    "Generating veterinary PDF report:" \
-    "python generate_report.py \
-             $OUTPUT_DIR/barcode04_filtered.csv \
-             $OUTPUT_DIR/barcode04_report.pdf 2>/dev/null || echo 'PDF generation skipped (optional)'"
-
-rm generate_report.py
-
-# Step 7: Show results
-clear
-echo -e "${BLUE}═══ Step 7: Results ═══${NC}"
-echo ""
-echo "Processing complete! Here's what was generated:"
-echo ""
-echo -e "${CYAN}Output files in $OUTPUT_DIR:${NC}"
-ls -la "$OUTPUT_DIR" 2>/dev/null | grep -E "\.(csv|xlsx|pdf|kreport)" | while read line; do
-    echo "  $line"
-done
-echo ""
-pause
-
-# Step 8: Batch processing
-clear
-echo -e "${BLUE}═══ Step 8: Batch Processing ═══${NC}"
-echo ""
-echo "To process all samples at once, you would run:"
-echo ""
-echo -e "${BOLD}python scripts/full_pipeline.py \\"
-echo "  --input-dir data \\"
-echo "  --output-dir batch_output \\"
-if [ "$USE_MOCK" = "false" ]; then
-    echo "  --kraken2-db $KRAKEN2_DB_PATH \\"
+if [ $? -eq 0 ]; then
+    echo ""
+    echo -e "${GREEN}✓ Report generation complete!${NC}"
+else
+    echo ""
+    echo -e "${RED}✗ Report generation failed${NC}"
+    exit 1
 fi
-echo -e "  --parallel${NC}"
-echo ""
-echo "This would:"
-echo "  • Process all barcode folders"
-echo "  • Run 4 samples in parallel"
-echo "  • Generate all reports automatically"
-echo "  • Create a summary spreadsheet"
+
 pause
 
-# Summary
-clear
-echo -e "${GREEN}════════════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}                    Demo Complete!                      ${NC}"
-echo -e "${GREEN}════════════════════════════════════════════════════════${NC}"
+# Display results
+echo -e "${BLUE}═══ Step 4: Results ═══${NC}"
 echo ""
-echo "You've seen the complete workflow:"
+echo -e "${GREEN}Success! Your report has been generated.${NC}"
 echo ""
-echo "  1. ✓ FASTQ input data"
-echo "  2. ✓ Taxonomic classification"
-echo "  3. ✓ Clinical filtering"
-echo "  4. ✓ Excel review generation"
-echo "  5. ✓ PDF report creation"
+echo "Output files:"
+echo -e "  ${CYAN}$OUTPUT_DIR/clean_report.pdf${NC} - 4-page report (no title)"
+echo -e "  ${CYAN}$OUTPUT_DIR/clean_report.html${NC} - HTML version"
 echo ""
-echo -e "${CYAN}Time Savings:${NC}"
-echo "  Manual process: 30-40 minutes per sample"
-echo "  With pipeline:  3-5 minutes per sample"
-echo "  Reduction:      ~87%"
+echo "The PDF contains:"
+echo "  • Page 1: Sequencing Results & Dysbiosis Index"
+echo "  • Page 2: Phylum Distribution Analysis"
+echo "  • Page 3: Clinical Interpretation"
+echo "  • Page 4: Summary & Management Guidelines"
 echo ""
-echo -e "${CYAN}Your demo output is in:${NC}"
-echo "  $OUTPUT_DIR/"
+echo "To combine with your title page:"
+echo -e "  ${BOLD}pdftk title_page.pdf $OUTPUT_DIR/clean_report.pdf cat output final_report.pdf${NC}"
 echo ""
-echo -e "${GREEN}Ready to process real data? Run:${NC}"
-echo -e "${BOLD}  python scripts/full_pipeline.py --help${NC}"
+
+# Open results if on WSL
+if grep -qi microsoft /proc/version 2>/dev/null; then
+    echo -e "${YELLOW}Would you like to open the PDF? (y/n)${NC}"
+    read -r response
+    if [[ "$response" =~ ^[Yy]$ ]]; then
+        explorer.exe "$OUTPUT_DIR/clean_report.pdf" 2>/dev/null || echo "Please open manually: $OUTPUT_DIR/clean_report.pdf"
+    fi
+fi
+
 echo ""
+echo -e "${BLUE}════════════════════════════════════════════════════════${NC}"
+echo -e "${GREEN}Demo complete!${NC}"
+echo -e "${BLUE}════════════════════════════════════════════════════════${NC}"
