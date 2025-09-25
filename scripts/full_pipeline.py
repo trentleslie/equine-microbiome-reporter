@@ -25,6 +25,10 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Tuple, Optional
 import logging
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Add src and scripts to path
 sys.path.append(str(Path(__file__).parent.parent / 'src'))
@@ -46,22 +50,30 @@ logger = logging.getLogger(__name__)
 class FullPipeline:
     """Complete pipeline from FASTQ to PDF reports."""
     
-    def __init__(self, input_dir: Path, output_dir: Path, kraken2_db: Path = None):
+    def __init__(self, input_dir: Path, output_dir: Path, kraken2_db: Path = None, barcodes: List[str] = None):
         """
         Initialize the pipeline.
-        
+
         Args:
             input_dir: Directory containing barcode folders with FASTQ files
             output_dir: Output directory for all results
             kraken2_db: Path to Kraken2 database (default: ~/kraken2_db/k2_pluspfp_16gb)
+            barcodes: Optional list of specific barcodes to process
         """
         self.input_dir = Path(input_dir)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Set default Kraken2 database
+        self.barcodes = barcodes  # Store the optional barcode filter
+
+        # Set Kraken2 database - check env variable first
         if kraken2_db is None:
-            self.kraken2_db = Path.home() / "kraken2_db" / "k2_pluspfp_16gb"
+            # Try to get from environment variable
+            env_db_path = os.getenv('KRAKEN2_DB_PATH')
+            if env_db_path and os.path.exists(env_db_path):
+                self.kraken2_db = Path(env_db_path)
+            else:
+                # Fall back to default
+                self.kraken2_db = Path.home() / "kraken2_db" / "k2_pluspfp_16gb"
         else:
             self.kraken2_db = Path(kraken2_db)
             
@@ -91,7 +103,12 @@ class FullPipeline:
         barcode_dirs = []
         for item in self.input_dir.iterdir():
             if item.is_dir() and item.name.startswith('barcode'):
-                barcode_dirs.append(item)
+                # If specific barcodes are requested, filter by them
+                if self.barcodes:
+                    if item.name in self.barcodes:
+                        barcode_dirs.append(item)
+                else:
+                    barcode_dirs.append(item)
         return sorted(barcode_dirs)
     
     def combine_fastq_files(self, barcode_dir: Path) -> Path:
@@ -467,14 +484,27 @@ def main():
         action="store_true",
         help="Skip Kraken2 if .kreport files already exist"
     )
-    
+    parser.add_argument(
+        "--barcodes",
+        type=str,
+        default=None,
+        help="Comma-separated list of specific barcodes to process (e.g., barcode04,barcode05,barcode06)"
+    )
+
     args = parser.parse_args()
     
+    # Parse barcodes if provided
+    barcodes = None
+    if args.barcodes:
+        barcodes = [b.strip() for b in args.barcodes.split(',')]
+        logger.info(f"Processing specific barcodes: {barcodes}")
+
     # Create pipeline
     pipeline = FullPipeline(
         input_dir=Path(args.input_dir),
         output_dir=Path(args.output_dir),
-        kraken2_db=Path(args.kraken2_db) if args.kraken2_db else None
+        kraken2_db=Path(args.kraken2_db) if args.kraken2_db else None,
+        barcodes=barcodes
     )
     
     # Run pipeline
