@@ -69,11 +69,13 @@ class FullPipeline:
         if kraken2_db is None:
             # Try to get from environment variable
             env_db_path = os.getenv('KRAKEN2_DB_PATH')
-            if env_db_path and os.path.exists(env_db_path):
+            if env_db_path:
                 self.kraken2_db = Path(env_db_path)
+                logger.info(f"Using Kraken2 database from environment: {self.kraken2_db}")
             else:
                 # Fall back to default
                 self.kraken2_db = Path.home() / "kraken2_db" / "k2_pluspfp_16gb"
+                logger.info(f"Using default Kraken2 database: {self.kraken2_db}")
         else:
             self.kraken2_db = Path(kraken2_db)
             
