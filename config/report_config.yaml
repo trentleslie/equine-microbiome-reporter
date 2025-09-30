@@ -49,27 +49,43 @@ llm:
   provider: "openai"
   model: "gpt-3.5-turbo"
 
+# Species filtering
+species_filtering:
+  # List of eukaryotic species to exclude from bacterial analysis
+  exclude_eukaryotes:
+    - "Homo sapiens"
+    - "Papaver somniferum"
+    - "Humulus lupulus"
+    - "Micromonospora siamensis"
+    - "Phocaeicola vulgatus"
+  # Also exclude anything from these kingdoms
+  exclude_kingdoms:
+    - "Eukaryota"
+    - "Viridiplantae"
+    - "Metazoa"
+    - "Fungi"
+
 # Kraken2 Configuration
 kraken2:
   enabled: true
   default_database: "standard"
   databases:
     standard: "/home/trentleslie/kraken2_databases/standard"
-    silva: "/home/trentleslie/kraken2_databases/silva" 
+    silva: "/home/trentleslie/kraken2_databases/silva"
     custom_equine: "/home/trentleslie/kraken2_databases/custom_equine"
-  
+
   parameters:
     threads: 32
     confidence_threshold: 0.1
     minimum_hit_groups: 2
     memory_mapping: false
     quick_mode: false
-  
+
   bracken:
     enabled: false
     read_length: 150
     classification_level: "S"
-  
+
   fallback:
     use_biopython: true
     min_classified_threshold: 0.05  # Fall back if <5% reads classified

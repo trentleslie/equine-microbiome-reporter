@@ -5,6 +5,9 @@ Converts CSV files to MicrobiomeData objects
 
 import pandas as pd
 import numpy as np
+import re
+import yaml
+from pathlib import Path
 from typing import Dict, List, Tuple
 try:
     from .data_models import MicrobiomeData
@@ -14,11 +17,20 @@ except ImportError:
 
 class CSVProcessor:
     """Process microbiome CSV data into structured format"""
-    
-    def __init__(self, csv_path: str, barcode_column: str = None):
+
+    # Known eukaryotic species to exclude
+    EUKARYOTE_SPECIES = {
+        'Homo sapiens', 'Papaver somniferum', 'Humulus lupulus',
+        'Micromonospora siamensis', 'Phocaeicola vulgatus'
+    }
+
+    def __init__(self, csv_path: str, barcode_column: str = None, config_path: str = None):
         self.csv_path = csv_path
         self.df = pd.read_csv(csv_path)
-        
+
+        # Load eukaryote exclusion list from config
+        self._load_exclusion_list(config_path)
+
         # Auto-detect barcode column if not specified
         if barcode_column is None:
             barcode_cols = [col for col in self.df.columns if col.startswith('barcode')]
@@ -27,13 +39,48 @@ class CSVProcessor:
             else:
                 # Fall back to any numeric column that isn't a standard column
                 standard_cols = ['species', 'phylum', 'genus', 'family', 'order', 'class']
-                numeric_cols = [col for col in self.df.columns 
+                numeric_cols = [col for col in self.df.columns
                                if col not in standard_cols and pd.api.types.is_numeric_dtype(self.df[col])]
                 self.barcode_column = numeric_cols[0] if numeric_cols else "barcode59"
         else:
             self.barcode_column = barcode_column
-            
+
+        # Filter eukaryotes before calculating totals
+        self.df = self._filter_eukaryotes(self.df)
         self.total_count = self.df[self.barcode_column].sum()
+
+    def _load_exclusion_list(self, config_path: str = None):
+        """Load eukaryote exclusion list from config file"""
+        if config_path is None:
+            config_path = Path(__file__).parent.parent / 'config' / 'report_config.yaml'
+
+        try:
+            if Path(config_path).exists():
+                with open(config_path, 'r') as f:
+                    config = yaml.safe_load(f)
+                    if 'species_filtering' in config:
+                        self.EUKARYOTE_SPECIES.update(
+                            config['species_filtering'].get('exclude_eukaryotes', [])
+                        )
+        except Exception as e:
+            print(f"Warning: Could not load config file: {e}")
+
+    def _filter_eukaryotes(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Filter out eukaryotic species from the dataframe"""
+        if 'species' in df.columns or 'Species' in df.columns:
+            species_col = 'Species' if 'Species' in df.columns else 'species'
+            # Remove known eukaryotes
+            df = df[~df[species_col].isin(self.EUKARYOTE_SPECIES)]
+        return df
+
+    @staticmethod
+    def clean_species_name(name: str) -> str:
+        """Clean species name by removing special characters like brackets"""
+        # Remove square brackets and their contents
+        name = re.sub(r'\[([^\]]+)\]', r'\1', name)
+        # Remove any remaining brackets
+        name = name.replace('[', '').replace(']', '')
+        return name.strip()
     
     def process(self) -> MicrobiomeData:
         """Convert CSV to MicrobiomeData object"""
@@ -59,21 +106,24 @@ class CSVProcessor:
         # Filter out zero counts and calculate percentages
         filtered_df = self.df[self.df[self.barcode_column] > 0].copy()
         filtered_df['percentage'] = (filtered_df[self.barcode_column] / self.total_count) * 100
-        
+
         # Sort by percentage descending
         filtered_df = filtered_df.sort_values('percentage', ascending=False)
-        
+
         species_list = []
         for _, row in filtered_df.iterrows():
+            species_name = row.get('Species', row.get('species', 'Unknown species'))
+            genus_name = row.get('Genus', row.get('genus', 'Unknown genus'))
+
             species_data = {
-                'species': row.get('Species', row.get('species', 'Unknown species')),
-                'genus': row.get('Genus', row.get('genus', 'Unknown genus')),
+                'species': self.clean_species_name(species_name),
+                'genus': self.clean_species_name(genus_name),
                 'phylum': row.get('Phylum', row.get('phylum', 'Unknown phylum')),
                 'percentage': round(row['percentage'], 2),
                 'count': int(row[self.barcode_column])
             }
             species_list.append(species_data)
-        
+
         return species_list
     
     def _calculate_phylum_distribution(self, species_list: List[Dict]) -> Dict[str, float]:

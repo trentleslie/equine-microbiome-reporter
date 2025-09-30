@@ -41,7 +41,7 @@
         <img src="{{ charts.species_distribution }}" alt="Species Distribution" class="chart-img">
     </div>
 
-    <!-- Top Species Table -->
+    <!-- Complete Species Table (All species, not just top 10) -->
     <h2 class="subsection-title">Dominant Species</h2>
     <table class="data-table">
         <thead>
@@ -52,7 +52,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for species in data.species_list[:10] %}
+            {% for species in data.species_list %}
             <tr>
                 <td>{{ species.species }}</td>
                 <td>{{ "%.2f"|format(species.percentage) }}%</td>
@@ -64,7 +64,7 @@
 
     <!-- Footer -->
     <div class="page-footer">
-        <div class="footer-left">MEMT Genetics Laboratory</div>
+        <div class="footer-left">MIMT Genetics Laboratory</div>
         <div class="footer-right">Page 1 of 4</div>
     </div>
 </div>

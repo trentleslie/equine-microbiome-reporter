@@ -137,7 +137,7 @@ def main():
         sample_number="NG-GP-2024-001",
         date_received="2024-03-15",
         date_analyzed="2024-03-16",
-        performed_by="MEMT Genetics Lab",
+        performed_by="MIMT Genetics Lab",
         requested_by="Dr. Alexandra Matusiak"
     )
 

@@ -15,6 +15,7 @@ class PatientInfo:
     species: str = "Horse"
     age: str = "Unknown"
     sample_number: str = "001"
+    case_number: str = ""  # Laboratory case/reference number
     date_received: str = field(default_factory=lambda: datetime.now().strftime('%Y-%m-%d'))
     date_analyzed: str = field(default_factory=lambda: datetime.now().strftime('%Y-%m-%d'))
     performed_by: str = "Laboratory Staff"

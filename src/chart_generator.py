@@ -116,12 +116,12 @@ class ChartGenerator:
                     f'{pct:.1f}%', va='center', ha='left', 
                     fontsize=10, fontweight='600', color='#374151')
         
-        # Customize axes
+        # Customize axes (no numbering per feedback)
         ax.set_yticks(y_positions)
-        ax.set_yticklabels([f"{i+1}. {name[:40]}" for i, name in enumerate(species_names[::-1])], 
+        ax.set_yticklabels([f"{name[:50]}" for name in species_names[::-1]],
                           fontsize=9)
         ax.set_xlabel('Percentage (%)')
-        ax.set_title('MICROBIOTIC PROFILE - Top Species Distribution', 
+        ax.set_title('MICROBIOTIC PROFILE - Top Species Distribution',
                     fontweight='bold', pad=25, fontsize=18, color='#1F2937')
         
         # Add grid
