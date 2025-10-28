@@ -39,6 +39,12 @@ body {
     min-height: 257mm;
 }
 
+/* Keep species list title and table together on same page */
+.species-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
 /* Header styles */
 .page-header {
     display: flex;
