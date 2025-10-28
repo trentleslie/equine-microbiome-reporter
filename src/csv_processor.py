@@ -66,11 +66,26 @@ class CSVProcessor:
             print(f"Warning: Could not load config file: {e}")
 
     def _filter_eukaryotes(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Filter out eukaryotic species from the dataframe"""
-        if 'species' in df.columns or 'Species' in df.columns:
-            species_col = 'Species' if 'Species' in df.columns else 'species'
-            # Remove known eukaryotes
-            df = df[~df[species_col].isin(self.EUKARYOTE_SPECIES)]
+        """Filter out non-bacterial organisms (eukaryotes, archaea) from the dataframe"""
+
+        # Method 1: Use superkingdom column if available (most reliable)
+        superkingdom_col = None
+        for col_name in ['superkingdom', 'Superkingdom', 'SUPERKINGDOM', 'domain', 'Domain']:
+            if col_name in df.columns:
+                superkingdom_col = col_name
+                break
+
+        if superkingdom_col:
+            # Keep only bacteria
+            df = df[df[superkingdom_col] == 'Bacteria'].copy()
+            print(f"Filtered by {superkingdom_col}: {len(df)} bacterial entries remaining")
+        else:
+            # Method 2: Fall back to species name filtering if taxonomy columns not available
+            if 'species' in df.columns or 'Species' in df.columns:
+                species_col = 'Species' if 'Species' in df.columns else 'species'
+                df = df[~df[species_col].isin(self.EUKARYOTE_SPECIES)]
+                print(f"Filtered by species names: {len(df)} entries remaining")
+
         return df
 
     @staticmethod
@@ -85,19 +100,26 @@ class CSVProcessor:
     def process(self) -> MicrobiomeData:
         """Convert CSV to MicrobiomeData object"""
         species_list = self._get_species_list()
-        phylum_dist = self._calculate_phylum_distribution(species_list)
-        di_score = self._calculate_dysbiosis_index(phylum_dist)
-        
+
+        # Calculate raw phylum distribution (includes all phyla)
+        phylum_dist_raw = self._calculate_phylum_distribution(species_list)
+
+        # Calculate dysbiosis index using raw distribution (all bacterial phyla)
+        di_score = self._calculate_dysbiosis_index(phylum_dist_raw)
+
+        # Filter phylum distribution for reporting (DI-relevant + Other)
+        phylum_dist_filtered = self._filter_phylum_for_reporting(phylum_dist_raw)
+
         return MicrobiomeData(
             species_list=species_list,
-            phylum_distribution=phylum_dist,
+            phylum_distribution=phylum_dist_filtered,  # Use filtered for display in charts
             dysbiosis_index=di_score,
             total_species_count=len(species_list),
             dysbiosis_category=self._get_dysbiosis_category(di_score),
             parasite_results=self._get_default_parasite_results(),
             microscopic_results=self._get_default_microscopic_results(),
             biochemical_results=self._get_default_biochemical_results(),
-            clinical_interpretation=self._generate_clinical_interpretation(di_score, phylum_dist),
+            clinical_interpretation=self._generate_clinical_interpretation(di_score, phylum_dist_raw),
             recommendations=self._get_recommendations(di_score)
         )
     
@@ -129,14 +151,44 @@ class CSVProcessor:
     def _calculate_phylum_distribution(self, species_list: List[Dict]) -> Dict[str, float]:
         """Calculate phylum-level distribution"""
         phylum_counts = {}
-        
+
         for species in species_list:
             phylum = species['phylum']
             if phylum not in phylum_counts:
                 phylum_counts[phylum] = 0
             phylum_counts[phylum] += species['percentage']
-        
+
         return {k: round(v, 2) for k, v in phylum_counts.items()}
+
+    def _filter_phylum_for_reporting(self, phylum_dist: Dict[str, float]) -> Dict[str, float]:
+        """Filter phylum distribution to show only DI-relevant phyla + Other bacterial phyla
+
+        This groups minor bacterial phyla into 'Other bacterial phyla' category
+        and excludes Unknown/non-bacterial entries from the report.
+        """
+        # DI-relevant phyla used in dysbiosis index calculation
+        DI_PHYLA = {'Actinomycetota', 'Bacillota', 'Bacteroidota', 'Pseudomonadota', 'Fibrobacterota'}
+
+        filtered = {}
+        other_total = 0.0
+
+        for phylum, percentage in phylum_dist.items():
+            # Skip unknown/empty phyla
+            if phylum in ['Unknown phylum', 'Unknown', '', 'unknown', 'UNKNOWN']:
+                continue
+
+            if phylum in DI_PHYLA:
+                # Include DI-relevant phyla directly
+                filtered[phylum] = percentage
+            else:
+                # Group all other bacterial phyla as "Other"
+                other_total += percentage
+
+        # Only add "Other" category if there are minor bacterial phyla
+        if other_total > 0:
+            filtered['Other bacterial phyla'] = round(other_total, 2)
+
+        return filtered
     
     def _calculate_dysbiosis_index(self, phylum_dist: Dict[str, float]) -> float:
         """Calculate dysbiosis index based on phylum distribution"""

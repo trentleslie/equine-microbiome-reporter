@@ -41,27 +41,6 @@
         <img src="{{ charts.species_distribution }}" alt="Species Distribution" class="chart-img">
     </div>
 
-    <!-- Complete Species Table (All species, not just top 10) -->
-    <h2 class="subsection-title">Dominant Species</h2>
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Species</th>
-                <th>Abundance (%)</th>
-                <th>Phylum</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for species in data.species_list %}
-            <tr>
-                <td>{{ species.species }}</td>
-                <td>{{ "%.2f"|format(species.percentage) }}%</td>
-                <td>{{ species.phylum }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
     <!-- Footer -->
     <div class="page-footer">
         <div class="footer-left">MIMT Genetics Laboratory</div>

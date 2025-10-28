@@ -116,6 +116,27 @@
         </tbody>
     </table>
 
+    <!-- Complete Bacterial Species List -->
+    <h2 class="subsection-title">Complete Bacterial Species List</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Species</th>
+                <th>Abundance (%)</th>
+                <th>Phylum</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for species in data.species_list %}
+            <tr>
+                <td>{{ species.species }}</td>
+                <td>{{ "%.2f"|format(species.percentage) }}%</td>
+                <td>{{ species.phylum }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
     <!-- Contact Information -->
     <div class="content-box full-width" style="margin-top: 5mm;">
         <strong>For questions regarding this report, please contact:</strong><br>

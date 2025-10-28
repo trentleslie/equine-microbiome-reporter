@@ -65,6 +65,27 @@ species_filtering:
     - "Metazoa"
     - "Fungi"
 
+# Bacterial phyla classification (for reference and documentation)
+bacterial_phyla:
+  # DI-relevant phyla (used in dysbiosis index calculation)
+  # These are displayed individually in charts
+  di_relevant:
+    - Actinomycetota
+    - Bacillota
+    - Bacteroidota
+    - Pseudomonadota
+    - Fibrobacterota
+
+  # Other known bacterial phyla (grouped as "Other bacterial phyla" in charts)
+  other_bacterial:
+    - Spirochaetota
+    - Mycoplasmatota
+    - Gemmatimonadota
+    - Verrucomicrobiota
+    - Chloroflexi
+    - Deinococcota
+    - Thermotogota
+
 # Kraken2 Configuration
 kraken2:
   enabled: true
