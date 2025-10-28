@@ -4,14 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Equine Microbiome Reporter** - An automated PDF report generation system for equine gut microbiome analysis from 16S rRNA sequencing data. Uses a Jinja2-based template architecture to transform CSV data into professional veterinary laboratory reports.
+**Equine Microbiome Reporter** - An automated PDF report generation system for equine gut microbiome analysis from 16S rRNA sequencing data. The system processes raw FASTQ files through Kraken2 classification, applies clinical filtering, and generates professional 5-page PDF reports using Jinja2 templates and WeasyPrint.
 
-**Current Status:** Production-ready with English reports. Polish and Japanese translations pending.
+**Current Status:** Production-ready with English reports in clean template format.
 
 **Key Points:**
 - Private project for HippoVet+ veterinary laboratory
-- Focus on practical implementation over documentation
-- Uses new Jinja2 architecture (legacy code in `legacy/` directory)
+- Complete FASTQ-to-PDF pipeline with Kraken2 integration
+- Clinical filtering for veterinary-relevant species
+- Uses `templates/clean/` for current production reports
+- Legacy code preserved in `legacy/` directory
 
 ## Development Commands
 
@@ -31,28 +33,27 @@ poetry shell
 
 ### Generate Reports
 ```bash
-# Quick report generation (most common task)
+# Quick report generation from CSV (most common task)
 poetry run python -c "
-from src.report_generator import ReportGenerator
+from scripts.generate_clean_report import generate_clean_report
 from src.data_models import PatientInfo
 
 patient = PatientInfo(name='Montana', sample_number='506')
-generator = ReportGenerator(language='en')
-success = generator.generate_report('data/sample_1.csv', patient, 'report.pdf')
+success = generate_clean_report('data/sample_1.csv', patient, 'report.pdf')
 print('✅ Success!' if success else '❌ Failed!')
 "
 
+# Complete FASTQ-to-PDF pipeline (production workflow)
+poetry run python scripts/full_pipeline.py --input-dir data/ --output-dir results/
+
+# Process specific barcodes only
+poetry run python scripts/full_pipeline.py --input-dir data/ --output-dir results/ --barcodes barcode04,barcode05
+
+# With custom Kraken2 database
+poetry run python scripts/full_pipeline.py --input-dir data/ --output-dir results/ --kraken2-db /path/to/db
+
 # Batch processing (interactive)
 poetry run jupyter notebook notebooks/batch_processing.ipynb
-
-# FASTQ processing pipeline
-poetry run python -c "
-from src.pipeline_integrator import MicrobiomePipelineIntegrator
-from src.data_models import PatientInfo
-
-pipeline = MicrobiomePipelineIntegrator(output_dir='pipeline_output')
-results = pipeline.process_sample('sample.fastq.gz', PatientInfo(name='Test'), 'en')
-"
 ```
 
 ### Testing and Validation
@@ -60,48 +61,59 @@ results = pipeline.process_sample('sample.fastq.gz', PatientInfo(name='Test'), '
 # Run formal test suite
 poetry run pytest tests/ --cov=src --cov-report=html
 
-# Quick validation checks
-poetry run python -c "import src.report_generator; print('✅ Core imports working')"
-
 # Validate CSV format
 poetry run python scripts/validate_csv_format.py data/sample.csv [barcode_column]
 
-# Check template syntax
-poetry run python -c "
-from jinja2 import Environment, FileSystemLoader
-env = Environment(loader=FileSystemLoader('templates/en'))
-template = env.get_template('report_full.j2')
-print('✅ Template syntax valid')
-"
+# Validate client data integrity
+poetry run python scripts/validate_client_data.py data/
+
+# Test installation and pipeline
+poetry run python scripts/test_installation.py
+
+# Validate FASTQ pipeline
+poetry run python scripts/validate_fastq_pipeline.py
 ```
 
 ## Architecture Overview
 
-### Core Processing Pipeline
-1. **CSV → Data Models**: `CSVProcessor` loads CSV and creates `PatientInfo` + `MicrobiomeData` objects
-2. **Clinical Analysis**: Calculates dysbiosis index and categorizes results (normal/mild/severe)
-3. **Template Rendering**: Jinja2 processes language-specific templates with data context
-4. **PDF Generation**: `PDFBuilder` converts HTML to professional PDF using ReportLab
-5. **Output**: 5-page veterinary laboratory report
+### Complete Pipeline Flow (FASTQ → PDF)
+1. **FASTQ Input**: Raw sequencing files organized by barcode
+2. **Kraken2 Classification**: Taxonomic identification using PlusPFP-16 database
+3. **Clinical Filtering**: Remove non-veterinary taxa (plants, archaea), identify pathogens
+4. **CSV Conversion**: Kraken2 reports → abundance tables with phylum mapping
+5. **Data Processing**: `CSVProcessor` creates `MicrobiomeData` with dysbiosis calculations
+6. **Chart Generation**: Matplotlib/Seaborn charts for species/phylum distribution
+7. **Template Rendering**: Jinja2 processes HTML templates with data context
+8. **PDF Generation**: WeasyPrint converts HTML to professional 5-page PDF
+9. **Output**: Laboratory-ready report with clinical interpretations
 
 ### Key Components
-- **`src/data_models.py`**: Two main classes - `PatientInfo` and `MicrobiomeData`
-- **`src/report_generator.py`**: Main orchestrator coordinating all steps
-- **`src/csv_processor.py`**: CSV parsing and dysbiosis calculations
-- **`src/pdf_builder.py`**: HTML-to-PDF conversion with ReportLab
-- **`config/report_config.yaml`**: Reference ranges, thresholds, colors
+- **`src/data_models.py`**: Core data classes - `PatientInfo` and `MicrobiomeData`
+- **`src/kraken2_classifier.py`**: Kraken2 integration with taxonomy mapping
+- **`src/clinical_filter.py`**: Veterinary-specific filtering rules (removes plants, identifies pathogens)
+- **`src/csv_processor.py`**: CSV parsing, phylum aggregation, dysbiosis calculations
+- **`src/chart_generator.py`**: Matplotlib/Seaborn visualizations
+- **`scripts/generate_clean_report.py`**: Main report orchestrator using WeasyPrint
+- **`scripts/full_pipeline.py`**: End-to-end FASTQ-to-PDF pipeline coordinator
+- **`config/report_config.yaml`**: Reference ranges, thresholds, clinical rules
 
-### Template System
-- **`templates/base/`**: Shared layout components (header, footer, styles)
-- **`templates/en/`**: English templates (complete)
-- **`templates/pl/`, `templates/jp/`**: Polish and Japanese (ready for translation)
-- **Template structure**: 5-page reports using Jinja2 with modular components
+### Template System (Current Production)
+- **`templates/clean/`**: Production HTML templates (5 pages)
+  - `page1_sequencing.html`: Sequencing results and species charts
+  - `page2_phylum.html`: Phylum distribution analysis
+  - `page3_clinical.html`: Clinical interpretation and recommendations
+  - `page4_summary.html`: Summary and dysbiosis assessment
+  - `page5_species_list.html`: Complete species list table
+  - `styles.css`: Consistent styling and page layout
+  - `report_clean.html`: Master template combining all pages
 
-### Additional Features
-- **FASTQ Pipeline**: `src/pipeline_integrator.py` - raw sequencing data to PDF
-- **Batch Processing**: `src/batch_processor.py` - multiple samples with validation
-- **LLM Integration**: `src/llm_recommendation_engine.py` - AI-enhanced recommendations
-- **Translation System**: `src/translation_service.py` - multi-language support
+### Clinical Filtering Architecture
+The pipeline implements sophisticated filtering to address HippoVet+'s needs:
+- **Kingdom-based exclusion**: Removes Plantae, Archaea (non-veterinary relevant)
+- **Clinical relevance scoring**: HIGH (pathogens), MODERATE (opportunistic), LOW (commensal)
+- **Database-specific rules**: Different filters for PlusPFP-16, EuPathDB, Viral databases
+- **Semi-automated curation**: Excel export for manual review, import corrections
+- **Equine pathogen database**: Curated list of clinically relevant species
 
 ## Data Formats and Configuration
 
@@ -150,25 +162,35 @@ dysbiosis_thresholds:
   mild: 50      # Index 20-50 = mild, >50 = severe
 ```
 
-## Multi-Language Support
+## Environment Configuration
 
-### Available Languages
-- **✅ English** (`templates/en/`): Complete implementation
-- **🚧 Polish** (`templates/pl/`): Ready for translation
-- **🚧 Japanese** (`templates/jp/`): Ready for translation
+### Required Environment Variables
+Copy `.env.example` to `.env` and configure:
 
-### Language Selection
-```python
-# English (available)
-generator = ReportGenerator(language="en")
+```bash
+# Kraken2 Database Paths
+KRAKEN2_DB_PATH=/path/to/k2_pluspfp_16gb
+KRAKEN2_SILVA_DB=/path/to/EuPathDB  # Optional: parasites
+KRAKEN2_VIRAL_DB=/path/to/Viral     # Optional: viruses
 
-# Other languages after translation
-generator = ReportGenerator(language="pl")  # Polish
-generator = ReportGenerator(language="jp")  # Japanese
+# Clinical Filtering
+MIN_ABUNDANCE_THRESHOLD=0.01
+PLUSPFP16_EXCLUDE_KINGDOMS=Plantae,Archaea
+CLINICAL_RELEVANCE_THRESHOLD=0.1
+
+# Output Directories
+DEFAULT_OUTPUT_DIR=/path/to/results
+EXCEL_REVIEW_DIR=/path/to/excel_review
+PDF_OUTPUT_DIR=/path/to/pdf_reports
+
+# Optional: LLM Integration
+ENABLE_LLM_RECOMMENDATIONS=false
+LLM_PROVIDER=none
 ```
 
-### Translation Workflow
-Use `notebooks/template_translation.ipynb` for automated translation with scientific glossary preservation.
+### Path Conventions
+The system uses WSL2 path format: `/mnt/c/Users/${USER}/hippovet/...`
+Adjust for your environment or use relative paths.
 
 ## LLM-Powered Recommendations
 
@@ -189,39 +211,71 @@ Supports OpenAI, Anthropic Claude, and Google Gemini with 8 clinical templates f
 
 ## Key File Locations
 
-### Core Components
-- **`src/report_generator.py`**: Main entry point and orchestrator
-- **`src/data_models.py`**: PatientInfo and MicrobiomeData classes
-- **`src/csv_processor.py`**: CSV parsing and dysbiosis calculations  
-- **`src/pdf_builder.py`**: HTML-to-PDF conversion
-- **`config/report_config.yaml`**: Reference ranges and thresholds
+### Core Pipeline Scripts
+- **`scripts/full_pipeline.py`**: Complete FASTQ-to-PDF orchestrator (main production script)
+- **`scripts/generate_clean_report.py`**: CSV-to-PDF report generation with WeasyPrint
+- **`scripts/batch_clinical_processor.py`**: Batch processing with clinical filtering
+- **`scripts/generate_clinical_excel.py`**: Create Excel files for manual curation
+
+### Core Modules
+- **`src/data_models.py`**: `PatientInfo` and `MicrobiomeData` dataclasses
+- **`src/kraken2_classifier.py`**: Kraken2 integration and taxonomy mapping
+- **`src/clinical_filter.py`**: Veterinary-specific filtering rules and pathogen database
+- **`src/csv_processor.py`**: CSV parsing, phylum aggregation, dysbiosis calculations
+- **`src/chart_generator.py`**: Matplotlib/Seaborn chart generation
+- **`src/kraken2_to_csv.py`**: Convert Kraken2 reports to CSV format
 
 ### Templates and Configuration
-- **`templates/en/`**: English templates (complete)
-- **`templates/pl/`, `templates/jp/`**: Other languages (ready for translation)
-- **`.env.example`**: LLM API configuration template
+- **`templates/clean/`**: Production HTML templates (5-page reports)
+- **`config/report_config.yaml`**: Reference ranges, thresholds, clinical rules
+- **`.env.example`**: Environment configuration template
 
-### Processing Pipelines
-- **`src/pipeline_integrator.py`**: FASTQ-to-PDF pipeline
-- **`src/batch_processor.py`**: Multi-file processing
-- **`notebooks/batch_processing.ipynb`**: Interactive batch processing
-
-### Utilities and Examples
+### Validation and Testing
 - **`scripts/validate_csv_format.py`**: CSV format validation
-- **`notebooks/`**: Interactive examples and workflows
-- **`legacy/`**: Original implementation (for reference only)
+- **`scripts/validate_client_data.py`**: Data integrity checks
+- **`scripts/validate_fastq_pipeline.py`**: FASTQ pipeline validation
+- **`scripts/test_installation.py`**: Installation verification
+
+### Interactive Notebooks
+- **`notebooks/batch_processing.ipynb`**: Interactive batch processing
+- **`notebooks/fastq_processing_pipeline.ipynb`**: FASTQ workflow examples
+- **`notebooks/llm_recommendation_engine.ipynb`**: LLM integration examples
+- **`notebooks/template_translation.ipynb`**: Translation workflows
+
+### Legacy Code
+- **`legacy/`**: Original implementation (for reference only, not production)
 
 ## Common Issues and Solutions
 
-### Report Generation Failures
-1. **CSV format**: Check for required columns (`species`, `barcode[N]`, `phylum`, `genus`)
-2. **Phylum names**: Must match reference ranges exactly (e.g., "Bacillota" not "Firmicutes")
-3. **Patient info**: Ensure all required PatientInfo fields are provided
-4. **Template errors**: Check Jinja2 syntax in `templates/en/`
+### Kraken2 Database Issues
+1. **Database not found**: Set `KRAKEN2_DB_PATH` in `.env` to correct location
+2. **Memory errors**: Use `KRAKEN2_MEMORY_MAPPING=false` or increase available RAM
+3. **Database permissions**: Ensure read access to database directory
+4. **Missing hash.k2d files**: Rebuild database with `kraken2-build`
 
-### Development Workflow
-1. Use `poetry shell` to activate environment
-2. Test with single report generation first
-3. Validate CSV format using `scripts/validate_csv_format.py`
-4. Use interactive notebooks for batch processing
-5. Run `pytest tests/` for comprehensive testing
+### Clinical Filtering Issues
+1. **Too many plants**: Check `PLUSPFP16_EXCLUDE_KINGDOMS` includes "Plantae"
+2. **Missing pathogens**: Review `src/clinical_filter.py` pathogen database
+3. **Excel export fails**: Ensure `EXCEL_REVIEW_DIR` is writable
+4. **Incorrect relevance scores**: Adjust `CLINICAL_RELEVANCE_THRESHOLD` in `.env`
+
+### Report Generation Failures
+1. **CSV format errors**: Validate with `scripts/validate_csv_format.py`
+2. **Phylum names**: Must use modern taxonomy (e.g., "Bacillota" not "Firmicutes")
+3. **Missing charts**: Check `temp_charts/` directory exists and is writable
+4. **PDF generation fails**: Verify WeasyPrint installation (requires system libraries)
+5. **Template errors**: Check Jinja2 syntax in `templates/clean/`
+
+### Development Workflow Best Practices
+1. **Environment setup**: Copy `.env.example` to `.env` before first run
+2. **Test incrementally**: Start with CSV → PDF, then add Kraken2, then full pipeline
+3. **Use validation scripts**: Run `scripts/test_installation.py` after setup
+4. **Check logs**: Review console output for detailed error messages
+5. **Interactive debugging**: Use Jupyter notebooks in `notebooks/` for step-by-step testing
+6. **Mock mode**: Set `USE_MOCK_KRAKEN=true` to test without Kraken2 database
+
+### WSL2-Specific Notes
+- Use `/mnt/c/` prefix for Windows paths
+- Kraken2 database typically at `/mnt/c/Users/${USER}/hippovet/epi2melabs/data/`
+- Ensure Windows filesystem paths are accessible from WSL2
+- Use `wslpath` command to convert between Windows and WSL2 paths

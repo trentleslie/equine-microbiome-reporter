@@ -49,4 +49,20 @@ tmp/
 .env
 .env.local
 .env.production
+.env.development
 notebooks/translation_cache/
+email_response.md
+
+# Test outputs (prevent clutter)
+test_*/
+demo_output_*/
+*_output/
+pipeline.log
+pipeline_*.log
+
+# Temporary charts (auto-generated)
+temp_charts/
+
+# Archives
+*.tar.gz
+!examples/*.tar.gz
