@@ -33,6 +33,12 @@ body {
     page-break-after: avoid;
 }
 
+/* Variable height page for content that may exceed standard page height */
+.page-variable-height {
+    height: auto;
+    min-height: 257mm;
+}
+
 /* Header styles */
 .page-header {
     display: flex;
