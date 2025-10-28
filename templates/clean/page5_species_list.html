@@ -1,0 +1,56 @@
+<!-- Page 5: Complete Bacterial Species List -->
+<div class="page">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <div class="patient-info">{{ patient.name }}</div>
+            <div class="patient-info">{{ patient.species }}</div>
+        </div>
+        <div class="header-center">
+            <div class="sample-badge">Sample #{{ patient.sample_number }}</div>
+        </div>
+        <div class="header-right">
+            <div style="font-size: 8pt; color: #64748b;">
+                <div>Analyzed: {{ patient.date_analyzed }}</div>
+                <div>Report: {{ report_date }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Title -->
+    <h1 class="section-title">Complete Bacterial Species List</h1>
+
+    <!-- Species Table -->
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Species</th>
+                <th>Abundance (%)</th>
+                <th>Phylum</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for species in data.species_list %}
+            <tr>
+                <td>{{ species.species }}</td>
+                <td>{{ "%.2f"|format(species.percentage) }}%</td>
+                <td>{{ species.phylum }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Contact Information -->
+    <div class="content-box full-width" style="margin-top: 5mm;">
+        <strong>For questions regarding this report, please contact:</strong><br>
+        MIMT Genetics Laboratory<br>
+        Email: lab@mimtgenetics.com | Phone: +48 XXX XXX XXX<br>
+        <small style="color: #64748b;">Report generated using Next-Gen Gut Profiling (NG-GP) technology</small>
+    </div>
+
+    <!-- Footer -->
+    <div class="page-footer">
+        <div class="footer-left">MIMT Genetics Laboratory</div>
+        <div class="footer-right">Page 5 of 5 - End of Report</div>
+    </div>
+</div>

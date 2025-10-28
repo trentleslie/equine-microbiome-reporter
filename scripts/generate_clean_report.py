@@ -74,6 +74,7 @@ def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf"
     page2_content = (template_dir / "page2_phylum.html").read_text()
     page3_content = (template_dir / "page3_clinical.html").read_text()
     page4_content = (template_dir / "page4_summary.html").read_text()
+    page5_content = (template_dir / "page5_species_list.html").read_text()
 
     # Load master template
     master_template = (template_dir / "report_clean.html").read_text()
@@ -95,6 +96,7 @@ def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf"
     page2_rendered = env.from_string(page2_content).render(**context)
     page3_rendered = env.from_string(page3_content).render(**context)
     page4_rendered = env.from_string(page4_content).render(**context)
+    page5_rendered = env.from_string(page5_content).render(**context)
 
     # Combine into master template
     final_context = {
@@ -103,7 +105,8 @@ def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf"
         'page1_content': page1_rendered,
         'page2_content': page2_rendered,
         'page3_content': page3_rendered,
-        'page4_content': page4_rendered
+        'page4_content': page4_rendered,
+        'page5_content': page5_rendered
     }
 
     final_html = env.from_string(master_template).render(**final_context)
@@ -119,7 +122,7 @@ def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf"
         base_url = Path.cwd().as_uri() + '/'
         HTML(string=final_html, base_url=base_url).write_pdf(output_path)
         logger.info(f"✅ Clean report generated: {output_path}")
-        logger.info("This PDF contains 4 pages of clean, modern layout")
+        logger.info("This PDF contains 5 pages of clean, modern layout")
         logger.info("Combine with your NG-GP title page for the complete report")
         return True
     except Exception as e:
@@ -161,7 +164,7 @@ def main():
         print(f"Output: {output_path}")
         print("\nFeatures:")
         print("  - Modern, clean layout")
-        print("  - 4 pages (no title page)")
+        print("  - 5 pages (no title page)")
         print("  - Professional medical report styling")
         print("  - Clear data visualization")
         print("\nNext steps:")
