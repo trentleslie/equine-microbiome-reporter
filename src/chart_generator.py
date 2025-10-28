@@ -180,13 +180,8 @@ class ChartGenerator:
             if phylum in reference_ranges:
                 ref_min, ref_max = reference_ranges[phylum]
                 # Draw reference range as enhanced background
-                ax.fill_betweenx([i-0.25, i+0.25], ref_min, ref_max, 
+                ax.fill_betweenx([i-0.25, i+0.25], ref_min, ref_max,
                                 color='#6B7280', alpha=0.15, zorder=1)
-                # Add range markers
-                ax.plot([ref_min, ref_max], [i, i], color='#374151', 
-                       linewidth=3, alpha=0.6, zorder=2)
-                ax.scatter([ref_min, ref_max], [i, i], color='#374151', 
-                          s=40, alpha=0.8, zorder=3)
         
         # Add enhanced percentage labels
         for i, (bar, pct) in enumerate(zip(bars, percentages)):
