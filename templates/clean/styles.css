@@ -201,16 +201,17 @@ body {
 .data-table th {
     background: #0369a1;
     color: white;
-    padding: 3mm;
+    padding: 2mm 3mm;
     text-align: left;
     font-weight: 600;
     font-size: 9pt;
 }
 
 .data-table td {
-    padding: 2.5mm 3mm;
+    padding: 1.5mm 3mm;
     border-bottom: 1px solid #e2e8f0;
-    font-size: 9pt;
+    font-size: 8pt;
+    line-height: 1.3;
 }
 
 .data-table tr:hover {
