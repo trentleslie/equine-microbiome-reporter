@@ -223,8 +223,10 @@ class ChartGenerator:
     
     def _create_phylum_comparison_chart(self, data: MicrobiomeData) -> str:
         """Create visual comparison chart for phylum levels vs reference ranges"""
-        fig, ax = plt.subplots(figsize=(10, 4))
-        
+        fig, ax = plt.subplots(figsize=(12, 7))
+        fig.patch.set_facecolor('white')
+        ax.set_facecolor('#FAFBFC')
+
         # Reference ranges
         reference_data = {
             'Actinomycetota': {'range': (0.1, 8.0), 'actual': 0},
@@ -232,57 +234,77 @@ class ChartGenerator:
             'Bacteroidota': {'range': (4.0, 40.0), 'actual': 0},
             'Pseudomonadota': {'range': (2.0, 35.0), 'actual': 0}
         }
-        
+
         # Update with actual values
         for phylum, percentage in data.phylum_distribution.items():
             if phylum in reference_data:
                 reference_data[phylum]['actual'] = percentage
-        
+
+        # Sort phyla by actual percentage (descending, like species chart)
+        sorted_phyla = sorted(reference_data.items(),
+                            key=lambda x: x[1]['actual'],
+                            reverse=True)
+
+        # Reverse for bottom-to-top display (highest at top)
+        sorted_phyla = sorted_phyla[::-1]
+
         # Create visual bars
         y_position = 0
-        bar_height = 0.8
-        
-        for phylum, values in reference_data.items():
+        bar_height = 0.65
+
+        for phylum, values in sorted_phyla:
             ref_min, ref_max = values['range']
             actual = values['actual']
-            
+
             # Draw reference range (light background)
-            rect = patches.Rectangle((ref_min, y_position - bar_height/2), 
+            rect = patches.Rectangle((ref_min, y_position - bar_height/2),
                                    ref_max - ref_min, bar_height,
-                                   facecolor='lightgray', alpha=0.3, zorder=1)
+                                   facecolor='#6B7280', alpha=0.15, zorder=1)
             ax.add_patch(rect)
-            
+
+            # Add subtle gradient background
+            ax.barh(y_position, actual, height=bar_height,
+                   color=PHYLUM_COLORS.get(phylum, PHYLUM_COLORS['Other']),
+                   alpha=0.15, zorder=0)
+
             # Draw actual value bar
             color = PHYLUM_COLORS.get(phylum, PHYLUM_COLORS['Other'])
             bar = ax.barh(y_position, actual, height=bar_height * 0.6,
-                         color=color, alpha=0.8, zorder=2)
-            
+                         color=color, alpha=0.85, zorder=2)
+
             # Add label
-            ax.text(-2, y_position, f"{phylum}:", ha='right', va='center', fontweight='bold')
-            
+            ax.text(-2, y_position, f"{phylum}:", ha='right', va='center',
+                   fontsize=11, fontweight='bold')
+
             # Add percentage
-            ax.text(actual + 1, y_position, f"{actual:.1f}%", 
-                   ha='left', va='center', fontweight='bold')
-            
+            ax.text(actual + 1, y_position, f"{actual:.1f}%",
+                   ha='left', va='center', fontsize=12, fontweight='700', color='#1F2937')
+
             # Add reference range text
             ax.text(ref_max + 2, y_position, f"(Ref: {ref_min}-{ref_max}%)",
                    ha='left', va='center', fontsize=8, style='italic', alpha=0.7)
-            
+
             y_position += 1.2
         
-        # Customize
+        # Customize axes
         ax.set_xlim(-15, 80)
         ax.set_ylim(-0.5, y_position - 0.7)
-        ax.set_xlabel('Percentage (%)')
-        ax.set_title('Phylum Levels vs Reference Ranges', fontweight='bold', pad=20)
-        
+        ax.set_xlabel('Percentage (%)', fontsize=13)
+        ax.set_title('PHYLUM DISTRIBUTION IN GUT MICROFLORA',
+                    fontweight='bold', fontsize=18, pad=25, color='#1F2937')
+
         # Remove y-axis
         ax.set_yticks([])
-        
-        # Grid
+
+        # Add legend for reference ranges
+        ax.text(0.98, 0.02, 'Gray bars indicate reference ranges',
+                transform=ax.transAxes, ha='right', va='bottom',
+                fontsize=8, style='italic', alpha=0.7)
+
+        # Professional grid and styling
         ax.grid(axis='x', alpha=0.3)
         ax.set_axisbelow(True)
-        
+
         # Remove spines
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
