@@ -31,7 +31,7 @@ dependencies:
   - cached_property=1.5.2
   - cairo=1.18.4
   - certifi=2025.8.3
-  - cffi=1.15.0
+  - cffi=1.17.1
   - charset-normalizer=3.4.3
   - click=8.1.8
   - colorama=0.4.6
@@ -294,4 +294,8 @@ dependencies:
       - tinyhtml5==2.0.0
       - weasyprint==66.0
       - zopfli==0.2.3.post1
+      # Translation services for multilingual reports
+      - deep-translator==1.11.4
+      - googletrans==4.0.0rc1
+      - translatepy==2.3
 prefix: /home/trent/miniconda3/envs/equine-microbiome

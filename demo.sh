@@ -21,11 +21,17 @@ pause() {
 # Header
 clear
 echo -e "${BLUE}════════════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}     Equine Microbiome Reporter - Clean Demo            ${NC}"
+echo -e "${BLUE}   Equine Microbiome Reporter - Multilingual Demo       ${NC}"
 echo -e "${BLUE}════════════════════════════════════════════════════════${NC}"
 echo ""
-echo "This demo generates a clean, modern 4-page report"
-echo "using the simplified template system."
+echo "This demo generates clean, modern 5-page reports"
+echo "in multiple languages using Google Translate API."
+echo ""
+echo "Features:"
+echo "  • Professional PDF reports with charts"
+echo "  • Multi-language support (English, Polish, Japanese)"
+echo "  • Preserves scientific terminology accuracy"
+echo "  • Free translation service (no API key required)"
 echo ""
 pause
 
@@ -79,11 +85,79 @@ else
     exit 1
 fi
 
+# Check WeasyPrint/cffi dependencies
+echo "Checking PDF generation libraries..."
+$PYTHON_CMD -c "from weasyprint import HTML" 2>/dev/null
+if [ $? -ne 0 ]; then
+    echo -e "${RED}✗ WeasyPrint import failed (cffi/libffi issue)${NC}"
+    echo ""
+    echo "This is usually caused by a cffi version mismatch."
+    echo "To fix, run:"
+    echo -e "  ${CYAN}conda activate equine-microbiome${NC}"
+    echo -e "  ${CYAN}pip install --force-reinstall cffi${NC}"
+    echo ""
+    echo "Or update your environment:"
+    echo -e "  ${CYAN}conda env update -f environment.yml --prune${NC}"
+    echo ""
+    echo "See docs/ENVIRONMENT_TROUBLESHOOTING.md for more help"
+    echo ""
+    exit 1
+fi
+echo -e "${GREEN}✓ PDF generation libraries available${NC}"
+
+pause
+
+# Ask about translation
+echo -e "${BLUE}═══ Step 2: Translation Options ═══${NC}"
+echo ""
+echo "Would you like to generate translated reports?"
+echo "Available languages:"
+echo "  en - English (default)"
+echo "  pl - Polish"
+echo "  ja - Japanese"
+echo ""
+echo -e "${CYAN}Enter language codes (comma-separated, or press Enter for English only):${NC}"
+read -r LANGUAGES
+
+# Process language input
+if [ -z "$LANGUAGES" ]; then
+    LANGUAGES="en"
+    echo -e "${GREEN}✓ Using English only${NC}"
+else
+    echo -e "${GREEN}✓ Selected languages: $LANGUAGES${NC}"
+
+    # Check for translation dependencies if non-English language requested
+    if [[ "$LANGUAGES" != "en" ]]; then
+        echo ""
+        echo "Checking translation dependencies..."
+        $PYTHON_CMD -c "import deep_translator, googletrans, translatepy" 2>/dev/null
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}✗ Translation dependencies not found${NC}"
+            echo ""
+            echo "Translation requires these packages:"
+            echo "  - deep-translator"
+            echo "  - googletrans"
+            echo "  - translatepy"
+            echo ""
+            echo "To install them, run:"
+            echo -e "  ${CYAN}conda activate equine-microbiome${NC}"
+            echo -e "  ${CYAN}pip install deep-translator googletrans translatepy${NC}"
+            echo ""
+            echo "Or update your environment:"
+            echo -e "  ${CYAN}conda env update -f environment.yml --prune${NC}"
+            echo ""
+            echo "See docs/TRANSLATION_INSTALL.md for more help"
+            echo ""
+            exit 1
+        fi
+        echo -e "${GREEN}✓ Translation dependencies available${NC}"
+    fi
+fi
 pause
 
 # Create output directory
 OUTPUT_DIR="demo_output_$(date +%Y%m%d_%H%M%S)"
-echo -e "${BLUE}═══ Step 2: Creating Output Directory ═══${NC}"
+echo -e "${BLUE}═══ Step 3: Creating Output Directory ═══${NC}"
 echo ""
 echo -e "${CYAN}Creating: $OUTPUT_DIR/${NC}"
 mkdir -p "$OUTPUT_DIR"
@@ -91,7 +165,7 @@ echo -e "${GREEN}✓ Directory created${NC}"
 pause
 
 # Process the data
-echo -e "${BLUE}═══ Step 3: Processing Sample Data ═══${NC}"
+echo -e "${BLUE}═══ Step 4: Processing Sample Data ═══${NC}"
 echo ""
 echo -e "${CYAN}Input: $SAMPLE_CSV${NC}"
 echo -e "${CYAN}This will:${NC}"
@@ -102,11 +176,29 @@ echo "  4. Create clean 4-page PDF report"
 echo ""
 pause
 
-# Run the clean report generator
+# Run the clean report generator for each language
 echo -e "${BOLD}Running clean report generator...${NC}"
 echo ""
 
-QT_QPA_PLATFORM=offscreen $PYTHON_CMD << EOF
+# Convert comma-separated languages to array
+IFS=',' read -ra LANG_ARRAY <<< "$LANGUAGES"
+
+# Process each language
+for LANG in "${LANG_ARRAY[@]}"; do
+    # Trim whitespace
+    LANG=$(echo "$LANG" | xargs)
+
+    # Get language name for display
+    case $LANG in
+        en) LANG_NAME="English" ;;
+        pl) LANG_NAME="Polish" ;;
+        ja) LANG_NAME="Japanese" ;;
+        *) LANG_NAME="$LANG" ;;
+    esac
+
+    echo -e "${CYAN}Generating $LANG_NAME report...${NC}"
+
+    QT_QPA_PLATFORM=offscreen $PYTHON_CMD << EOF
 import sys
 from pathlib import Path
 sys.path.append('.')
@@ -127,52 +219,77 @@ patient = PatientInfo(
 )
 
 # Generate report
-output_path = Path("$OUTPUT_DIR/clean_report.pdf")
-success = generate_clean_report("$SAMPLE_CSV", patient, output_path)
+output_path = Path("$OUTPUT_DIR/clean_report_$LANG.pdf")
+success = generate_clean_report("$SAMPLE_CSV", patient, output_path, language="$LANG")
 
 if success:
-    print("✅ Report generated successfully!")
+    print("✅ $LANG_NAME report generated successfully!")
 else:
-    print("❌ Report generation failed")
+    print("❌ $LANG_NAME report generation failed")
     sys.exit(1)
 EOF
 
-if [ $? -eq 0 ]; then
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}✓ $LANG_NAME report complete${NC}"
+    else
+        echo -e "${RED}✗ $LANG_NAME report failed${NC}"
+    fi
     echo ""
-    echo -e "${GREEN}✓ Report generation complete!${NC}"
-else
-    echo ""
-    echo -e "${RED}✗ Report generation failed${NC}"
-    exit 1
-fi
+done
+
+echo ""
+echo -e "${GREEN}✓ All reports generated successfully!${NC}"
 
 pause
 
 # Display results
-echo -e "${BLUE}═══ Step 4: Results ═══${NC}"
+echo -e "${BLUE}═══ Step 5: Results ═══${NC}"
 echo ""
-echo -e "${GREEN}Success! Your report has been generated.${NC}"
+echo -e "${GREEN}Success! Your reports have been generated.${NC}"
 echo ""
 echo "Output files:"
-echo -e "  ${CYAN}$OUTPUT_DIR/clean_report.pdf${NC} - 4-page report (no title)"
-echo -e "  ${CYAN}$OUTPUT_DIR/clean_report.html${NC} - HTML version"
+
+# List all generated reports
+for LANG in "${LANG_ARRAY[@]}"; do
+    LANG=$(echo "$LANG" | xargs)
+    case $LANG in
+        en) LANG_NAME="English" ;;
+        pl) LANG_NAME="Polish" ;;
+        ja) LANG_NAME="Japanese" ;;
+        *) LANG_NAME="$LANG" ;;
+    esac
+
+    if [ -f "$OUTPUT_DIR/clean_report_$LANG.pdf" ]; then
+        echo -e "  ${CYAN}$OUTPUT_DIR/clean_report_$LANG.pdf${NC} - $LANG_NAME (4-page report)"
+        echo -e "  ${CYAN}$OUTPUT_DIR/clean_report_$LANG.html${NC} - $LANG_NAME (HTML version)"
+    fi
+done
+
 echo ""
-echo "The PDF contains:"
+echo "Each PDF contains:"
 echo "  • Page 1: Sequencing Results & Dysbiosis Index"
 echo "  • Page 2: Phylum Distribution Analysis"
 echo "  • Page 3: Clinical Interpretation"
 echo "  • Page 4: Summary & Management Guidelines"
+echo "  • Page 5: Complete Species List"
 echo ""
 echo "To combine with your title page:"
-echo -e "  ${BOLD}pdftk title_page.pdf $OUTPUT_DIR/clean_report.pdf cat output final_report.pdf${NC}"
+echo -e "  ${BOLD}pdftk title_page.pdf $OUTPUT_DIR/clean_report_[LANG].pdf cat output final_report.pdf${NC}"
 echo ""
 
 # Open results if on WSL
 if grep -qi microsoft /proc/version 2>/dev/null; then
-    echo -e "${YELLOW}Would you like to open the PDF? (y/n)${NC}"
+    echo -e "${YELLOW}Would you like to open the PDFs? (y/n)${NC}"
     read -r response
     if [[ "$response" =~ ^[Yy]$ ]]; then
-        explorer.exe "$OUTPUT_DIR/clean_report.pdf" 2>/dev/null || echo "Please open manually: $OUTPUT_DIR/clean_report.pdf"
+        for LANG in "${LANG_ARRAY[@]}"; do
+            LANG=$(echo "$LANG" | xargs)
+            PDF_PATH="$OUTPUT_DIR/clean_report_$LANG.pdf"
+            if [ -f "$PDF_PATH" ]; then
+                explorer.exe "$PDF_PATH" 2>/dev/null &
+            fi
+        done
+        echo "Opening PDFs in default viewer..."
     fi
 fi
 

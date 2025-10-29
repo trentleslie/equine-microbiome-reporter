@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """
 Generate a clean, modern report layout (pages 2-5 only, no title page)
+Supports multiple languages via translation service
 """
 
 import sys
 import os
 from pathlib import Path
 from datetime import datetime
+from typing import Optional
 
 sys.path.append(str(Path(__file__).parent.parent))
 
@@ -19,11 +21,32 @@ import logging
 import pandas as pd
 from weasyprint import HTML, CSS
 
+# Configure logging FIRST
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf"):
-    """Generate a clean, modern report without title page"""
+# Translation support
+try:
+    from scripts.translate_report_content import HTMLContentTranslator, get_language_name
+    TRANSLATION_AVAILABLE = True
+except ImportError:
+    TRANSLATION_AVAILABLE = False
+    logger.warning("Translation service not available. Install with: poetry install --with translation-free")
+
+def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf", language="en", translation_service_type="free"):
+    """
+    Generate a clean, modern report without title page
+
+    Args:
+        csv_path: Path to CSV file with microbiome data
+        patient_info: PatientInfo object with patient details
+        output_path: Path for output PDF file
+        language: Target language code (en, pl, ja, etc.)
+        translation_service_type: "free" or "google_cloud"
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
 
     csv_path = Path(csv_path)
     if not csv_path.exists():
@@ -110,6 +133,34 @@ def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf"
     }
 
     final_html = env.from_string(master_template).render(**final_context)
+
+    # Translate if needed
+    if language != "en":
+        if not TRANSLATION_AVAILABLE:
+            logger.error("Translation requested but translation service not available")
+            logger.error("Install with: poetry install --with translation-free")
+            return False
+
+        logger.info(f"Translating report to {get_language_name(language)}...")
+        try:
+            # Get length before translation
+            original_length = len(final_html)
+
+            translator = HTMLContentTranslator(service_type=translation_service_type)
+            final_html = translator.translate_html_content(final_html, language)
+
+            # Verify translation occurred
+            if final_html and len(final_html) > 0:
+                logger.info(f"✅ Translation to {get_language_name(language)} complete")
+                logger.info(f"   Original: {original_length} chars, Translated: {len(final_html)} chars")
+            else:
+                logger.warning("Translation returned empty result, using English version")
+        except Exception as e:
+            logger.error(f"Translation failed: {e}")
+            logger.error(f"Error type: {type(e).__name__}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            logger.warning("Proceeding with English version")
 
     # Save HTML for debugging
     html_path = Path(output_path).with_suffix('.html')
