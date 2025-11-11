@@ -46,14 +46,78 @@ print('✅ Success!' if success else '❌ Failed!')
 # Complete FASTQ-to-PDF pipeline (production workflow)
 poetry run python scripts/full_pipeline.py --input-dir data/ --output-dir results/
 
-# Process specific barcodes only
-poetry run python scripts/full_pipeline.py --input-dir data/ --output-dir results/ --barcodes barcode04,barcode05
+# Process with multiple languages (English, Polish, Japanese)
+poetry run python scripts/full_pipeline.py \
+  --input-dir data/ \
+  --output-dir results/ \
+  --languages en,pl,ja
 
-# With custom Kraken2 database
-poetry run python scripts/full_pipeline.py --input-dir data/ --output-dir results/ --kraken2-db /path/to/db
+# Process specific barcodes with multi-language output
+poetry run python scripts/full_pipeline.py \
+  --input-dir data/ \
+  --output-dir results/ \
+  --barcodes barcode04,barcode05 \
+  --languages en,pl,ja
+
+# Batch multi-language processing (convenience script)
+poetry run python scripts/batch_multilanguage.py \
+  --data-dir data/ \
+  --languages en pl ja \
+  --output-dir reports/multilingual
 
 # Batch processing (interactive)
 poetry run jupyter notebook notebooks/batch_processing.ipynb
+```
+
+### Multi-Language Batch Processing
+```bash
+# Generate reports in English, Polish, and Japanese for all samples
+poetry run python scripts/batch_multilanguage.py \
+  --data-dir data/ \
+  --languages en pl ja
+
+# Process from manifest file
+poetry run python scripts/batch_multilanguage.py \
+  --manifest manifest.csv \
+  --languages en pl ja
+
+# Single language batch processing (backwards compatible)
+poetry run python scripts/batch_multilanguage.py \
+  --data-dir data/ \
+  --languages en
+
+# With custom settings
+poetry run python scripts/batch_multilanguage.py \
+  --data-dir data/ \
+  --output-dir reports/custom/ \
+  --languages en pl ja \
+  --workers 8 \
+  --no-parallel
+
+# Output: Each sample generates multiple PDFs
+# Example: sample_001_en.pdf, sample_001_pl.pdf, sample_001_ja.pdf
+```
+
+### Download and Process from NCBI
+```bash
+# Download FASTQ files from NCBI SRA and generate reports
+# First, update config/ncbi_samples.yaml with your SRA accession numbers
+
+# Download and process (full workflow)
+poetry run python scripts/ncbi_batch_pipeline.py --config config/ncbi_samples.yaml
+
+# Download only (no processing)
+poetry run python scripts/ncbi_batch_pipeline.py --config config/ncbi_samples.yaml --download-only
+
+# Using command-line accessions
+poetry run python scripts/ncbi_batch_pipeline.py --accessions SRR12345 SRR67890 SRR11111
+
+# With custom output directory
+poetry run python scripts/ncbi_batch_pipeline.py --config config/ncbi_samples.yaml --output-dir results/
+
+# Note: Requires SRA Toolkit installation
+# Install via conda: conda install -c bioconda sra-tools
+# Or the script will fallback to direct ENA FTP download
 ```
 
 ### Testing and Validation
@@ -114,6 +178,25 @@ The pipeline implements sophisticated filtering to address HippoVet+'s needs:
 - **Database-specific rules**: Different filters for PlusPFP-16, EuPathDB, Viral databases
 - **Semi-automated curation**: Excel export for manual review, import corrections
 - **Equine pathogen database**: Curated list of clinically relevant species
+
+### Multi-Language Report Generation
+Production-ready translation system:
+- **`src/translation_service.py`**: Translation engine with scientific glossary preservation
+- **`scripts/translate_report_content.py`**: HTML content translator with structure preservation
+- **Supported languages**: English (en), Polish (pl), Japanese (ja) - others configurable
+- **Free translation**: Uses deep-translator (no API keys required)
+- **Scientific terms protected**: Bacterial names, phyla, medical terminology preserved
+- **Batch support**: Generate all languages per sample in one run
+- **File naming**: `sample_001_en.pdf`, `sample_001_pl.pdf`, `sample_001_ja.pdf`
+
+### NCBI Download Integration
+For testing and demonstration purposes:
+- **`src/ncbi_downloader.py`**: Downloads FASTQ files from NCBI SRA
+- **`scripts/ncbi_batch_pipeline.py`**: Orchestrates download → processing → PDF
+- **`config/ncbi_samples.yaml`**: Configuration for SRA accessions
+- **Dual-mode download**: SRA Toolkit (preferred) or direct ENA FTP (fallback)
+- **Metadata extraction**: Automatic fetching of organism, platform, library info from NCBI
+- **Batch organization**: Downloads organized into barcode directories for pipeline compatibility
 
 ## Data Formats and Configuration
 
@@ -216,6 +299,7 @@ Supports OpenAI, Anthropic Claude, and Google Gemini with 8 clinical templates f
 - **`scripts/generate_clean_report.py`**: CSV-to-PDF report generation with WeasyPrint
 - **`scripts/batch_clinical_processor.py`**: Batch processing with clinical filtering
 - **`scripts/generate_clinical_excel.py`**: Create Excel files for manual curation
+- **`scripts/ncbi_batch_pipeline.py`**: Download from NCBI SRA and batch process (for testing)
 
 ### Core Modules
 - **`src/data_models.py`**: `PatientInfo` and `MicrobiomeData` dataclasses
@@ -224,10 +308,12 @@ Supports OpenAI, Anthropic Claude, and Google Gemini with 8 clinical templates f
 - **`src/csv_processor.py`**: CSV parsing, phylum aggregation, dysbiosis calculations
 - **`src/chart_generator.py`**: Matplotlib/Seaborn chart generation
 - **`src/kraken2_to_csv.py`**: Convert Kraken2 reports to CSV format
+- **`src/ncbi_downloader.py`**: Download FASTQ files from NCBI SRA (for testing)
 
 ### Templates and Configuration
 - **`templates/clean/`**: Production HTML templates (5-page reports)
 - **`config/report_config.yaml`**: Reference ranges, thresholds, clinical rules
+- **`config/ncbi_samples.yaml`**: SRA accession configuration for NCBI downloads
 - **`.env.example`**: Environment configuration template
 
 ### Validation and Testing
@@ -279,3 +365,34 @@ Supports OpenAI, Anthropic Claude, and Google Gemini with 8 clinical templates f
 - Kraken2 database typically at `/mnt/c/Users/${USER}/hippovet/epi2melabs/data/`
 - Ensure Windows filesystem paths are accessible from WSL2
 - Use `wslpath` command to convert between Windows and WSL2 paths
+
+### NCBI Download Issues
+1. **SRA Toolkit not found**: Install with `conda install -c bioconda sra-tools` or script will fallback to ENA FTP
+2. **Download timeout**: Large FASTQ files may take time; increase timeout in `ncbi_downloader.py`
+3. **ENA FTP URLs fail**: Some accessions have non-standard naming; SRA Toolkit is more reliable
+4. **Metadata fetch fails**: Check internet connectivity to NCBI E-utilities
+5. **No FASTQ files found**: Verify the accession is for Amplicon/16S data, not WGS or other types
+
+### Multi-Language Processing Issues
+1. **Translation fails**: Check internet connection - uses online translation service
+2. **Polish/Japanese characters broken**: Ensure UTF-8 encoding in PDF generation
+3. **Scientific terms translated**: Add terms to glossary in `src/translation_service.py`
+4. **One language fails but others succeed**: Pipeline continues; check logs for specific error
+5. **Slow batch processing**: Translation adds 5-10 seconds per language per report
+6. **Missing translations**: Free service has rate limits; add delays or use paid API
+
+### Multi-Language Workflow Tips
+1. **Test with English first**: Ensure report generation works before adding translations
+2. **Start with two languages**: Test en + pl or en + ja before full batch
+3. **Check sample output**: Verify translations are correct with veterinary expert
+4. **Parallel processing**: Samples processed in parallel, languages sequential per sample
+5. **Client workflow**: EPI2ME FASTQ → full_pipeline.py → Multi-language PDFs
+6. **File organization**: All languages for one sample grouped together in output directory
+
+### NCBI Workflow Tips
+1. **Finding equine datasets**: Search NCBI SRA for "equine microbiome 16S" or "horse gut amplicon"
+2. **Verify before download**: Check accession metadata on NCBI website first
+3. **Test with one sample**: Download single accession before batch processing
+4. **Use config file**: Easier to manage multiple samples with `config/ncbi_samples.yaml`
+5. **Download-only mode**: Test downloads first with `--download-only` flag
+6. **SRA Toolkit setup**: Configure with `vdb-config --interactive` for optimal performance

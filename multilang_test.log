@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/trent/equine-microbiome-reporter/scripts/batch_multilanguage.py", line 31, in <module>
+    from src.batch_processor import BatchProcessor, BatchConfig
+  File "/home/trent/equine-microbiome-reporter/src/batch_processor.py", line 15, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'

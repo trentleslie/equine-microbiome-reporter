@@ -7,6 +7,7 @@ manifest-based processing.
 """
 
 import os
+import sys
 import time
 from pathlib import Path
 from datetime import datetime
@@ -15,7 +16,10 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import pandas as pd
 import yaml
 
-from .report_generator import ReportGenerator
+# Add scripts directory to path for generate_clean_report import
+sys.path.append(str(Path(__file__).parent.parent / "scripts"))
+from generate_clean_report import generate_clean_report
+
 from .data_models import PatientInfo
 from .csv_processor import CSVProcessor
 
@@ -28,9 +32,18 @@ class BatchConfig:
         # Directories
         self.data_dir = Path(kwargs.get('data_dir', 'data'))
         self.reports_dir = Path(kwargs.get('reports_dir', 'reports/batch_output'))
-        
+
         # Processing settings
-        self.language = kwargs.get('language', 'en')
+        # Support both single language and multiple languages
+        self.languages = kwargs.get('languages', None)
+        if self.languages is None:
+            # Backwards compatibility: use single language
+            self.language = kwargs.get('language', 'en')
+            self.languages = [self.language]
+        else:
+            # Multiple languages specified
+            self.language = self.languages[0]  # Primary language
+
         self.parallel_processing = kwargs.get('parallel_processing', True)
         self.max_workers = kwargs.get('max_workers', min(4, os.cpu_count() or 1))
         
@@ -55,6 +68,7 @@ class BatchConfig:
             'data_dir': str(self.data_dir),
             'reports_dir': str(self.reports_dir),
             'language': self.language,
+            'languages': self.languages,
             'parallel_processing': self.parallel_processing,
             'max_workers': self.max_workers,
             'default_performed_by': self.default_performed_by,
@@ -171,27 +185,30 @@ class BatchProcessor:
             return False, f"Validation error: {str(e)}"
     
     def process_single_file(self, csv_path: Path, validate: bool = True) -> Dict:
-        """Process a single CSV file to generate PDF report.
-        
+        """Process a single CSV file to generate PDF report(s).
+
+        Generates one PDF per language specified in config.languages.
+
         Args:
             csv_path: Path to CSV file
             validate: Whether to validate file before processing
-            
+
         Returns:
-            Dictionary with processing results
+            Dictionary with processing results (includes results per language)
         """
         result = {
             'csv_file': str(csv_path),
-            'output_file': None,
+            'output_files': {},
             'success': False,
             'message': '',
             'processing_time': 0,
             'patient_name': '',
-            'validation_passed': True
+            'validation_passed': True,
+            'languages_generated': []
         }
-        
+
         start_time = time.time()
-        
+
         try:
             # Validate file if requested
             if validate:
@@ -200,36 +217,55 @@ class BatchProcessor:
                 if not is_valid:
                     result['message'] = f"Validation failed: {validation_msg}"
                     return result
-            
+
             # Extract patient info
             patient_info = self.extract_patient_info_from_filename(csv_path.name)
             result['patient_name'] = patient_info.name
-            
-            # Generate output filename
-            output_filename = f"{csv_path.stem}_report_{self.config.language}.pdf"
-            output_path = self.config.reports_dir / output_filename
-            
-            # Generate report
-            generator = ReportGenerator(language=self.config.language)
-            success = generator.generate_report(
-                csv_path=str(csv_path),
-                patient_info=patient_info,
-                output_path=str(output_path)
-            )
-            
-            if success:
-                result['success'] = True
-                result['output_file'] = str(output_path)
-                result['message'] = 'Report generated successfully'
-            else:
-                result['message'] = 'Report generation failed'
-                
+
+            # Generate report for each language
+            all_succeeded = True
+            messages = []
+
+            for language in self.config.languages:
+                try:
+                    # Generate output filename
+                    output_filename = f"{csv_path.stem}_report_{language}.pdf"
+                    output_path = self.config.reports_dir / output_filename
+
+                    # Generate report using generate_clean_report function
+                    success = generate_clean_report(
+                        csv_path=str(csv_path),
+                        patient_info=patient_info,
+                        output_path=str(output_path),
+                        language=language
+                    )
+
+                    if success:
+                        result['output_files'][language] = str(output_path)
+                        result['languages_generated'].append(language)
+                        messages.append(f"{language}: success")
+                    else:
+                        all_succeeded = False
+                        messages.append(f"{language}: failed")
+
+                except Exception as e:
+                    all_succeeded = False
+                    messages.append(f"{language}: error - {str(e)}")
+
+            # Overall success if at least one language succeeded
+            result['success'] = len(result['languages_generated']) > 0
+            result['message'] = '; '.join(messages)
+
+            # For backwards compatibility, set output_file to first generated PDF
+            if result['output_files']:
+                result['output_file'] = list(result['output_files'].values())[0]
+
         except Exception as e:
             result['message'] = f"Error: {str(e)}"
-            
+
         finally:
             result['processing_time'] = time.time() - start_time
-            
+
         return result
     
     def process_directory(self, progress_callback: Optional[Callable] = None, 
@@ -285,20 +321,20 @@ class BatchProcessor:
         self.results = results
         return results
     
-    def process_from_manifest(self, manifest_path: Path, 
+    def process_from_manifest(self, manifest_path: Path,
                             progress_callback: Optional[Callable] = None) -> List[Dict]:
         """Process files using a manifest with patient information.
-        
+
         Args:
             manifest_path: Path to manifest CSV file
             progress_callback: Optional callback for progress updates
-            
+
         Returns:
             List of processing results
         """
         manifest_df = pd.read_csv(manifest_path)
         results = []
-        
+
         for idx, row in manifest_df.iterrows():
             # Create patient info from manifest
             patient_info = PatientInfo(
@@ -309,72 +345,102 @@ class BatchProcessor:
                 performed_by=row.get('performed_by', self.config.default_performed_by),
                 requested_by=row.get('requested_by', self.config.default_requested_by)
             )
-            
-            # Process file
+
+            # Process file for each language
             csv_path = self.config.data_dir / row['csv_file']
-            output_path = self.config.reports_dir / f"{patient_info.name.replace(' ', '_')}_report_{self.config.language}.pdf"
-            
+
+            result = {
+                'csv_file': row['csv_file'],
+                'patient_name': patient_info.name,
+                'success': False,
+                'output_files': {},
+                'languages_generated': [],
+                'processing_time': 0,
+                'message': ''
+            }
+
             start_time = time.time()
-            
-            try:
-                generator = ReportGenerator(language=self.config.language)
-                success = generator.generate_report(
-                    csv_path=str(csv_path),
-                    patient_info=patient_info,
-                    output_path=str(output_path)
-                )
-                
-                results.append({
-                    'csv_file': row['csv_file'],
-                    'patient_name': patient_info.name,
-                    'success': success,
-                    'output_file': str(output_path) if success else None,
-                    'processing_time': time.time() - start_time,
-                    'message': 'Report generated successfully' if success else 'Report generation failed'
-                })
-                
-            except Exception as e:
-                results.append({
-                    'csv_file': row['csv_file'],
-                    'patient_name': patient_info.name,
-                    'success': False,
-                    'error': str(e),
-                    'message': f'Error: {str(e)}',
-                    'processing_time': time.time() - start_time
-                })
-            
+            messages = []
+
+            for language in self.config.languages:
+                try:
+                    output_filename = f"{patient_info.name.replace(' ', '_')}_report_{language}.pdf"
+                    output_path = self.config.reports_dir / output_filename
+
+                    success = generate_clean_report(
+                        csv_path=str(csv_path),
+                        patient_info=patient_info,
+                        output_path=str(output_path),
+                        language=language
+                    )
+
+                    if success:
+                        result['output_files'][language] = str(output_path)
+                        result['languages_generated'].append(language)
+                        messages.append(f"{language}: success")
+                    else:
+                        messages.append(f"{language}: failed")
+
+                except Exception as e:
+                    messages.append(f"{language}: error - {str(e)}")
+
+            result['processing_time'] = time.time() - start_time
+            result['success'] = len(result['languages_generated']) > 0
+            result['message'] = '; '.join(messages)
+
+            # For backwards compatibility
+            if result['output_files']:
+                result['output_file'] = list(result['output_files'].values())[0]
+
+            results.append(result)
+
             if progress_callback:
                 progress_callback(idx + 1, len(manifest_df))
-        
+
         self.results = results
         return results
     
     def generate_summary_report(self) -> Dict:
         """Generate summary statistics from processing results.
-        
+
         Returns:
             Dictionary with summary statistics
         """
         if not self.results:
             return {}
-            
+
         successful = sum(1 for r in self.results if r.get('success', False))
         failed = len(self.results) - successful
-        
+
         total_time = sum(r.get('processing_time', 0) for r in self.results)
         avg_time = total_time / len(self.results) if self.results else 0
-        
+
+        # Count PDFs generated per language
+        language_counts = {}
+        total_pdfs = 0
+        for r in self.results:
+            if 'languages_generated' in r:
+                for lang in r['languages_generated']:
+                    language_counts[lang] = language_counts.get(lang, 0) + 1
+                    total_pdfs += 1
+            elif r.get('success', False):
+                # Backwards compatibility for old format
+                total_pdfs += 1
+
         summary = {
             'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'total_files': len(self.results),
-            'successful': successful,
-            'failed': failed,
+            'successful_samples': successful,
+            'failed_samples': failed,
             'success_rate': (successful / len(self.results) * 100) if self.results else 0,
+            'total_pdfs_generated': total_pdfs,
+            'pdfs_per_language': language_counts,
+            'languages_requested': self.config.languages,
             'total_processing_time': total_time,
-            'average_processing_time': avg_time,
+            'average_processing_time_per_sample': avg_time,
             'configuration': self.config.to_dict()
         }
-        
+
         # Add failure reasons if any
         if failed > 0:
             failures = [r for r in self.results if not r.get('success', False)]
@@ -383,7 +449,7 @@ class BatchProcessor:
                 reason = f.get('message', 'Unknown error')
                 failure_reasons[reason] = failure_reasons.get(reason, 0) + 1
             summary['failure_reasons'] = failure_reasons
-        
+
         return summary
     
     def save_results_to_csv(self, output_path: Optional[Path] = None) -> Path:

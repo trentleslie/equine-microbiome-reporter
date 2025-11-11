@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 class FullPipeline:
     """Complete pipeline from FASTQ to PDF reports."""
     
-    def __init__(self, input_dir: Path, output_dir: Path, kraken2_db: Path = None, barcodes: List[str] = None):
+    def __init__(self, input_dir: Path, output_dir: Path, kraken2_db: Path = None, barcodes: List[str] = None, languages: List[str] = None):
         """
         Initialize the pipeline.
 
@@ -59,11 +59,13 @@ class FullPipeline:
             output_dir: Output directory for all results
             kraken2_db: Path to Kraken2 database (default: ~/kraken2_db/k2_pluspfp_16gb)
             barcodes: Optional list of specific barcodes to process
+            languages: List of language codes for report generation (default: ['en'])
         """
         self.input_dir = Path(input_dir)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.barcodes = barcodes  # Store the optional barcode filter
+        self.languages = languages or ['en']  # Default to English only
 
         # Set Kraken2 database - check env variable first
         if kraken2_db is None:
@@ -301,19 +303,19 @@ class FullPipeline:
         logger.info(f"  Excel review file created: {excel_file.name}")
         return filtered_csv, excel_file
     
-    def generate_pdf_report(self, csv_file: Path, sample_name: str) -> Path:
+    def generate_pdf_report(self, csv_file: Path, sample_name: str) -> Dict[str, Path]:
         """
-        Generate PDF report from CSV data.
-        
+        Generate PDF report(s) from CSV data in multiple languages.
+
         Args:
             csv_file: Filtered CSV file
             sample_name: Sample identifier
-            
+
         Returns:
-            Path to PDF report
+            Dictionary mapping language code to PDF path
         """
-        logger.info(f"Generating PDF report for {sample_name}")
-        
+        logger.info(f"Generating PDF report(s) for {sample_name} in {len(self.languages)} language(s)")
+
         # Create patient info
         patient = PatientInfo(
             name=f"Sample_{sample_name}",
@@ -322,26 +324,34 @@ class FullPipeline:
             performed_by="Automated Pipeline",
             requested_by="Testing"
         )
-        
-        # Generate report using clean template
-        pdf_file = self.pdf_dir / f"{sample_name}_report.pdf"
 
-        try:
-            generate_clean_report(
-                str(csv_file),
-                patient,
-                str(pdf_file)
-            )
-            success = True
-        except Exception as e:
-            logger.error(f"Failed to generate PDF: {e}")
-            success = False
+        pdf_files = {}
 
-        if not success:
-            raise RuntimeError(f"Failed to generate PDF for {sample_name}")
-            
-        logger.info(f"  PDF report generated: {pdf_file.name}")
-        return pdf_file
+        # Generate report for each language
+        for language in self.languages:
+            logger.info(f"  Generating {language.upper()} report...")
+
+            pdf_file = self.pdf_dir / f"{sample_name}_report_{language}.pdf"
+
+            try:
+                generate_clean_report(
+                    str(csv_file),
+                    patient,
+                    str(pdf_file),
+                    language=language
+                )
+                pdf_files[language] = pdf_file
+                logger.info(f"    ✓ {language.upper()} PDF: {pdf_file.name}")
+
+            except Exception as e:
+                logger.error(f"    ✗ Failed to generate {language.upper()} PDF: {e}")
+                # Continue with other languages even if one fails
+
+        if not pdf_files:
+            raise RuntimeError(f"Failed to generate any PDF reports for {sample_name}")
+
+        logger.info(f"  Generated {len(pdf_files)}/{len(self.languages)} PDF report(s)")
+        return pdf_files
     
     def process_sample(self, barcode_dir: Path) -> Dict:
         """
@@ -379,15 +389,17 @@ class FullPipeline:
             results['filtered_csv'] = str(filtered_csv)
             results['excel_review'] = str(excel_review)
             
-            # Step 5: Generate PDF report
-            pdf_report = self.generate_pdf_report(filtered_csv, sample_name)
-            results['pdf_report'] = str(pdf_report)
-            
+            # Step 5: Generate PDF report(s)
+            pdf_reports = self.generate_pdf_report(filtered_csv, sample_name)
+            results['pdf_reports'] = {lang: str(path) for lang, path in pdf_reports.items()}
+            results['pdf_report'] = str(list(pdf_reports.values())[0])  # Backwards compatibility
+
             # Calculate metrics
             elapsed = time.time() - sample_start
             results['processing_time'] = elapsed
             results['status'] = 'success'
-            
+            results['languages_generated'] = list(pdf_reports.keys())
+
             logger.info(f"✅ {sample_name} complete in {elapsed:.1f} seconds")
             
         except Exception as e:
@@ -408,6 +420,7 @@ class FullPipeline:
         logger.info(f"Input directory: {self.input_dir}")
         logger.info(f"Output directory: {self.output_dir}")
         logger.info(f"Kraken2 database: {self.kraken2_db}")
+        logger.info(f"Languages: {', '.join(self.languages)}")
         
         # Find all barcode directories
         barcode_dirs = self.find_barcode_dirs()
@@ -492,21 +505,32 @@ def main():
         default=None,
         help="Comma-separated list of specific barcodes to process (e.g., barcode04,barcode05,barcode06)"
     )
+    parser.add_argument(
+        "--languages",
+        type=str,
+        default="en",
+        help="Comma-separated list of language codes for PDF generation (e.g., en,pl,ja). Default: en"
+    )
 
     args = parser.parse_args()
-    
+
     # Parse barcodes if provided
     barcodes = None
     if args.barcodes:
         barcodes = [b.strip() for b in args.barcodes.split(',')]
         logger.info(f"Processing specific barcodes: {barcodes}")
 
+    # Parse languages
+    languages = [lang.strip() for lang in args.languages.split(',')]
+    logger.info(f"Generating reports in: {', '.join(languages)}")
+
     # Create pipeline
     pipeline = FullPipeline(
         input_dir=Path(args.input_dir),
         output_dir=Path(args.output_dir),
         kraken2_db=Path(args.kraken2_db) if args.kraken2_db else None,
-        barcodes=barcodes
+        barcodes=barcodes,
+        languages=languages
     )
     
     # Run pipeline

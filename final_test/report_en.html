@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microbiome Analysis Report - Final Test Horse</title>
+    <style>
+        /* Clean, modern report styles for pages 2-5 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 10pt;
+    line-height: 1.5;
+    color: #1f2937;
+    background: white;
+}
+
+/* Page setup for PDF */
+@page {
+    size: A4;
+    margin: 15mm;
+}
+
+.page {
+    page-break-after: always;
+    position: relative;
+    height: 257mm;  /* Fixed height for consistent footer placement (A4 minus margins) */
+    padding: 0;
+    padding-bottom: 15mm;  /* Space for absolutely positioned footer */
+}
+
+.page:last-child {
+    page-break-after: avoid;
+}
+
+/* Variable height page for content that may exceed standard page height */
+.page-variable-height {
+    height: auto;
+    min-height: 257mm;
+}
+
+/* Keep species list title and table together on same page */
+.species-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+/* Header styles */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 3mm;
+    border-bottom: 2px solid #0ea5e9;
+    margin-bottom: 5mm;
+}
+
+.header-left {
+    flex: 1;
+}
+
+.header-center {
+    flex: 1;
+    text-align: center;
+}
+
+.header-right {
+    flex: 1;
+    text-align: right;
+}
+
+.patient-info {
+    display: inline-block;
+    background: #f0f9ff;
+    padding: 2mm 4mm;
+    border-radius: 3mm;
+    font-size: 9pt;
+    color: #0369a1;
+    margin-right: 2mm;
+}
+
+.sample-badge {
+    display: inline-block;
+    background: #dbeafe;
+    padding: 2mm 4mm;
+    border-radius: 3mm;
+    font-size: 9pt;
+    font-weight: 600;
+    color: #0369a1;
+}
+
+/* Section headers */
+.section-title {
+    font-size: 18pt;
+    font-weight: 700;
+    color: #0369a1;
+    margin-bottom: 5mm;
+    letter-spacing: -0.5px;
+}
+
+.subsection-title {
+    font-size: 12pt;
+    font-weight: 600;
+    color: #0c4a6e;
+    margin-top: 4mm;
+    margin-bottom: 3mm;
+    page-break-after: avoid;  /* Keep heading with following content */
+    break-after: avoid-page;  /* Browser compatibility */
+}
+
+/* Content containers */
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5mm;
+    margin-bottom: 5mm;
+}
+
+.content-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 3mm;
+    padding: 4mm;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+/* Charts */
+.chart-container {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 3mm;
+    padding: 3mm;
+    margin-bottom: 5mm;
+}
+
+.chart-img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Dysbiosis indicator */
+.dysbiosis-card {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 2px solid #0ea5e9;
+    border-radius: 4mm;
+    padding: 5mm;
+    text-align: center;
+    margin: 5mm 0;
+}
+
+.dysbiosis-value {
+    font-size: 36pt;
+    font-weight: 700;
+    color: #0369a1;
+    line-height: 1;
+}
+
+.dysbiosis-label {
+    font-size: 10pt;
+    color: #64748b;
+    margin-top: 2mm;
+}
+
+.dysbiosis-category {
+    display: inline-block;
+    padding: 2mm 6mm;
+    border-radius: 10mm;
+    font-weight: 600;
+    margin-top: 3mm;
+    font-size: 11pt;
+}
+
+.category-normal {
+    background: #10b981;
+    color: white;
+}
+
+.category-mild {
+    background: #f59e0b;
+    color: white;
+}
+
+.category-severe {
+    background: #ef4444;
+    color: white;
+}
+
+/* Tables */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 4mm;
+    page-break-before: avoid;  /* Keep table with preceding heading */
+    break-before: avoid-page;  /* Browser compatibility */
+}
+
+.data-table th {
+    background: #0369a1;
+    color: white;
+    padding: 2mm 3mm;
+    text-align: left;
+    font-weight: 600;
+    font-size: 9pt;
+}
+
+.data-table td {
+    padding: 1.5mm 3mm;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 8pt;
+    line-height: 1.3;
+}
+
+.data-table tr:hover {
+    background: #f8fafc;
+}
+
+.value-normal {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.value-abnormal {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+/* Clinical recommendations */
+.recommendation-list {
+    list-style: none;
+    padding: 0;
+}
+
+.recommendation-list li {
+    position: relative;
+    padding-left: 8mm;
+    margin-bottom: 3mm;
+    font-size: 10pt;
+}
+
+.recommendation-list li:before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: #0ea5e9;
+    font-weight: 700;
+}
+
+/* Key findings boxes */
+.finding-card {
+    background: white;
+    border-left: 4px solid #0ea5e9;
+    padding: 3mm 4mm;
+    margin-bottom: 3mm;
+}
+
+.finding-card.critical {
+    border-left-color: #ef4444;
+    background: #fef2f2;
+}
+
+.finding-card.warning {
+    border-left-color: #f59e0b;
+    background: #fffbeb;
+}
+
+.finding-card.normal {
+    border-left-color: #10b981;
+    background: #f0fdf4;
+}
+
+/* Educational content */
+.info-box {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 3mm;
+    padding: 4mm;
+    margin-bottom: 4mm;
+}
+
+.info-box h4 {
+    color: #0369a1;
+    font-size: 11pt;
+    margin-bottom: 2mm;
+}
+
+.info-box p {
+    font-size: 9.5pt;
+    line-height: 1.6;
+}
+
+/* Footer */
+.page-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 3mm;
+    border-top: 1px solid #e2e8f0;
+    font-size: 8pt;
+    color: #64748b;
+}
+
+.footer-left {
+    font-weight: 600;
+}
+
+.footer-right {
+    text-align: right;
+}
+
+/* Print optimization */
+@media print {
+    .page {
+        page-break-after: always;
+        page-break-inside: avoid;
+    }
+
+    .chart-container,
+    .content-box,
+    .data-table {
+        page-break-inside: avoid;
+    }
+}
+    </style>
+</head>
+<body>
+    <!-- Page 1: Sequencing Results -->
+    <!-- Page 1: Sequencing Results (formerly Page 2) -->
+<div class="page">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <div class="patient-info">Final Test Horse</div>
+            <div class="patient-info">Equine</div>
+        </div>
+        <div class="header-center">
+            <div class="sample-badge">Sample #FINAL-001</div>
+        </div>
+        <div class="header-right">
+            <div style="font-size: 8pt; color: #64748b;">
+                <div>Analyzed: 2025-10-28</div>
+                <div>Report: 2025-10-28</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Title -->
+    <h1 class="section-title">Microbiome Sequencing Results</h1>
+
+    <!-- Dysbiosis Index Card -->
+    <div class="dysbiosis-card">
+        <div class="dysbiosis-value">54.9</div>
+        <div class="dysbiosis-label">Dysbiosis Index</div>
+        <div class="dysbiosis-category category-severe">
+            
+                Severe Dysbiosis
+            
+        </div>
+    </div>
+
+    <!-- Phylum Distribution Chart -->
+    <h2 class="subsection-title">Phylum Distribution in Gut Microflora</h2>
+    <div class="chart-container">
+        <img src="temp_charts/phylum_comparison.png" alt="Phylum Distribution" class="chart-img">
+    </div>
+
+    <!-- Footer -->
+    <div class="page-footer">
+        <div class="footer-left">MIMT Genetics Laboratory</div>
+        <div class="footer-right">Page 1 of 5</div>
+    </div>
+</div>
+
+    <!-- Page 2: Phylum Analysis -->
+    <!-- Page 2: Species Distribution Visualization -->
+<div class="page">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <div class="patient-info">Final Test Horse</div>
+            <div class="patient-info">Equine</div>
+        </div>
+        <div class="header-center">
+            <div class="sample-badge">Sample #FINAL-001</div>
+        </div>
+        <div class="header-right">
+            <div style="font-size: 8pt; color: #64748b;">
+                <div>Analyzed: 2025-10-28</div>
+                <div>Report: 2025-10-28</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Title -->
+    <h1 class="section-title">Bacterial Species Distribution</h1>
+
+    <!-- Species Distribution Chart -->
+    <h2 class="subsection-title">Top 20 Bacterial Species by Abundance</h2>
+    <div class="chart-container">
+        <img src="temp_charts/species_distribution.png" alt="Species Distribution" class="chart-img">
+    </div>
+
+    <!-- Footer -->
+    <div class="page-footer">
+        <div class="footer-left">MIMT Genetics Laboratory</div>
+        <div class="footer-right">Page 2 of 5</div>
+    </div>
+</div>
+
+    <!-- Page 3: Clinical Interpretation -->
+    <!-- Page 3: Clinical Analysis -->
+<div class="page">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <div class="patient-info">Final Test Horse</div>
+            <div class="patient-info">Equine</div>
+        </div>
+        <div class="header-center">
+            <div class="sample-badge">Sample #FINAL-001</div>
+        </div>
+        <div class="header-right">
+            <div style="font-size: 8pt; color: #64748b;">
+                <div>Analyzed: 2025-10-28</div>
+                <div>Report: 2025-10-28</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Title -->
+    <h1 class="section-title">Clinical Interpretation</h1>
+
+    <!-- Clinical Assessment -->
+    <div class="content-box full-width">
+        <h2 class="subsection-title">Clinical Assessment</h2>
+        <p style="font-size: 10.5pt; line-height: 1.6;">
+            
+                The microbiome analysis reveals <strong>severe dysbiosis</strong> with an index of 54.9.
+                This indicates a significant imbalance in the gut microbial community requiring immediate attention.
+                The disrupted microbial ecology may compromise digestive function, nutrient absorption, and immune responses.
+            
+        </p>
+    </div>
+
+    <!-- Key Findings -->
+    <h2 class="subsection-title">Key Findings</h2>
+    <div class="content-grid">
+        
+        <div class="finding-card critical">
+            <strong>Low Bacillota:</strong> 19.2%
+            (Normal: 20-70%). Associated with reduced fiber fermentation and butyrate production.
+        </div>
+        
+
+        
+        <div class="finding-card warning">
+            <strong>Low Bacteroidota:</strong> 0.8%
+            (Normal: 4-40%). May indicate compromised carbohydrate metabolism.
+        </div>
+        
+
+        
+        <div class="finding-card critical">
+            <strong>Elevated Pseudomonadota:</strong> 77.6%
+            (Normal: 2-35%). May indicate inflammation or pathogenic overgrowth.
+        </div>
+        
+
+        
+    </div>
+
+    <!-- Recommendations -->
+    <h2 class="subsection-title">Clinical Recommendations</h2>
+    <ul class="recommendation-list">
+        
+            <li>Immediate dietary modification: Increase forage to 2% body weight daily minimum</li>
+            <li>Implement therapeutic probiotic protocol with veterinary guidance</li>
+            <li>Eliminate or significantly reduce concentrate feeds temporarily</li>
+            <li>Consider prebiotic supplementation (FOS, MOS, or psyllium)</li>
+            <li>Re-evaluate microbiome in 4-6 weeks to assess response</li>
+            <li>Screen for underlying gastrointestinal pathology if dysbiosis persists</li>
+        
+    </ul>
+
+    <!-- Footer -->
+    <div class="page-footer">
+        <div class="footer-left">MIMT Genetics Laboratory</div>
+        <div class="footer-right">Page 3 of 5</div>
+    </div>
+</div>
+
+    <!-- Page 4: Summary & Guidelines -->
+    <!-- Page 4: Summary and Guidelines -->
+<div class="page">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <div class="patient-info">Final Test Horse</div>
+            <div class="patient-info">Equine</div>
+        </div>
+        <div class="header-center">
+            <div class="sample-badge">Sample #FINAL-001</div>
+        </div>
+        <div class="header-right">
+            <div style="font-size: 8pt; color: #64748b;">
+                <div>Analyzed: 2025-10-28</div>
+                <div>Report: 2025-10-28</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Title -->
+    <h1 class="section-title">Summary & Management Guidelines</h1>
+
+    <!-- Summary Box -->
+    <div class="content-box full-width" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);">
+        <h2 class="subsection-title">Report Summary</h2>
+        <div class="content-grid">
+            <div>
+                <strong>Dysbiosis Index:</strong> 54.9<br>
+                <strong>Category:</strong> Severe<br>
+                <strong>Dominant Phylum:</strong> Pseudomonadota
+            </div>
+            <div>
+                <strong>Total Species Identified:</strong> 26<br>
+                <strong>Sample Quality:</strong> Adequate<br>
+                <strong>Analysis Method:</strong> Shotgun metagenomic NGS
+            </div>
+        </div>
+    </div>
+
+    <!-- Understanding Your Results -->
+    <div class="info-box">
+        <h4>Understanding the Dysbiosis Index</h4>
+        <p>
+            The Dysbiosis Index (DI) quantifies the degree of microbial imbalance in the gut:
+            <br>• <strong>0-20:</strong> Normal, healthy microbiome
+            <br>• <strong>21-50:</strong> Mild dysbiosis requiring dietary adjustment
+            <br>• <strong>&gt;50:</strong> Severe dysbiosis requiring intervention
+        </p>
+    </div>
+
+    <!-- Management Guidelines -->
+    <h2 class="subsection-title">Management Guidelines</h2>
+
+    
+    <div class="info-box">
+        <h4>Managing Severe Dysbiosis</h4>
+        <p>
+            • Immediate dietary restructuring under veterinary guidance<br>
+            • Maximize forage, minimize concentrates<br>
+            • Therapeutic probiotic protocol (10^10 CFU daily)<br>
+            • Consider fecal microbiota transplantation if available<br>
+            • Monitor for signs of colic or laminitis<br>
+            • Re-test in 4-6 weeks to assess improvement
+        </p>
+    </div>
+    
+
+    <!-- Follow-up Protocol -->
+    <h2 class="subsection-title">Follow-up Testing</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Dysbiosis Category</th>
+                <th>Re-test Timeline</th>
+                <th>Monitoring Focus</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Normal</td>
+                <td>12 months</td>
+                <td>Annual health screening</td>
+            </tr>
+            <tr>
+                <td>Mild</td>
+                <td>2-3 months</td>
+                <td>Response to dietary changes</td>
+            </tr>
+            <tr>
+                <td>Severe</td>
+                <td>4-6 weeks</td>
+                <td>Treatment efficacy</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Footer -->
+    <div class="page-footer">
+        <div class="footer-left">MIMT Genetics Laboratory</div>
+        <div class="footer-right">Page 4 of 5</div>
+    </div>
+</div>
+
+    <!-- Page 5: Complete Species List -->
+    <!-- Page 5: Complete Bacterial Species List -->
+<div class="page page-variable-height">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <div class="patient-info">Final Test Horse</div>
+            <div class="patient-info">Equine</div>
+        </div>
+        <div class="header-center">
+            <div class="sample-badge">Sample #FINAL-001</div>
+        </div>
+        <div class="header-right">
+            <div style="font-size: 8pt; color: #64748b;">
+                <div>Analyzed: 2025-10-28</div>
+                <div>Report: 2025-10-28</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Species Section (title + table kept together) -->
+    <div class="species-section">
+        <h1 class="section-title">Complete Bacterial Species List</h1>
+        <table class="data-table">
+        <thead>
+            <tr>
+                <th>Species</th>
+                <th>Abundance (%)</th>
+                <th>Phylum</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+            <tr>
+                <td>Acinetobacter lanii</td>
+                <td>38.28%</td>
+                <td>Pseudomonadota</td>
+            </tr>
+            
+            <tr>
+                <td>Acinetobacter baumannii</td>
+                <td>12.87%</td>
+                <td>Pseudomonadota</td>
+            </tr>
+            
+            <tr>
+                <td>Acinetobacter wanghuae</td>
+                <td>12.38%</td>
+                <td>Pseudomonadota</td>
+            </tr>
+            
+            <tr>
+                <td>Lysinibacillus sp. 2017</td>
+                <td>7.10%</td>
+                <td>Bacillota</td>
+            </tr>
+            
+            <tr>
+                <td>Weissella confusa</td>
+                <td>4.62%</td>
+                <td>Bacillota</td>
+            </tr>
+            
+            <tr>
+                <td>Acinetobacter lwoffii</td>
+                <td>2.97%</td>
+                <td>Pseudomonadota</td>
+            </tr>
+            
+            <tr>
+                <td>Acinetobacter johnsonii</td>
+                <td>2.81%</td>
+                <td>Pseudomonadota</td>
+            </tr>
+            
+            <tr>
+                <td>Comamonas aquatica</td>
+                <td>1.98%</td>
+                <td>Pseudomonadota</td>
+            </tr>
+            
+            <tr>
+                <td>Glutamicibacter arilaitensis</td>
+                <td>1.82%</td>
+                <td>Actinomycetota</td>
+            </tr>
+            
+            <tr>
+                <td>Mammaliicoccus vitulinus</td>
+                <td>1.82%</td>
+                <td>Bacillota</td>
+            </tr>
+            
+            <tr>
+                <td>Comamonas kerstersii</td>
+                <td>1.49%</td>
+                <td>Pseudomonadota</td>
+            </tr>
+            
+            <tr>
+                <td>Kurthia zopfii</td>
+                <td>1.49%</td>
+                <td>Bacillota</td>
+            </tr>
+            
+            <tr>
+                <td>Acinetobacter pseudolwoffii</td>
+                <td>1.49%</td>
+                <td>Pseudomonadota</td>
+            </tr>
+            
+            <tr>
+                <td>Stutzerimonas stutzeri</td>
+                <td>1.16%</td>
+                <td>Pseudomonadota</td>
+            </tr>
+            
+            <tr>
+                <td>Streptococcus equinus</td>
+                <td>1.16%</td>
+                <td>Bacillota</td>
+            </tr>
+            
+            <tr>
+                <td>Weissella cibaria</td>
+                <td>0.99%</td>
+                <td>Bacillota</td>
+            </tr>
+            
+            <tr>
+                <td>Sphingobacterium sp. ML3W</td>
+                <td>0.83%</td>
+                <td>Bacteroidota</td>
+            </tr>
+            
+            <tr>
+                <td>Solibacillus sp. FSL H8-0523</td>
+                <td>0.83%</td>
+                <td>Bacillota</td>
+            </tr>
+            
+            <tr>
+                <td>Serpentinimonas maccroryi</td>
+                <td>0.66%</td>
+                <td>Pseudomonadota</td>
+            </tr>
+            
+            <tr>
+                <td>Desemzia incerta</td>
+                <td>0.66%</td>
+                <td>Bacillota</td>
+            </tr>
+            
+            <tr>
+                <td>Acinetobacter indicus</td>
+                <td>0.50%</td>
+                <td>Pseudomonadota</td>
+            </tr>
+            
+            <tr>
+                <td>Ligilactobacillus salivarius</td>
+                <td>0.50%</td>
+                <td>Bacillota</td>
+            </tr>
+            
+            <tr>
+                <td>Acinetobacter sp. ANC 7201</td>
+                <td>0.50%</td>
+                <td>Pseudomonadota</td>
+            </tr>
+            
+            <tr>
+                <td>Acinetobacter sp. NCu2D-2</td>
+                <td>0.50%</td>
+                <td>Pseudomonadota</td>
+            </tr>
+            
+            <tr>
+                <td>Brachybacterium vulturis</td>
+                <td>0.33%</td>
+                <td>Actinomycetota</td>
+            </tr>
+            
+            <tr>
+                <td>Brachybacterium sp. Z12</td>
+                <td>0.33%</td>
+                <td>Actinomycetota</td>
+            </tr>
+            
+        </tbody>
+    </table>
+    </div>
+
+    <!-- Contact Information -->
+    <div class="content-box full-width" style="margin-top: 5mm;">
+        <strong>For questions regarding this report, please contact:</strong><br>
+        MIMT Genetics Laboratory<br>
+        Email: lab@mimtgenetics.com | Phone: +48 XXX XXX XXX<br>
+        <small style="color: #64748b;">Report generated using Next-Gen Gut Profiling (NG-GP) technology</small>
+    </div>
+
+    <!-- Footer -->
+    <div class="page-footer">
+        <div class="footer-left">MIMT Genetics Laboratory</div>
+        <div class="footer-right">Page 5 of 5 - End of Report</div>
+    </div>
+</div>
+</body>
+</html>

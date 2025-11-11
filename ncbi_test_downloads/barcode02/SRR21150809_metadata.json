@@ -1,0 +1,9 @@
+{
+  "accession": "SRR21150809",
+  "organism": "Unknown",
+  "sample_name": "HGM173",
+  "library_strategy": "WGS",
+  "platform": "ILLUMINA",
+  "total_spots": 20460497,
+  "total_bases": 6138149100
+}

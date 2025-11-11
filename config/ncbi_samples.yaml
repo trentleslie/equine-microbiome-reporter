@@ -1,0 +1,57 @@
+# NCBI Sample Configuration
+# Configuration for downloading and processing equine microbiome FASTQ files from NCBI SRA
+#
+# Usage:
+#   python scripts/ncbi_batch_pipeline.py --config config/ncbi_samples.yaml
+
+# List of samples to download and process
+# These are real equine gut microbiome samples from NCBI BioProject PRJNA871798
+# Study: "Meta analysis of racehorses" - racehorse gut metagenome WGS data
+samples:
+  - accession: "SRR21151045"  # Originally requested as SRX17162735
+    name: "Racehorse_HGM135"
+    age: "Unknown"
+    sample_number: "001"
+    performed_by: "NCBI Study PRJNA871798"
+    requested_by: "Pipeline Testing"
+    notes: "Racehorse gut metagenome - Illumina HiSeq 2000 WGS (8.2 Gbp, ~2.4 GB download)"
+
+  - accession: "SRR21150809"  # Originally requested as SRX17162733
+    name: "Racehorse_HGM173"
+    age: "Unknown"
+    sample_number: "002"
+    performed_by: "NCBI Study PRJNA871798"
+    requested_by: "Pipeline Testing"
+    notes: "Racehorse gut metagenome - Illumina HiSeq 2000 WGS (6.1 Gbp, ~1.8 GB download)"
+
+  - accession: "SRR21150880"  # Originally requested as SRX17162662
+    name: "Racehorse_HGM229"
+    age: "Unknown"
+    sample_number: "003"
+    performed_by: "NCBI Study PRJNA871798"
+    requested_by: "Pipeline Testing"
+    notes: "Racehorse gut metagenome - Illumina HiSeq 2000 WGS (6.3 Gbp, ~1.9 GB download)"
+
+# Pipeline configuration
+pipeline:
+  output_dir: "ncbi_output"
+  skip_kraken: false  # Set to true to skip Kraken2 classification
+
+# Kraken2 database configuration (optional, will use environment variable if not specified)
+# kraken2_db: "/path/to/kraken2/database"
+
+# Instructions:
+# 1. Replace the placeholder SRA accessions with actual equine microbiome accession numbers
+# 2. Update patient/sample information as needed
+# 3. Run: python scripts/ncbi_batch_pipeline.py --config config/ncbi_samples.yaml
+#
+# Finding equine microbiome datasets on NCBI:
+# - Search NCBI SRA: https://www.ncbi.nlm.nih.gov/sra
+# - Search terms: "equine microbiome", "horse gut microbiome", "equine fecal 16S"
+# - Filter by: Amplicon sequencing, 16S rRNA
+# - Look for BioProjects with multiple samples
+#
+# Example equine microbiome studies:
+# - PRJNA516732: Equine Gut Microbiome Study
+# - PRJNA685642: Horse Fecal Microbiome Analysis
+# - PRJNA397906: Equine Hindgut Microbial Community
