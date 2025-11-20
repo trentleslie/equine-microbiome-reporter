@@ -396,3 +396,58 @@ Supports OpenAI, Anthropic Claude, and Google Gemini with 8 clinical templates f
 4. **Use config file**: Easier to manage multiple samples with `config/ncbi_samples.yaml`
 5. **Download-only mode**: Test downloads first with `--download-only` flag
 6. **SRA Toolkit setup**: Configure with `vdb-config --interactive` for optimal performance
+
+### Conda Environment Issues (Linux)
+
+**Problem**: Environment creation fails with errors like "excluded by strict repo priority", "nothing provides __win", or "package conflicts"
+
+**Root Cause**: The `environment.yml` file contains platform-specific packages and exact version pins that may not work on all Linux systems.
+
+**Solutions**:
+
+1. **Use `environment_linux.yml` instead** (Recommended for Linux):
+   ```bash
+   conda env create -f environment_linux.yml
+   conda activate equine-microbiome
+   ```
+   This file uses version ranges and no platform-specific dependencies.
+
+2. **Switch to Poetry** (Best option for cross-platform compatibility):
+   ```bash
+   # Remove any existing conda environment
+   conda env remove -n equine-microbiome
+
+   # Install with Poetry instead
+   poetry install
+   poetry shell
+   ```
+   Poetry is platform-independent and handles dependencies more reliably.
+
+3. **Relax conda channel priority** (If you must use original environment.yml):
+   ```bash
+   conda config --set channel_priority flexible
+   conda env create -f environment.yml --force
+   ```
+
+**Git Merge Conflict with `translation_cache/`**:
+
+If you see:
+```
+error: The following untracked working tree files would be overwritten by merge:
+translation_cache/translation_cache.json
+```
+
+**Solution**:
+```bash
+# Option 1: Remove the cache (safe - will regenerate)
+rm -rf translation_cache/
+
+# Option 2: Stash temporarily
+git stash --include-untracked
+git pull
+git stash pop
+```
+
+The `.gitignore` has been updated to prevent this issue in future pulls.
+
+**For complete Linux installation instructions**, see [docs/LINUX_INSTALLATION.md](docs/LINUX_INSTALLATION.md).

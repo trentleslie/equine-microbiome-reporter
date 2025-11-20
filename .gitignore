@@ -51,7 +51,10 @@ tmp/
 .env.production
 .env.development
 notebooks/translation_cache/
+translation_cache/
 email_response.md
+results/
+*.log
 
 # Test outputs (prevent clutter)
 test_*/

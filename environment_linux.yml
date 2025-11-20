@@ -1,0 +1,62 @@
+name: equine-microbiome
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  # Python
+  - python=3.9.*
+
+  # Core scientific computing
+  - numpy>=1.21,<2.0
+  - pandas>=1.4,<2.0
+  - scipy>=1.7,<2.0
+
+  # Visualization
+  - matplotlib>=3.5,<4.0
+  - seaborn>=0.12,<1.0
+
+  # Data processing
+  - biopython>=1.79,<2.0
+  - openpyxl>=3.0,<4.0
+
+  # Web and APIs
+  - flask>=3.0,<4.0
+  - requests>=2.28,<3.0
+
+  # Template rendering
+  - jinja2>=3.0,<4.0
+
+  # Configuration
+  - pyyaml>=6.0
+  - python-dotenv>=1.0
+
+  # Statistics
+  - statsmodels>=0.13,<1.0
+
+  # Jupyter ecosystem
+  - jupyter>=1.0
+  - jupyterlab>=4.0,<5.0
+  - ipykernel>=6.20,<7.0
+  - ipywidgets>=8.0,<9.0
+  - notebook>=7.0,<8.0
+
+  # Progress tracking
+  - tqdm>=4.60,<5.0
+
+  # PDF generation via pip (not available in conda)
+  - pip>=24.0
+
+  # Pip packages
+  - pip:
+      # WeasyPrint and dependencies for PDF generation
+      - weasyprint>=60.0,<70.0
+      - cssselect2>=0.7,<1.0
+      - pydyf>=0.10,<1.0
+      - pyphen>=0.16,<1.0
+      - tinyhtml5>=2.0,<3.0
+      - reportlab>=4.0,<5.0
+
+      # Translation services for multilingual reports
+      - deep-translator>=1.11,<2.0
+      - googletrans==4.0.0rc1
+      - translatepy>=2.3,<3.0

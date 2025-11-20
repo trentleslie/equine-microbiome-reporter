@@ -59,7 +59,36 @@ config/                     # YAML configuration
 
 ## 🚀 Getting Started
 
-### Installation
+### Linux Installation (Recommended)
+
+For Linux systems (Ubuntu/Debian), we recommend using **Poetry** for a clean, platform-independent installation:
+
+```bash
+# Install Poetry
+curl -sSL https://install.python-poetry.org | python3 -
+export PATH="$HOME/.local/bin:$PATH"
+
+# Clone repository
+git clone https://github.com/trentleslie/equine-microbiome-reporter.git
+cd equine-microbiome-reporter
+
+# Install dependencies
+poetry install
+
+# Activate environment
+poetry shell
+
+# Test installation
+python scripts/test_installation.py
+```
+
+**See [docs/LINUX_INSTALLATION.md](docs/LINUX_INSTALLATION.md) for:**
+- Complete step-by-step instructions
+- System dependencies for WeasyPrint
+- Alternative Conda installation
+- Troubleshooting common issues
+
+### Automated Setup Script (WSL2/Alternative)
 
 Use our automated setup script for a complete installation with interactive configuration:
 
@@ -82,9 +111,10 @@ Total installation time: ~15-20 minutes
 
 ### Prerequisites
 
-- WSL2 (Windows Subsystem for Linux) or Linux environment
-- 20GB disk space (for Kraken2 database)
+- Linux environment (native or WSL2)
+- 20GB disk space (for Kraken2 database, if using)
 - 8GB RAM minimum (16GB recommended)
+- Python 3.9+ (for Poetry method)
 
 ### Key Dependencies
 
