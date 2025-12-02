@@ -16,9 +16,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import pandas as pd
 import yaml
 
-# Add scripts directory to path for generate_clean_report import
-sys.path.append(str(Path(__file__).parent.parent / "scripts"))
-from generate_clean_report import generate_clean_report
+from scripts.generate_clean_report import generate_clean_report
 
 from .data_models import PatientInfo
 from .csv_processor import CSVProcessor
