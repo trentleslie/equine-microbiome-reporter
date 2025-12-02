@@ -148,8 +148,9 @@ poetry run python scripts/validate_fastq_pipeline.py
 5. **Data Processing**: `CSVProcessor` creates `MicrobiomeData` with dysbiosis calculations
 6. **Chart Generation**: Matplotlib/Seaborn charts for species/phylum distribution
 7. **Template Rendering**: Jinja2 processes HTML templates with data context
-8. **PDF Generation**: WeasyPrint converts HTML to professional 5-page PDF
-9. **Output**: Laboratory-ready report with clinical interpretations
+8. **Translation** (if language != 'en'): HTML content translated with scientific term protection
+9. **PDF Generation**: WeasyPrint converts HTML to professional 5-page PDF
+10. **Output**: Laboratory-ready report with clinical interpretations
 
 ### Key Components
 - **`src/data_models.py`**: Core data classes - `PatientInfo` and `MicrobiomeData`
@@ -157,9 +158,54 @@ poetry run python scripts/validate_fastq_pipeline.py
 - **`src/clinical_filter.py`**: Veterinary-specific filtering rules (removes plants, identifies pathogens)
 - **`src/csv_processor.py`**: CSV parsing, phylum aggregation, dysbiosis calculations
 - **`src/chart_generator.py`**: Matplotlib/Seaborn visualizations
-- **`scripts/generate_clean_report.py`**: Main report orchestrator using WeasyPrint
+- **`src/batch_processor.py`**: Batch orchestration with multi-language and parallel processing
+- **`scripts/generate_clean_report.py`**: Single report orchestrator (CSV → PDF with optional translation)
+- **`scripts/batch_multilanguage.py`**: Batch wrapper around `BatchProcessor` for CLI usage
 - **`scripts/full_pipeline.py`**: End-to-end FASTQ-to-PDF pipeline coordinator
 - **`config/report_config.yaml`**: Reference ranges, thresholds, clinical rules
+
+### Batch Processing Architecture
+
+**BatchProcessor** (`src/batch_processor.py`) orchestrates multi-sample, multi-language report generation:
+
+**Key Features:**
+- Directory scanning or manifest-based processing
+- Parallel sample processing (default: 4 workers)
+- Sequential language processing per sample
+- Built-in validation (species count, required phyla, unassigned percentage)
+- Progress tracking and summary reporting
+
+**Processing Flow:**
+```
+For each CSV file:
+  1. Validate CSV format and quality thresholds
+  2. Extract patient info (from manifest or filename)
+  3. For each language:
+     a. Call generate_clean_report(csv, patient, output_path, language)
+     b. Track success/failure per language
+  4. Continue to next sample (errors don't block batch)
+
+Output: {sample_stem}_report_{lang}.pdf (e.g., sample_001_report_en.pdf)
+```
+
+**Configuration:**
+```python
+from src.batch_processor import BatchProcessor, BatchConfig
+
+config = BatchConfig(
+    data_dir='data/',               # CSV input directory
+    reports_dir='reports/',         # PDF output directory
+    languages=['en', 'pl', 'ja'],   # Target languages
+    parallel_processing=True,       # Process samples in parallel
+    workers=4,                      # Number of parallel workers
+    min_species_count=10,           # Validation threshold
+    max_unassigned_percentage=50.0, # Validation threshold
+    required_phyla=['Bacillota', 'Bacteroidota', 'Pseudomonadota']
+)
+
+processor = BatchProcessor(config)
+results = processor.process_directory()  # or process_from_manifest('manifest.csv')
+```
 
 ### Template System (Current Production)
 - **`templates/clean/`**: Production HTML templates (5 pages)
@@ -171,6 +217,21 @@ poetry run python scripts/validate_fastq_pipeline.py
   - `styles.css`: Consistent styling and page layout
   - `report_clean.html`: Master template combining all pages
 
+**Template Rendering Process:**
+1. Load 5 page templates individually
+2. Render each page with Jinja2 (patient data, charts, microbiome data)
+3. Combine rendered pages into master template (`report_clean.html`)
+4. Embed CSS via `{{ css_content }}` variable
+5. If language != 'en': translate final HTML (not individual templates)
+6. Pass complete HTML to WeasyPrint for PDF generation
+
+**Key Variables Available in Templates:**
+- `{{ patient.name }}`, `{{ patient.age }}`, `{{ patient.sample_number }}`
+- `{{ data.species_list }}`, `{{ data.phylum_distribution }}`
+- `{{ data.dysbiosis_index }}`, `{{ data.dysbiosis_category }}`
+- `{{ data.clinical_interpretation }}`, `{{ data.recommendations }}`
+- `{{ chart_paths.species }}`, `{{ chart_paths.phylum }}`, `{{ chart_paths.comparison }}`
+
 ### Clinical Filtering Architecture
 The pipeline implements sophisticated filtering to address HippoVet+'s needs:
 - **Kingdom-based exclusion**: Removes Plantae, Archaea (non-veterinary relevant)
@@ -180,14 +241,40 @@ The pipeline implements sophisticated filtering to address HippoVet+'s needs:
 - **Equine pathogen database**: Curated list of clinically relevant species
 
 ### Multi-Language Report Generation
-Production-ready translation system:
-- **`src/translation_service.py`**: Translation engine with scientific glossary preservation
-- **`scripts/translate_report_content.py`**: HTML content translator with structure preservation
-- **Supported languages**: English (en), Polish (pl), Japanese (ja) - others configurable
-- **Free translation**: Uses deep-translator (no API keys required)
-- **Scientific terms protected**: Bacterial names, phyla, medical terminology preserved
-- **Batch support**: Generate all languages per sample in one run
-- **File naming**: `sample_001_en.pdf`, `sample_001_pl.pdf`, `sample_001_ja.pdf`
+
+**Translation Architecture:**
+
+The system uses a sophisticated translation pipeline that preserves scientific terminology:
+
+**Core Components:**
+- **`src/translation_service.py`**: Base translation service with caching
+- **`src/translation/free_translation_service.py`**: Free translation using deep-translator (default) or googletrans (fallback)
+- **`src/translation/scientific_glossary.py`**: 40+ curated terms (phyla, species, medical terms)
+- **`src/translation/html_content_translator.py`**: HTML translation with term protection
+
+**Translation Process:**
+1. Parse final HTML and identify translatable text nodes
+2. Protect scientific terms using glossary (replace with placeholders)
+3. Translate text using deep-translator API (free, no API key)
+4. Restore protected terms in target language
+5. Rebuild HTML with translated content
+6. Cache translation by MD5 hash in `translation_cache/translation_cache.json`
+
+**Supported Languages:**
+- English (en) - baseline, no translation
+- Polish (pl) - fully tested
+- Japanese (ja) - fully tested
+- Others: de, es, fr, it, pt, ru, zh, ko (configurable, untested)
+
+**Scientific Term Protection:**
+Protected terms are NOT translated (preserved in Latin/English):
+- Bacterial phyla: Actinomycetota, Bacillota, Bacteroidota, Pseudomonadota, Fibrobacterota
+- Genus/species names: Lactobacillus, Streptococcus, Escherichia coli, etc.
+- Medical terms: dysbiosis, microbiome, microbiota, 16S rRNA
+- Veterinary terms: equine, fecal, gastrointestinal
+
+**File Naming Convention:**
+`{sample_stem}_report_{lang}.pdf` (e.g., `Montana_report_en.pdf`, `Montana_report_pl.pdf`)
 
 ### NCBI Download Integration
 For testing and demonstration purposes:
@@ -198,19 +285,55 @@ For testing and demonstration purposes:
 - **Metadata extraction**: Automatic fetching of organism, platform, library info from NCBI
 - **Batch organization**: Downloads organized into barcode directories for pipeline compatibility
 
+## Data Processing Pipeline
+
+### CSV Processing Flow (`src/csv_processor.py`)
+
+The CSVProcessor is the core data transformation engine:
+
+**Input:** CSV with species, read counts, taxonomy
+**Output:** MicrobiomeData object with calculated metrics
+
+**Processing Steps:**
+1. **Load CSV** with pandas
+2. **Auto-detect barcode column** (first column starting with 'barcode')
+3. **Filter eukaryotes:**
+   - Method 1: Use `superkingdom=='Bacteria'` if column exists (preferred)
+   - Method 2: Exclude known eukaryote species from hardcoded list (fallback)
+4. **Calculate percentages** from read counts (after eukaryote filtering)
+5. **Build species list** with genus/phylum from taxonomy columns
+6. **Calculate phylum distribution** (all bacterial phyla with percentages)
+7. **Calculate dysbiosis index** (DI-relevant phyla only: Actinomycetota, Bacillota, Bacteroidota, Pseudomonadota)
+8. **Filter phylum display** (DI phyla + "Other bacterial phyla" for charts/tables)
+9. **Return MicrobiomeData** with species, phyla, DI, interpretation
+
+**Critical Design Decisions:**
+- **Barcode auto-detection**: No need to specify column name manually
+- **Eukaryote filtering first**: Ensures bacterial percentages sum to 100%
+- **Dual phylum distributions**: Raw (for DI calculation) vs. Display (for charts)
+- **"Other bacterial phyla"**: Non-DI phyla grouped to reduce chart clutter
+
 ## Data Formats and Configuration
 
 ### CSV Input Format
 **Required columns**: `species`, `phylum`, `genus`, `barcode[N]` (where N is sample number)
 
+**Optional but recommended**: `superkingdom` (for accurate bacteria-only filtering)
+
 ```csv
-species,barcode45,barcode46,...,phylum,genus
-Streptomyces sp.,27,45,...,Actinomycetota,Streptomyces
-Lactobacillus sp.,156,23,...,Bacillota,Lactobacillus
+species,barcode45,barcode46,...,phylum,genus,superkingdom
+Streptomyces sp.,27,45,...,Actinomycetota,Streptomyces,Bacteria
+Lactobacillus sp.,156,23,...,Bacillota,Lactobacillus,Bacteria
+Saccharomyces cerevisiae,10,5,...,Ascomycota,Saccharomyces,Eukaryota
 ```
 
-**Critical phylum names** (must match exactly):
+**Critical phylum names** (must match exactly for dysbiosis index):
 - `Actinomycetota`, `Bacillota`, `Bacteroidota`, `Pseudomonadota`, `Fibrobacterota`
+
+**Barcode Column Detection:**
+- System automatically finds first column starting with 'barcode'
+- Multiple barcode columns supported (e.g., barcode45, barcode46, barcode47)
+- Manual specification via `barcode_column` parameter if needed
 
 ### Data Models (`src/data_models.py`)
 ```python
@@ -330,6 +453,88 @@ Supports OpenAI, Anthropic Claude, and Google Gemini with 8 clinical templates f
 
 ### Legacy Code
 - **`legacy/`**: Original implementation (for reference only, not production)
+
+## Important Architectural Patterns
+
+### Module Dependencies and Import Structure
+
+**Scripts Package:**
+The `scripts/` directory is a Python package (has `__init__.py`) that can be imported:
+```python
+from scripts.generate_clean_report import generate_clean_report
+```
+
+**Src Package:**
+Core modules in `src/` follow standard imports:
+```python
+from src.data_models import PatientInfo, MicrobiomeData
+from src.batch_processor import BatchProcessor, BatchConfig
+from src.csv_processor import CSVProcessor
+```
+
+**DO NOT** use `sys.path.append()` for imports - all directories are proper packages.
+
+### Chart Generation and Cleanup
+
+**Chart Lifecycle:**
+1. `ChartGenerator` creates PNG files in `temp_charts/` directory
+2. Charts embedded in HTML via file paths
+3. WeasyPrint reads PNG files during PDF generation
+4. **Charts are NOT auto-deleted** - manual cleanup or reuse on next run
+
+**Chart Types:**
+- `species_distribution.png` - Top 10 species bar chart
+- `phylum_distribution.png` - Phylum composition pie chart
+- `phylum_comparison.png` - DI phyla vs reference ranges
+
+### Configuration Hierarchy
+
+**Precedence (highest to lowest):**
+1. **Command-line arguments** - Override everything
+2. **BatchConfig object** - Programmatic configuration
+3. **Environment variables** (.env file) - Database paths, thresholds
+4. **report_config.yaml** - Reference ranges, clinical rules
+5. **Code defaults** - Fallback values
+
+**Example:**
+```python
+# .env has KRAKEN2_DB_PATH=/path/to/db
+# report_config.yaml has dysbiosis_threshold: 20
+
+# Command-line overrides both:
+python scripts/full_pipeline.py --kraken2-db /other/db  # Uses /other/db, not .env
+```
+
+### Parallel vs Sequential Processing
+
+**Batch Processing:**
+- **Samples**: Processed in parallel (ProcessPoolExecutor, default 4 workers)
+- **Languages**: Processed sequentially per sample (avoids translation API rate limits)
+
+**Example with 4 samples, 3 languages:**
+```
+Time with parallelization: ~55 seconds
+  - 4 samples processed simultaneously
+  - Each sample: 3 languages × ~5 seconds = ~15 seconds
+
+Time without parallelization: ~180 seconds
+  - 12 total reports × ~15 seconds each
+```
+
+### Translation Caching Strategy
+
+**Cache Key:** MD5 hash of source text
+**Cache Storage:** `translation_cache/translation_cache.json`
+**Cache Behavior:**
+- Persistent across runs
+- Shared across all samples and languages
+- Reduces API calls by ~90% on repeated text
+- Safe to delete (will regenerate on next run)
+
+**When to Clear Cache:**
+- Translation quality issues
+- Glossary terms updated
+- Switching translation providers
 
 ## Common Issues and Solutions
 
