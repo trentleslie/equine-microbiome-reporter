@@ -24,6 +24,23 @@ class CSVProcessor:
         'Micromonospora siamensis', 'Phocaeicola vulgatus'
     }
 
+    @staticmethod
+    def get_all_barcode_columns(csv_path: str) -> List[str]:
+        """
+        Return all barcode columns found in a CSV file.
+
+        Barcode columns are identified by the 'barcode' prefix (case-sensitive).
+        Returns columns in the order they appear in the CSV.
+
+        Args:
+            csv_path: Path to the CSV file
+
+        Returns:
+            List of barcode column names, or empty list if none found
+        """
+        df = pd.read_csv(csv_path, nrows=1)  # Only read header row for efficiency
+        return [col for col in df.columns if col.startswith('barcode')]
+
     def __init__(self, csv_path: str, barcode_column: str = None, config_path: str = None):
         self.csv_path = csv_path
         self.df = pd.read_csv(csv_path)

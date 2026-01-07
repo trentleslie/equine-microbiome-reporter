@@ -246,19 +246,31 @@ The pipeline implements sophisticated filtering to address HippoVet+'s needs:
 
 The system uses a sophisticated translation pipeline that preserves scientific terminology:
 
+**Available Translation Services:**
+- **`free`** (default): Uses deep-translator, no API key required
+- **`gemini`**: Uses Google Gemini 1.5 Flash (free tier, better quality)
+- **`google_cloud`**: Uses Google Cloud Translation API (paid)
+
 **Core Components:**
-- **`src/translation_service.py`**: Base translation service with caching
-- **`src/translation/free_translation_service.py`**: Free translation using deep-translator (default) or googletrans (fallback)
-- **`src/translation/scientific_glossary.py`**: 40+ curated terms (phyla, species, medical terms)
-- **`src/translation/html_content_translator.py`**: HTML translation with term protection
+- **`src/translation_service.py`**: Base classes, Gemini service, glossary, caching
+- **`scripts/translate_report_content.py`**: HTML content translator with table/species protection
 
 **Translation Process:**
-1. Parse final HTML and identify translatable text nodes
-2. Protect scientific terms using glossary (replace with placeholders)
-3. Translate text using deep-translator API (free, no API key)
-4. Restore protected terms in target language
-5. Rebuild HTML with translated content
+1. Extract and protect `<table>` blocks (preserves data integrity between languages)
+2. Extract and protect Latin species names (regex: `Genus species` pattern)
+3. Protect scientific terms using glossary (60+ curated terms)
+4. Translate text using selected service (free/gemini/google_cloud)
+5. Restore all protected content using untranslatable placeholders (`@@X7TBL000X7@@`)
 6. Cache translation by MD5 hash in `translation_cache/translation_cache.json`
+
+**Using Gemini Translation (Recommended for Better Quality):**
+```bash
+# Set API key (get free key at https://aistudio.google.com/app/apikey)
+export GEMINI_API_KEY=your_api_key
+
+# Use in code
+generate_clean_report(csv, patient, output, language='pl', translation_service_type='gemini')
+```
 
 **Supported Languages:**
 - English (en) - baseline, no translation
@@ -271,7 +283,14 @@ Protected terms are NOT translated (preserved in Latin/English):
 - Bacterial phyla: Actinomycetota, Bacillota, Bacteroidota, Pseudomonadota, Fibrobacterota
 - Genus/species names: Lactobacillus, Streptococcus, Escherichia coli, etc.
 - Medical terms: dysbiosis, microbiome, microbiota, 16S rRNA
+- Technical terms: shotgun, NGS, metagenomic, amplicon, DNA, RNA, PCR, Illumina, Nanopore
 - Veterinary terms: equine, fecal, gastrointestinal
+
+**Chart Localization:**
+Charts are generated with language-specific labels:
+- `ChartGenerator(language='pl')` generates charts with Polish titles/labels
+- Supported languages: en, pl, ja, de, es, fr
+- Labels: percentage axis, chart titles, reference range legends
 
 **File Naming Convention:**
 `{sample_stem}_report_{lang}.pdf` (e.g., `Montana_report_en.pdf`, `Montana_report_pl.pdf`)
@@ -312,6 +331,23 @@ The CSVProcessor is the core data transformation engine:
 - **Eukaryote filtering first**: Ensures bacterial percentages sum to 100%
 - **Dual phylum distributions**: Raw (for DI calculation) vs. Display (for charts)
 - **"Other bacterial phyla"**: Non-DI phyla grouped to reduce chart clutter
+
+**Multi-Barcode CSV Processing:**
+EPI2ME outputs CSVs with multiple barcode columns (e.g., barcode23, barcode24, barcode25).
+The system processes ALL barcodes automatically:
+
+```python
+# Detect all barcodes in a CSV
+barcodes = CSVProcessor.get_all_barcode_columns('data/multi_sample.csv')
+# Returns: ['barcode23', 'barcode24', 'barcode25']
+
+# Process specific barcode
+processor = CSVProcessor('data/multi_sample.csv', barcode_column='barcode24')
+data = processor.process()
+
+# BatchProcessor automatically iterates all barcodes
+# Output: {csv_stem}_{barcode}_report_{lang}.pdf for each barcode/language
+```
 
 ## Data Formats and Configuration
 
@@ -584,7 +620,9 @@ Time without parallelization: ~180 seconds
 3. **Scientific terms translated**: Add terms to glossary in `src/translation_service.py`
 4. **One language fails but others succeed**: Pipeline continues; check logs for specific error
 5. **Slow batch processing**: Translation adds 5-10 seconds per language per report
-6. **Missing translations**: Free service has rate limits; add delays or use paid API
+6. **Missing translations**: Free service has rate limits; use Gemini for better results
+7. **Species data differs between languages**: Fixed - tables are now protected from translation
+8. **Chart labels in English only**: Fixed - charts now support localized labels (pl, ja, de, es, fr)
 
 ### Multi-Language Workflow Tips
 1. **Test with English first**: Ensure report generation works before adding translations

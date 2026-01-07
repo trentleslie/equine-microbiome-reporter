@@ -24,9 +24,10 @@ body {
 .page {
     page-break-after: always;
     position: relative;
-    height: 257mm;  /* Fixed height for consistent footer placement (A4 minus margins) */
+    min-height: 257mm;  /* Minimum height for consistent layout (A4 minus margins) */
     padding: 0;
     padding-bottom: 15mm;  /* Space for absolutely positioned footer */
+    overflow: visible;  /* Allow content to flow to next page if needed */
 }
 
 .page:last-child {

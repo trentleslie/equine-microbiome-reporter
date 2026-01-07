@@ -33,7 +33,7 @@ except ImportError:
     TRANSLATION_AVAILABLE = False
     logger.warning("Translation service not available. Install with: poetry install --with translation-free")
 
-def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf", language="en", translation_service_type="free"):
+def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf", language="en", translation_service_type="free", barcode_column=None):
     """
     Generate a clean, modern report without title page
 
@@ -42,7 +42,11 @@ def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf"
         patient_info: PatientInfo object with patient details
         output_path: Path for output PDF file
         language: Target language code (en, pl, ja, etc.)
-        translation_service_type: "free" or "google_cloud"
+        translation_service_type: "free", "gemini", or "google_cloud"
+            - "free": Uses deep-translator (no API key required)
+            - "gemini": Uses Google Gemini API (free tier, better quality)
+            - "google_cloud": Uses Google Cloud Translation API (paid)
+        barcode_column: Specific barcode column to use (default: auto-detect first)
 
     Returns:
         bool: True if successful, False otherwise
@@ -55,10 +59,10 @@ def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf"
 
     logger.info(f"Processing: {csv_path}")
 
-    # Find the barcode column
-    df = pd.read_csv(csv_path, nrows=1)
-    barcode_cols = [c for c in df.columns if c.startswith('barcode')]
-    barcode_column = barcode_cols[0] if barcode_cols else None
+    # Use specified barcode column or auto-detect first one
+    if barcode_column is None:
+        barcode_cols = CSVProcessor.get_all_barcode_columns(str(csv_path))
+        barcode_column = barcode_cols[0] if barcode_cols else None
 
     if not barcode_column:
         logger.error("No barcode column found in CSV")
@@ -76,9 +80,9 @@ def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf"
 
     logger.info(f"Processed {len(microbiome_data.species_list)} species")
 
-    # Generate charts
+    # Generate charts (with language-specific labels)
     logger.info("Generating charts...")
-    chart_gen = ChartGenerator(output_dir="temp_charts")
+    chart_gen = ChartGenerator(output_dir="temp_charts", language=language)
     charts = chart_gen.generate_all_charts(microbiome_data)
     logger.info(f"Generated {len(charts)} charts")
 

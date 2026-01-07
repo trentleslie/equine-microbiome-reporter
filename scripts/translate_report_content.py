@@ -22,6 +22,29 @@ class HTMLContentTranslator:
     def __init__(self, service_type="free", **kwargs):
         self.translation_service = get_translation_service(service_type, **kwargs)
 
+    def extract_table_blocks(self, text: str) -> tuple[str, Dict[str, str]]:
+        """Extract and protect entire <table>...</table> blocks from translation.
+
+        This ensures species names, percentages, and all data in tables
+        remain IDENTICAL between language versions.
+        """
+        table_map = {}
+        counter = 0
+
+        # Pattern for entire table blocks (including nested content)
+        pattern = re.compile(r'<table[^>]*>.*?</table>', re.DOTALL | re.IGNORECASE)
+
+        def replace_table(match):
+            nonlocal counter
+            # Use numeric-only placeholder to prevent translation
+            placeholder = f"@@X7TBL{counter:03d}X7@@"
+            table_map[placeholder] = match.group(0)
+            counter += 1
+            return placeholder
+
+        processed_text = pattern.sub(replace_table, text)
+        return processed_text, table_map
+
     def extract_style_blocks(self, text: str) -> tuple[str, Dict[str, str]]:
         """Extract and protect <style> blocks from translation"""
         style_map = {}
@@ -32,7 +55,8 @@ class HTMLContentTranslator:
 
         def replace_style(match):
             nonlocal counter
-            placeholder = f"@@STYL_{counter}@@"  # Changed from STYLE to STYL to match other placeholders
+            # Use alphanumeric code to prevent translation
+            placeholder = f"@@X7STY{counter:03d}X7@@"
             style_map[placeholder] = match.group(0)
             counter += 1
             return placeholder
@@ -50,7 +74,8 @@ class HTMLContentTranslator:
 
         def replace_class(match):
             nonlocal counter
-            placeholder = f"@@CLASS_{counter}@@"
+            # Use alphanumeric code to prevent translation
+            placeholder = f"@@X7CLS{counter:03d}X7@@"
             class_map[placeholder] = match.group(0)
             counter += 1
             return placeholder
@@ -68,7 +93,8 @@ class HTMLContentTranslator:
 
         def replace_style_attr(match):
             nonlocal counter
-            placeholder = f"@@STYLEATTR_{counter}@@"
+            # Use alphanumeric code to prevent translation
+            placeholder = f"@@X7STA{counter:03d}X7@@"
             style_attr_map[placeholder] = match.group(0)
             counter += 1
             return placeholder
@@ -86,13 +112,42 @@ class HTMLContentTranslator:
 
         def replace_tag(match):
             nonlocal counter
-            placeholder = f"@@HTML_{counter}@@"
+            # Use alphanumeric code to prevent translation
+            placeholder = f"@@X7HTM{counter:03d}X7@@"
             tag_map[placeholder] = match.group(0)
             counter += 1
             return placeholder
 
         processed_text = pattern.sub(replace_tag, text)
         return processed_text, tag_map
+
+    def extract_species_names(self, text: str) -> tuple[str, Dict[str, str]]:
+        """Extract and protect Latin binomial species names from translation.
+
+        Protects patterns like:
+        - "Lactobacillus acidophilus" (Genus species)
+        - "Streptococcus sp." (Genus sp.)
+        - "Escherichia coli" (common species)
+        """
+        species_map = {}
+        counter = 0
+
+        # Pattern for Latin binomial nomenclature:
+        # - Capital letter followed by lowercase (genus)
+        # - Space
+        # - Either "sp." or lowercase species epithet (may include hyphen)
+        pattern = re.compile(r'\b([A-Z][a-z]{2,})\s+(sp\.|[a-z]{2,}(?:-[a-z]+)?)\b')
+
+        def replace_species(match):
+            nonlocal counter
+            # Use alphanumeric code to prevent translation
+            placeholder = f"@@X7SPC{counter:03d}X7@@"
+            species_map[placeholder] = match.group(0)
+            counter += 1
+            return placeholder
+
+        processed_text = pattern.sub(replace_species, text)
+        return processed_text, species_map
 
     def restore_placeholders(self, text: str, *maps: Dict[str, str]) -> str:
         """Restore all placeholders from multiple maps"""
@@ -108,8 +163,13 @@ class HTMLContentTranslator:
             return html
 
         # Extract elements in order (most specific to least specific)
+        # 0. TABLE BLOCKS FIRST - protect entire tables with data (species names, percentages)
+        processed, table_map = self.extract_table_blocks(html)
+        if table_map:
+            print(f"Protected {len(table_map)} table(s) from translation")
+
         # 1. Style blocks (CSS code)
-        processed, style_map = self.extract_style_blocks(html)
+        processed, style_map = self.extract_style_blocks(processed)
 
         # 2. Class attributes
         processed, class_map = self.extract_class_attributes(processed)
@@ -119,6 +179,11 @@ class HTMLContentTranslator:
 
         # 4. HTML tags
         processed, tag_map = self.extract_html_tags(processed)
+
+        # 5. Latin species names (binomial nomenclature)
+        processed, species_map = self.extract_species_names(processed)
+        if species_map:
+            print(f"Protected {len(species_map)} species name(s) from translation")
 
         # Free translation services have character limits (typically 5000)
         # Chunk the text if needed
@@ -173,7 +238,8 @@ class HTMLContentTranslator:
                 return html  # Return original on error
 
         # Restore all placeholders in reverse order (LIFO - last extracted, first restored)
-        result = self.restore_placeholders(translated, tag_map, style_attr_map, class_map, style_map)
+        # Tables are restored last since they were extracted first
+        result = self.restore_placeholders(translated, species_map, tag_map, style_attr_map, class_map, style_map, table_map)
 
         return result
 

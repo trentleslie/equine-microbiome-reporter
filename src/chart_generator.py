@@ -1,13 +1,14 @@
 """
 Chart Generator - Creates professional data visualizations using Matplotlib
 Generates charts matching the reference PDF design
+Supports multi-language chart labels
 """
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 import logging
 
 try:
@@ -16,6 +17,52 @@ except ImportError:
     from data_models import MicrobiomeData
 
 logger = logging.getLogger(__name__)
+
+# Chart label translations
+CHART_LABELS = {
+    'en': {
+        'percentage': 'Percentage (%)',
+        'species_title': 'MICROBIOTIC PROFILE - Top Species Distribution',
+        'phylum_title': 'PHYLUM DISTRIBUTION IN GUT MICROFLORA',
+        'reference_legend': 'Gray bars indicate reference ranges',
+        'ref': 'Ref',
+    },
+    'pl': {
+        'percentage': 'Procent (%)',
+        'species_title': 'PROFIL MIKROBIOTYCZNY - Rozkład Głównych Gatunków',
+        'phylum_title': 'ROZKŁAD TYPÓW W MIKROFLORZE JELITOWEJ',
+        'reference_legend': 'Szare paski wskazują zakresy referencyjne',
+        'ref': 'Ref',
+    },
+    'ja': {
+        'percentage': '割合 (%)',
+        'species_title': '微生物プロファイル - 主要種の分布',
+        'phylum_title': '腸内細菌叢における門レベルの分布',
+        'reference_legend': '灰色のバーは基準範囲を示します',
+        'ref': '基準',
+    },
+    'de': {
+        'percentage': 'Prozentsatz (%)',
+        'species_title': 'MIKROBIOTISCHES PROFIL - Verteilung der Hauptarten',
+        'phylum_title': 'PHYLUM-VERTEILUNG IN DER DARMFLORA',
+        'reference_legend': 'Graue Balken zeigen Referenzbereiche',
+        'ref': 'Ref',
+    },
+    'es': {
+        'percentage': 'Porcentaje (%)',
+        'species_title': 'PERFIL MICROBIÓTICO - Distribución de Especies Principales',
+        'phylum_title': 'DISTRIBUCIÓN DE FILOS EN LA MICROFLORA INTESTINAL',
+        'reference_legend': 'Las barras grises indican rangos de referencia',
+        'ref': 'Ref',
+    },
+    'fr': {
+        'percentage': 'Pourcentage (%)',
+        'species_title': 'PROFIL MICROBIOTIQUE - Distribution des Espèces Principales',
+        'phylum_title': 'DISTRIBUTION DES PHYLUMS DANS LA MICROFLORE INTESTINALE',
+        'reference_legend': 'Les barres grises indiquent les plages de référence',
+        'ref': 'Réf',
+    },
+}
 
 # Color scheme matching reference design
 PHYLUM_COLORS = {
@@ -29,18 +76,20 @@ PHYLUM_COLORS = {
 
 class ChartGenerator:
     """Generate professional charts for microbiome reports"""
-    
-    def __init__(self, output_dir: str = "temp_charts"):
+
+    def __init__(self, output_dir: str = "temp_charts", language: str = "en"):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
-        
+        self.language = language
+
         # Set professional medical report style
         plt.style.use('seaborn-v0_8-whitegrid')
         
         # Enhanced font settings for professional medical charts
+        # Include fonts that support Japanese/Polish characters
         plt.rcParams.update({
             'font.family': 'sans-serif',
-            'font.sans-serif': ['Arial', 'Helvetica', 'DejaVu Sans'],
+            'font.sans-serif': ['DejaVu Sans', 'Arial', 'Helvetica', 'Noto Sans CJK JP', 'Noto Sans'],
             'font.size': 11,
             'axes.titlesize': 16,
             'axes.labelsize': 13,
@@ -55,7 +104,12 @@ class ChartGenerator:
             'grid.alpha': 0.3,
             'grid.linewidth': 0.8
         })
-    
+
+    def _get_label(self, key: str) -> str:
+        """Get translated label for chart elements"""
+        labels = CHART_LABELS.get(self.language, CHART_LABELS['en'])
+        return labels.get(key, CHART_LABELS['en'].get(key, key))
+
     def generate_all_charts(self, data: MicrobiomeData) -> Dict[str, str]:
         """Generate all charts for the report"""
         chart_paths = {}
@@ -120,8 +174,8 @@ class ChartGenerator:
         ax.set_yticks(y_positions)
         ax.set_yticklabels([f"{name[:50]}" for name in species_names[::-1]],
                           fontsize=9)
-        ax.set_xlabel('Percentage (%)')
-        ax.set_title('MICROBIOTIC PROFILE - Top Species Distribution',
+        ax.set_xlabel(self._get_label('percentage'))
+        ax.set_title(self._get_label('species_title'),
                     fontweight='bold', pad=25, fontsize=18, color='#1F2937')
         
         # Add grid
@@ -193,12 +247,12 @@ class ChartGenerator:
         # Customize axes
         ax.set_yticks(y_positions)
         ax.set_yticklabels(phyla, fontsize=11, fontweight='bold')
-        ax.set_xlabel('Percentage (%)', fontsize=12)
-        ax.set_title('PHYLUM DISTRIBUTION IN GUT MICROFLORA', 
+        ax.set_xlabel(self._get_label('percentage'), fontsize=12)
+        ax.set_title(self._get_label('phylum_title'),
                     fontweight='bold', fontsize=18, pad=25, color='#1F2937')
-        
+
         # Add legend for reference ranges
-        ax.text(0.98, 0.02, 'Gray bars indicate reference ranges', 
+        ax.text(0.98, 0.02, self._get_label('reference_legend'),
                 transform=ax.transAxes, ha='right', va='bottom',
                 fontsize=8, style='italic', alpha=0.7)
         
@@ -281,7 +335,8 @@ class ChartGenerator:
                    ha='left', va='center', fontsize=12, fontweight='700', color='#1F2937')
 
             # Add reference range text
-            ax.text(ref_max + 2, y_position, f"(Ref: {ref_min}-{ref_max}%)",
+            ref_label = self._get_label('ref')
+            ax.text(ref_max + 2, y_position, f"({ref_label}: {ref_min}-{ref_max}%)",
                    ha='left', va='center', fontsize=8, style='italic', alpha=0.7)
 
             y_position += 1.2
@@ -289,15 +344,15 @@ class ChartGenerator:
         # Customize axes
         ax.set_xlim(-15, 80)
         ax.set_ylim(-0.5, y_position - 0.7)
-        ax.set_xlabel('Percentage (%)', fontsize=13)
-        ax.set_title('PHYLUM DISTRIBUTION IN GUT MICROFLORA',
+        ax.set_xlabel(self._get_label('percentage'), fontsize=13)
+        ax.set_title(self._get_label('phylum_title'),
                     fontweight='bold', fontsize=18, pad=25, color='#1F2937')
 
         # Remove y-axis
         ax.set_yticks([])
 
         # Add legend for reference ranges
-        ax.text(0.98, 0.02, 'Gray bars indicate reference ranges',
+        ax.text(0.98, 0.02, self._get_label('reference_legend'),
                 transform=ax.transAxes, ha='right', va='bottom',
                 fontsize=8, style='italic', alpha=0.7)
 

@@ -32,6 +32,12 @@ try:
 except ImportError:
     DEEP_TRANSLATOR_AVAILABLE = False
 
+try:
+    import google.generativeai as genai
+    GEMINI_AVAILABLE = True
+except ImportError:
+    GEMINI_AVAILABLE = False
+
 
 @dataclass
 class GlossaryEntry:
@@ -103,8 +109,29 @@ class ScientificGlossary:
             GlossaryEntry("results", "wyniki", "結果", "report_term"),
             GlossaryEntry("recommendations", "zalecenia", "推奨事項", "report_term"),
         ]
-        
-        self.entries.extend(bacterial_phyla + medical_terms + veterinary_terms + report_terms)
+
+        # Technical/methodology terms (preserve in English - per Gosia's feedback)
+        technical_terms = [
+            GlossaryEntry("shotgun", "shotgun", "shotgun", "technical_term", True),
+            GlossaryEntry("NGS", "NGS", "NGS", "technical_term", True),
+            GlossaryEntry("metagenomic", "metagenomic", "metagenomic", "technical_term", True),
+            GlossaryEntry("metagenomics", "metagenomics", "metagenomics", "technical_term", True),
+            GlossaryEntry("amplicon", "amplicon", "amplicon", "technical_term", True),
+            GlossaryEntry("DNA", "DNA", "DNA", "technical_term", True),
+            GlossaryEntry("RNA", "RNA", "RNA", "technical_term", True),
+            GlossaryEntry("PCR", "PCR", "PCR", "technical_term", True),
+            GlossaryEntry("qPCR", "qPCR", "qPCR", "technical_term", True),
+            GlossaryEntry("OTU", "OTU", "OTU", "technical_term", True),
+            GlossaryEntry("ASV", "ASV", "ASV", "technical_term", True),
+            GlossaryEntry("Illumina", "Illumina", "Illumina", "technical_term", True),
+            GlossaryEntry("MinION", "MinION", "MinION", "technical_term", True),
+            GlossaryEntry("Nanopore", "Nanopore", "Nanopore", "technical_term", True),
+            GlossaryEntry("EPI2ME", "EPI2ME", "EPI2ME", "technical_term", True),
+            GlossaryEntry("Kraken2", "Kraken2", "Kraken2", "technical_term", True),
+            GlossaryEntry("bioinformatics", "bioinformatics", "bioinformatics", "technical_term", True),
+        ]
+
+        self.entries.extend(bacterial_phyla + medical_terms + veterinary_terms + report_terms + technical_terms)
     
     def get_term_translation(self, term: str, target_language: str) -> Optional[str]:
         """Get translation for a specific term"""
@@ -381,13 +408,131 @@ class FreeTranslationService(TranslationService):
         return final_text
 
 
+class GeminiTranslationService(TranslationService):
+    """Translation service using Google Gemini API (free tier)"""
+
+    # Language name mapping for natural prompts
+    LANGUAGE_NAMES = {
+        'pl': 'Polish',
+        'ja': 'Japanese',
+        'de': 'German',
+        'es': 'Spanish',
+        'fr': 'French',
+        'it': 'Italian',
+        'pt': 'Portuguese',
+        'ru': 'Russian',
+        'zh': 'Chinese',
+        'ko': 'Korean',
+    }
+
+    def __init__(self, api_key: Optional[str] = None, cache_dir: Optional[Path] = None):
+        super().__init__(cache_dir)
+
+        if not GEMINI_AVAILABLE:
+            raise ImportError("Google Gemini API not available. "
+                            "Install with: poetry install --with llm")
+
+        # Get API key from parameter or environment
+        self.api_key = api_key or os.environ.get('GEMINI_API_KEY') or os.environ.get('GOOGLE_API_KEY')
+
+        if not self.api_key:
+            raise ValueError("Gemini API key required. Set GEMINI_API_KEY or GOOGLE_API_KEY environment variable, "
+                           "or pass api_key parameter.")
+
+        # Configure the API
+        genai.configure(api_key=self.api_key)
+
+        # Use gemini-2.0-flash-lite for free tier (lighter model, higher rate limits)
+        # Alternative models: gemini-2.0-flash, gemini-2.5-flash
+        model_name = os.environ.get('GEMINI_MODEL', 'gemini-2.0-flash-lite')
+        self.model = genai.GenerativeModel(model_name)
+        print(f"Using {model_name} for translation service")
+
+    def translate_text(self, text: str, target_language: str) -> str:
+        """Translate text using Google Gemini API"""
+        # Check cache first
+        cache_key = self._get_cache_key(text, target_language)
+        if cache_key in self.cache.get(target_language, {}):
+            return self.cache[target_language][cache_key]
+
+        # Extract Jinja2 elements
+        processed_text = self.parser.extract_jinja2_elements(text)
+
+        # Apply glossary
+        processed_text, term_placeholders = self._apply_glossary(processed_text, target_language)
+
+        # Get language name for prompt
+        lang_name = self.LANGUAGE_NAMES.get(target_language, target_language.upper())
+
+        # Create translation prompt with instructions to preserve formatting
+        prompt = f"""Translate the following text from English to {lang_name}.
+
+IMPORTANT RULES:
+1. Preserve ALL placeholders exactly as they appear (e.g., @@X7TBL000X7@@, @@TERM_0@@, @@JINJA_0@@)
+2. Preserve ALL HTML tags exactly as they appear
+3. Do NOT translate scientific names (Latin species names like "Lactobacillus acidophilus")
+4. Do NOT translate technical abbreviations (DNA, RNA, PCR, NGS, etc.)
+5. Use proper {lang_name} grammar and formal/professional tone suitable for a medical report
+6. Only output the translated text, nothing else
+
+Text to translate:
+{processed_text}"""
+
+        # Retry with exponential backoff for rate limits
+        import time
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = self.model.generate_content(prompt)
+                translated_text = response.text.strip()
+                break
+            except Exception as e:
+                error_str = str(e)
+                if '429' in error_str and attempt < max_retries - 1:
+                    # Rate limited - wait and retry
+                    wait_time = (2 ** attempt) * 10  # 10s, 20s, 40s
+                    print(f"Rate limited, waiting {wait_time}s before retry {attempt + 2}/{max_retries}...")
+                    time.sleep(wait_time)
+                else:
+                    print(f"Gemini translation error: {e}")
+                    return text
+        else:
+            # All retries failed
+            print("All Gemini retries failed, returning original text")
+            return text
+
+        # Restore glossary terms
+        translated_text = self._restore_glossary_terms(translated_text, term_placeholders)
+
+        # Restore Jinja2 elements
+        final_text = self.parser.restore_jinja2_elements(translated_text)
+
+        # Cache the result
+        if target_language not in self.cache:
+            self.cache[target_language] = {}
+        self.cache[target_language][cache_key] = final_text
+        self._save_cache()
+
+        return final_text
+
+
 def get_translation_service(service_type: str = "free", **kwargs) -> TranslationService:
-    """Factory function to get appropriate translation service"""
+    """Factory function to get appropriate translation service
+
+    Args:
+        service_type: One of "free", "gemini", or "google_cloud"
+        **kwargs: Additional arguments passed to the service constructor
+
+    Returns:
+        TranslationService instance
+    """
     if service_type == "google_cloud":
         if not kwargs.get("project_id"):
             raise ValueError("project_id required for Google Cloud Translation")
         return GoogleCloudTranslationService(**kwargs)
+    elif service_type == "gemini":
+        return GeminiTranslationService(**kwargs)
     elif service_type == "free":
         return FreeTranslationService(**kwargs)
     else:
-        raise ValueError(f"Unknown service type: {service_type}")
+        raise ValueError(f"Unknown service type: {service_type}. Use 'free', 'gemini', or 'google_cloud'")

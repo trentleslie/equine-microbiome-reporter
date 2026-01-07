@@ -44,7 +44,11 @@ class BatchConfig:
 
         self.parallel_processing = kwargs.get('parallel_processing', True)
         self.max_workers = kwargs.get('max_workers', min(4, os.cpu_count() or 1))
-        
+
+        # Translation settings
+        # Options: "free" (no API key), "gemini" (free tier, better quality), "google_cloud" (paid)
+        self.translation_service_type = kwargs.get('translation_service_type', 'free')
+
         # Default patient info
         self.default_performed_by = kwargs.get('default_performed_by', 'Laboratory Staff')
         self.default_requested_by = kwargs.get('default_requested_by', 'Veterinarian')
@@ -69,6 +73,7 @@ class BatchConfig:
             'languages': self.languages,
             'parallel_processing': self.parallel_processing,
             'max_workers': self.max_workers,
+            'translation_service_type': self.translation_service_type,
             'default_performed_by': self.default_performed_by,
             'default_requested_by': self.default_requested_by,
             'default_species': self.default_species,
@@ -185,14 +190,16 @@ class BatchProcessor:
     def process_single_file(self, csv_path: Path, validate: bool = True) -> Dict:
         """Process a single CSV file to generate PDF report(s).
 
-        Generates one PDF per language specified in config.languages.
+        Detects ALL barcode columns in the CSV and generates one PDF per barcode
+        per language. For example, a CSV with 3 barcodes and 3 languages will
+        generate 9 PDFs.
 
         Args:
             csv_path: Path to CSV file
             validate: Whether to validate file before processing
 
         Returns:
-            Dictionary with processing results (includes results per language)
+            Dictionary with processing results (includes results per barcode per language)
         """
         result = {
             'csv_file': str(csv_path),
@@ -202,13 +209,24 @@ class BatchProcessor:
             'processing_time': 0,
             'patient_name': '',
             'validation_passed': True,
-            'languages_generated': []
+            'languages_generated': [],
+            'barcodes_processed': [],
+            'total_reports': 0
         }
 
         start_time = time.time()
 
         try:
-            # Validate file if requested
+            # Detect all barcode columns in the CSV
+            barcode_columns = CSVProcessor.get_all_barcode_columns(str(csv_path))
+
+            if not barcode_columns:
+                result['message'] = "No barcode columns found in CSV"
+                return result
+
+            result['barcodes_found'] = barcode_columns
+
+            # Validate file if requested (validates first barcode only)
             if validate:
                 is_valid, validation_msg = self.validate_csv_file(csv_path)
                 result['validation_passed'] = is_valid
@@ -216,45 +234,65 @@ class BatchProcessor:
                     result['message'] = f"Validation failed: {validation_msg}"
                     return result
 
-            # Extract patient info
-            patient_info = self.extract_patient_info_from_filename(csv_path.name)
-            result['patient_name'] = patient_info.name
-
-            # Generate report for each language
-            all_succeeded = True
             messages = []
+            total_success = 0
 
-            for language in self.config.languages:
-                try:
-                    # Generate output filename
-                    output_filename = f"{csv_path.stem}_report_{language}.pdf"
-                    output_path = self.config.reports_dir / output_filename
+            # Process EACH barcode column
+            for barcode_column in barcode_columns:
+                # Create patient info using barcode as identifier
+                patient_info = PatientInfo(
+                    name=barcode_column,  # Use barcode as patient ID
+                    species=self.config.default_species,
+                    sample_number=barcode_column,
+                    performed_by=self.config.default_performed_by,
+                    requested_by=self.config.default_requested_by
+                )
 
-                    # Generate report using generate_clean_report function
-                    success = generate_clean_report(
-                        csv_path=str(csv_path),
-                        patient_info=patient_info,
-                        output_path=str(output_path),
-                        language=language
-                    )
+                # Generate report for each language
+                for language in self.config.languages:
+                    try:
+                        # Generate output filename: {csv_stem}_{barcode}_report_{lang}.pdf
+                        output_filename = f"{csv_path.stem}_{barcode_column}_report_{language}.pdf"
+                        output_path = self.config.reports_dir / output_filename
 
-                    if success:
-                        result['output_files'][language] = str(output_path)
-                        result['languages_generated'].append(language)
-                        messages.append(f"{language}: success")
-                    else:
-                        all_succeeded = False
-                        messages.append(f"{language}: failed")
+                        # Generate report with explicit barcode column
+                        success = generate_clean_report(
+                            csv_path=str(csv_path),
+                            patient_info=patient_info,
+                            output_path=str(output_path),
+                            language=language,
+                            translation_service_type=self.config.translation_service_type,
+                            barcode_column=barcode_column
+                        )
 
-                except Exception as e:
-                    all_succeeded = False
-                    messages.append(f"{language}: error - {str(e)}")
+                        if success:
+                            # Store output file keyed by barcode and language
+                            key = f"{barcode_column}_{language}"
+                            result['output_files'][key] = str(output_path)
+                            result['total_reports'] += 1
+                            total_success += 1
 
-            # Overall success if at least one language succeeded
-            result['success'] = len(result['languages_generated']) > 0
-            result['message'] = '; '.join(messages)
+                            if barcode_column not in result['barcodes_processed']:
+                                result['barcodes_processed'].append(barcode_column)
+                            if language not in result['languages_generated']:
+                                result['languages_generated'].append(language)
 
-            # For backwards compatibility, set output_file to first generated PDF
+                            messages.append(f"{barcode_column}/{language}: success")
+                        else:
+                            messages.append(f"{barcode_column}/{language}: failed")
+
+                    except Exception as e:
+                        messages.append(f"{barcode_column}/{language}: error - {str(e)}")
+
+            # Overall success if at least one report was generated
+            result['success'] = total_success > 0
+            result['message'] = f"Generated {total_success} reports; " + '; '.join(messages[:5])
+            if len(messages) > 5:
+                result['message'] += f"... and {len(messages) - 5} more"
+
+            # For backwards compatibility, set patient_name and output_file
+            if result['barcodes_processed']:
+                result['patient_name'] = ', '.join(result['barcodes_processed'])
             if result['output_files']:
                 result['output_file'] = list(result['output_files'].values())[0]
 
@@ -369,7 +407,8 @@ class BatchProcessor:
                         csv_path=str(csv_path),
                         patient_info=patient_info,
                         output_path=str(output_path),
-                        language=language
+                        language=language,
+                        translation_service_type=self.config.translation_service_type
                     )
 
                     if success:
