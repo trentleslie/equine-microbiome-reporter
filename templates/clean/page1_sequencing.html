@@ -4,13 +4,24 @@
     <div class="page-header">
         <div class="header-left">
             <div class="patient-info">{{ patient.name }}</div>
-            <div class="patient-info">{{ patient.species }}</div>
+            <div class="patient-info">{{ patient.species }}{% if patient.breed %} - {{ patient.breed }}{% endif %}{% if patient.sex %} ({{ patient.sex }}){% endif %}{% if patient.age %}, {{ patient.age }}{% endif %}</div>
+            {% if patient.owner_name %}
+            <div class="patient-info" style="font-size: 8pt;">Owner: {{ patient.owner_name }}</div>
+            {% endif %}
         </div>
         <div class="header-center">
             <div class="sample-badge">Sample #{{ patient.sample_number }}</div>
+            {% if patient.reviewed_by %}
+            <div style="margin-top: 2mm; background: #10b981; color: white; padding: 1mm 3mm; border-radius: 2mm; font-size: 7pt; font-weight: 600;">CLINICALLY REVIEWED</div>
+            {% else %}
+            <div style="margin-top: 2mm; background: #f59e0b; color: white; padding: 1mm 3mm; border-radius: 2mm; font-size: 7pt; font-weight: 600;">PENDING REVIEW</div>
+            {% endif %}
         </div>
         <div class="header-right">
             <div style="font-size: 8pt; color: #64748b;">
+                {% if patient.collection_date %}
+                <div>Collected: {{ patient.collection_date }}</div>
+                {% endif %}
                 <div>Analyzed: {{ patient.date_analyzed }}</div>
                 <div>Report: {{ report_date }}</div>
             </div>

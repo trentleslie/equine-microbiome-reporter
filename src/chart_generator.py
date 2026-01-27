@@ -172,7 +172,8 @@ class ChartGenerator:
         
         # Customize axes (no numbering per feedback)
         ax.set_yticks(y_positions)
-        ax.set_yticklabels([f"{name[:50]}" for name in species_names[::-1]],
+        # Note: species_names already reversed on line 150, do NOT reverse again
+        ax.set_yticklabels([f"{name[:50]}" for name in species_names],
                           fontsize=9)
         ax.set_xlabel(self._get_label('percentage'))
         ax.set_title(self._get_label('species_title'),
