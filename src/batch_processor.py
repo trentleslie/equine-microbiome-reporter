@@ -373,13 +373,25 @@ class BatchProcessor:
 
         for idx, row in manifest_df.iterrows():
             # Create patient info from manifest
+            # Support both horse_name (preferred) and patient_name column names
             patient_info = PatientInfo(
-                name=row.get('patient_name', 'Unknown'),
+                name=row.get('horse_name', row.get('patient_name', 'Unknown')),
                 species=row.get('species', self.config.default_species),
                 age=row.get('age', 'Unknown'),
                 sample_number=row.get('sample_number', 'AUTO'),
                 performed_by=row.get('performed_by', self.config.default_performed_by),
-                requested_by=row.get('requested_by', self.config.default_requested_by)
+                requested_by=row.get('requested_by', self.config.default_requested_by),
+                # Additional patient info fields
+                owner_name=row.get('owner_name', ''),
+                collection_date=row.get('collection_date', ''),
+                breed=row.get('breed', ''),
+                sex=row.get('sex', ''),
+                # Manual clinical input fields
+                clinical_assessment=row.get('clinical_assessment', ''),
+                clinical_recommendations=row.get('clinical_recommendations', ''),
+                # Review status fields
+                reviewed_by=row.get('reviewed_by', ''),
+                review_date=row.get('review_date', '')
             )
 
             # Process file for each language

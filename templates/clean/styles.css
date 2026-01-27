@@ -37,13 +37,23 @@ body {
 /* Variable height page for content that may exceed standard page height */
 .page-variable-height {
     height: auto;
-    min-height: 257mm;
+    min-height: auto;  /* Allow natural flow, no forced padding */
+    page-break-after: auto;  /* Let content determine breaks */
 }
 
-/* Keep species list title and table together on same page */
+/* Species list section - allow natural page breaks for long tables */
 .species-section {
-    page-break-inside: avoid;
-    break-inside: avoid;
+    /* Removed page-break-inside: avoid to prevent empty pages */
+    /* Tables with 50+ rows need to break naturally across pages */
+}
+
+/* Keep table header visible on each page when table breaks */
+.species-section thead {
+    display: table-header-group;
+}
+
+.species-section tbody {
+    display: table-row-group;
 }
 
 /* Header styles */

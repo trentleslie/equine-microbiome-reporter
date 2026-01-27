@@ -21,6 +21,20 @@ class PatientInfo:
     performed_by: str = "Laboratory Staff"
     requested_by: str = "Veterinarian"
 
+    # Additional patient info fields (Sprint 3)
+    owner_name: str = ""           # Owner/farm name
+    collection_date: str = ""      # Sample collection date
+    breed: str = ""                # Horse breed
+    sex: str = ""                  # Mare/Stallion/Gelding
+
+    # Manual clinical input fields (Sprint 4)
+    clinical_assessment: str = ""      # Manual clinical interpretation (empty = show placeholder)
+    clinical_recommendations: str = "" # Manual recommendations (empty = show placeholder)
+
+    # Review status tracking (Sprint 4)
+    reviewed_by: str = ""              # Clinician name (empty = show "Pending Review" warning)
+    review_date: str = ""              # Date of clinical review
+
 
 @dataclass 
 class MicrobiomeData:
