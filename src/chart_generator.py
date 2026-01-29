@@ -1,7 +1,7 @@
 """
 Chart Generator - Creates professional data visualizations using Matplotlib
 Generates charts matching the reference PDF design
-Supports multi-language chart labels
+Supports multi-language chart labels via translations.yaml
 """
 
 import matplotlib.pyplot as plt
@@ -10,6 +10,7 @@ import numpy as np
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 import logging
+import yaml
 
 try:
     from .data_models import MicrobiomeData
@@ -18,51 +19,38 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-# Chart label translations
-CHART_LABELS = {
-    'en': {
-        'percentage': 'Percentage (%)',
-        'species_title': 'MICROBIOTIC PROFILE - Top Species Distribution',
-        'phylum_title': 'PHYLUM DISTRIBUTION IN GUT MICROFLORA',
-        'reference_legend': 'Gray bars indicate reference ranges',
-        'ref': 'Ref',
-    },
-    'pl': {
-        'percentage': 'Procent (%)',
-        'species_title': 'PROFIL MIKROBIOTYCZNY - Rozkład Głównych Gatunków',
-        'phylum_title': 'ROZKŁAD TYPÓW W MIKROFLORZE JELITOWEJ',
-        'reference_legend': 'Szare paski wskazują zakresy referencyjne',
-        'ref': 'Ref',
-    },
-    'ja': {
-        'percentage': '割合 (%)',
-        'species_title': '微生物プロファイル - 主要種の分布',
-        'phylum_title': '腸内細菌叢における門レベルの分布',
-        'reference_legend': '灰色のバーは基準範囲を示します',
-        'ref': '基準',
-    },
-    'de': {
-        'percentage': 'Prozentsatz (%)',
-        'species_title': 'MIKROBIOTISCHES PROFIL - Verteilung der Hauptarten',
-        'phylum_title': 'PHYLUM-VERTEILUNG IN DER DARMFLORA',
-        'reference_legend': 'Graue Balken zeigen Referenzbereiche',
-        'ref': 'Ref',
-    },
-    'es': {
-        'percentage': 'Porcentaje (%)',
-        'species_title': 'PERFIL MICROBIÓTICO - Distribución de Especies Principales',
-        'phylum_title': 'DISTRIBUCIÓN DE FILOS EN LA MICROFLORA INTESTINAL',
-        'reference_legend': 'Las barras grises indican rangos de referencia',
-        'ref': 'Ref',
-    },
-    'fr': {
-        'percentage': 'Pourcentage (%)',
-        'species_title': 'PROFIL MICROBIOTIQUE - Distribution des Espèces Principales',
-        'phylum_title': 'DISTRIBUTION DES PHYLUMS DANS LA MICROFLORE INTESTINALE',
-        'reference_legend': 'Les barres grises indiquent les plages de référence',
-        'ref': 'Réf',
-    },
+# Chart label keys used from translations.yaml: percentage, species_title,
+# phylum_title, reference_legend, ref
+
+# Fallback chart labels (used when translations.yaml is unavailable)
+_FALLBACK_CHART_LABELS = {
+    'percentage': 'Percentage (%)',
+    'species_title': 'MICROBIOTIC PROFILE - Top Species Distribution',
+    'phylum_title': 'PHYLUM DISTRIBUTION IN GUT MICROFLORA',
+    'reference_legend': 'Gray bars indicate reference ranges',
+    'ref': 'Ref',
 }
+
+
+def _load_chart_labels(language: str) -> dict:
+    """Load chart labels from translations.yaml for the given language."""
+    chart_keys = ['percentage', 'species_title', 'phylum_title', 'reference_legend', 'ref']
+
+    try:
+        config_path = Path(__file__).parent.parent / "config" / "translations.yaml"
+        with open(config_path, 'r', encoding='utf-8') as f:
+            all_translations = yaml.safe_load(f)
+
+        en_strings = all_translations.get('en', {})
+        lang_strings = all_translations.get(language, en_strings)
+
+        labels = {}
+        for key in chart_keys:
+            labels[key] = lang_strings.get(key, en_strings.get(key, _FALLBACK_CHART_LABELS.get(key, key)))
+        return labels
+    except Exception as e:
+        logger.warning(f"Could not load translations for chart labels: {e}. Using fallback.")
+        return dict(_FALLBACK_CHART_LABELS)
 
 # Color scheme matching reference design
 PHYLUM_COLORS = {
@@ -81,6 +69,7 @@ class ChartGenerator:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
         self.language = language
+        self._labels = _load_chart_labels(language)
 
         # Set professional medical report style
         plt.style.use('seaborn-v0_8-whitegrid')
@@ -106,9 +95,8 @@ class ChartGenerator:
         })
 
     def _get_label(self, key: str) -> str:
-        """Get translated label for chart elements"""
-        labels = CHART_LABELS.get(self.language, CHART_LABELS['en'])
-        return labels.get(key, CHART_LABELS['en'].get(key, key))
+        """Get translated label for chart elements from translations.yaml"""
+        return self._labels.get(key, _FALLBACK_CHART_LABELS.get(key, key))
 
     def generate_all_charts(self, data: MicrobiomeData) -> Dict[str, str]:
         """Generate all charts for the report"""

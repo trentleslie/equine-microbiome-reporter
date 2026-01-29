@@ -6,13 +6,18 @@
 # 2. Keep placeholders like {di}, {current}, {total} unchanged
 # 3. Do NOT translate Latin scientific terms
 #
+# Note: Clinical assessment, recommendations, and management guidelines are
+# entered manually by the clinician via manifest CSV — they are NOT auto-generated.
 
 en:
+  # Page titles
   microbiome_sequencing_results: Microbiome Sequencing Results
   bacterial_species_distribution: Bacterial Species Distribution
   clinical_interpretation: Clinical Interpretation
   summary_management_guidelines: Summary & Management Guidelines
   complete_bacterial_species_list: Complete Bacterial Species List
+
+  # Subsection titles
   phylum_distribution_gut: Phylum Distribution in Gut Microflora
   top_20_species: Top 20 Bacterial Species by Abundance
   clinical_assessment: Clinical Assessment
@@ -21,10 +26,9 @@ en:
   report_summary: Report Summary
   understanding_dysbiosis_index: Understanding the Dysbiosis Index
   management_guidelines: Management Guidelines
-  maintaining_healthy_microbiome: Maintaining a Healthy Microbiome
-  correcting_mild_dysbiosis: Correcting Mild Dysbiosis
-  managing_severe_dysbiosis: Managing Severe Dysbiosis
   follow_up_testing: Follow-up Testing
+
+  # Dysbiosis labels
   dysbiosis_index: Dysbiosis Index
   normal_microbiota: Normal Microbiota
   mild_dysbiosis: Mild Dysbiosis
@@ -32,6 +36,8 @@ en:
   normal: Normal
   mild: Mild
   severe: Severe
+
+  # Review status
   clinically_reviewed: CLINICALLY REVIEWED
   pending_review: PENDING REVIEW
   clinical_review_completed: CLINICAL REVIEW COMPLETED
@@ -39,17 +45,24 @@ en:
   review_date: Review date
   automated_analysis_pending: AUTOMATED ANALYSIS - PENDING CLINICAL REVIEW
   not_yet_reviewed: This report has not yet been reviewed by a clinician.
+  pending_clinical_review: Pending clinical review
+
+  # Patient labels
   owner: Owner
   collected: Collected
   analyzed: Analyzed
   report: Report
   sample: Sample
+
+  # Table headers
   species: Species
   abundance_percent: Abundance (%)
   phylum: Phylum
   dysbiosis_category: Dysbiosis Category
   retest_timeline: Re-test Timeline
   monitoring_focus: Monitoring Focus
+
+  # Summary labels
   category: Category
   dominant_phylum: Dominant Phylum
   total_species_identified: Total Species Identified
@@ -57,6 +70,8 @@ en:
   sample_quality_adequate: Adequate
   analysis_method: Analysis Method
   analysis_method_value: Shotgun metagenomic NGS
+
+  # Key findings text
   low_bacillota: Low Bacillota
   low_bacteroidota: Low Bacteroidota
   elevated_pseudomonadota: Elevated Pseudomonadota
@@ -64,72 +79,36 @@ en:
   bacillota_description: Associated with reduced fiber fermentation and butyrate production.
   bacteroidota_description: May indicate compromised carbohydrate metabolism.
   pseudomonadota_description: May indicate inflammation or pathogenic overgrowth.
-  balanced_description: All major phyla within reference ranges. Optimal conditions
-    for digestive health.
-  healthy_balanced: healthy and balanced
-  assessment_normal: The microbiome analysis reveals a healthy and balanced gut microbial
-    community. The dysbiosis index of {di} falls within the normal range (0-20), indicating
-    optimal microbial diversity and composition. The major bacterial phyla are present
-    in appropriate proportions, supporting proper digestive function and immune homeostasis.
-  assessment_mild: The microbiome analysis indicates mild dysbiosis with an index
-    of {di}. This suggests a moderate imbalance in the gut microbial community that
-    may benefit from targeted intervention. While not immediately concerning, this
-    imbalance could impact digestive efficiency and immune function if left unaddressed.
-  assessment_severe: The microbiome analysis reveals severe dysbiosis with an index
-    of {di}. This indicates a significant imbalance in the gut microbial community
-    requiring immediate attention. The disrupted microbial ecology may compromise
-    digestive function, nutrient absorption, and immune responses.
-  rec_normal_1: Maintain current feeding regimen and management practices
-  rec_normal_2: Continue regular monitoring with annual microbiome assessments
-  rec_normal_3: Ensure consistent access to quality forage and clean water
-  rec_mild_1: Increase dietary fiber through additional hay supplementation
-  rec_mild_2: Consider probiotic supplementation (Lactobacillus/Bifidobacterium strains)
-  rec_mild_3: Reduce grain intake if exceeding 0.5% body weight per feeding
-  rec_mild_4: Re-evaluate microbiome in 8-12 weeks after intervention
-  rec_severe_1: 'Immediate dietary modification: Increase forage to 2% body weight
-    daily minimum'
-  rec_severe_2: Implement therapeutic probiotic protocol with veterinary guidance
-  rec_severe_3: Eliminate or significantly reduce concentrate feeds temporarily
-  rec_severe_4: Consider prebiotic supplementation (FOS, MOS, or psyllium)
-  rec_severe_5: Re-evaluate microbiome in 4-6 weeks to assess response
-  rec_severe_6: Screen for underlying gastrointestinal pathology if dysbiosis persists
-  guide_normal_1: Consistent feeding schedule (2-3 times daily)
-  guide_normal_2: Continuous access to forage (pasture or hay)
-  guide_normal_3: Gradual feed changes over 10-14 days
-  guide_normal_4: Regular dental care and parasite control
-  guide_normal_5: Minimize stress and maintain exercise routine
-  guide_mild_1: Increase forage intake to at least 1.5-2% body weight
-  guide_mild_2: Reduce grain meals to <0.5% body weight per feeding
-  guide_mild_3: Add probiotic supplement (10^9 CFU daily)
-  guide_mild_4: Consider prebiotic fiber sources (beet pulp, psyllium)
-  guide_mild_5: Ensure adequate water intake (30-50L daily)
-  guide_severe_1: Immediate dietary restructuring under veterinary guidance
-  guide_severe_2: Maximize forage, minimize concentrates
-  guide_severe_3: Therapeutic probiotic protocol (10^10 CFU daily)
-  guide_severe_4: Consider fecal microbiota transplantation if available
-  guide_severe_5: Monitor for signs of colic or laminitis
-  guide_severe_6: Re-test in 4-6 weeks to assess improvement
+  balanced_description: All major phyla within reference ranges. Optimal conditions for digestive health.
+
+  # Follow-up table
   followup_normal_timeline: 12 months
   followup_normal_focus: Annual health screening
   followup_mild_timeline: 2-3 months
   followup_mild_focus: Response to dietary changes
   followup_severe_timeline: 4-6 weeks
   followup_severe_focus: Treatment efficacy
-  di_explanation_intro: 'The Dysbiosis Index (DI) quantifies the degree of microbial
-    imbalance in the gut:'
+
+  # Dysbiosis explanation
+  di_explanation_intro: 'The Dysbiosis Index (DI) quantifies the degree of microbial imbalance in the gut:'
   di_range_normal: '0-20: Normal, healthy microbiome'
   di_range_mild: '21-50: Mild dysbiosis requiring dietary adjustment'
   di_range_severe: '>50: Severe dysbiosis requiring intervention'
+
+  # Footer and contact
   lab_name: MIMT Genetics Laboratory
   page_x_of_y: Page {current} of {total}
   end_of_report: End of Report
   questions_contact: 'For questions regarding this report, please contact:'
   report_generated_using: Report generated using Next-Gen Gut Profiling (NG-GP) technology
+
+  # Chart labels
   percentage: Percentage (%)
   species_title: MICROBIOTIC PROFILE - Top Species Distribution
   phylum_title: PHYLUM DISTRIBUTION IN GUT MICROFLORA
   reference_legend: Gray bars indicate reference ranges
   ref: Ref
+
 pl:
   microbiome_sequencing_results: '[PL] Microbiome Sequencing Results'
   bacterial_species_distribution: '[PL] Bacterial Species Distribution'
@@ -144,9 +123,6 @@ pl:
   report_summary: '[PL] Report Summary'
   understanding_dysbiosis_index: '[PL] Understanding the Dysbiosis Index'
   management_guidelines: '[PL] Management Guidelines'
-  maintaining_healthy_microbiome: '[PL] Maintaining a Healthy Microbiome'
-  correcting_mild_dysbiosis: '[PL] Correcting Mild Dysbiosis'
-  managing_severe_dysbiosis: '[PL] Managing Severe Dysbiosis'
   follow_up_testing: '[PL] Follow-up Testing'
   dysbiosis_index: '[PL] Dysbiosis Index'
   normal_microbiota: '[PL] Normal Microbiota'
@@ -162,6 +138,7 @@ pl:
   review_date: '[PL] Review date'
   automated_analysis_pending: '[PL] AUTOMATED ANALYSIS - PENDING CLINICAL REVIEW'
   not_yet_reviewed: '[PL] This report has not yet been reviewed by a clinician.'
+  pending_clinical_review: '[PL] Pending clinical review'
   owner: '[PL] Owner'
   collected: '[PL] Collected'
   analyzed: '[PL] Analyzed'
@@ -184,66 +161,17 @@ pl:
   low_bacteroidota: '[PL] Low Bacteroidota'
   elevated_pseudomonadota: '[PL] Elevated Pseudomonadota'
   balanced_microbiome: '[PL] Balanced Microbiome'
-  bacillota_description: '[PL] Associated with reduced fiber fermentation and butyrate
-    production.'
+  bacillota_description: '[PL] Associated with reduced fiber fermentation and butyrate production.'
   bacteroidota_description: '[PL] May indicate compromised carbohydrate metabolism.'
   pseudomonadota_description: '[PL] May indicate inflammation or pathogenic overgrowth.'
-  balanced_description: '[PL] All major phyla within reference ranges. Optimal conditions
-    for digestive health.'
-  healthy_balanced: '[PL] healthy and balanced'
-  assessment_normal: '[PL] The microbiome analysis reveals a healthy and balanced
-    gut microbial community. The dysbiosis index of {di} falls within the normal range
-    (0-20), indicating optimal microbial diversity and composition. The major bacterial
-    phyla are present in appropriate proportions, supporting proper digestive function
-    and immune homeostasis.'
-  assessment_mild: '[PL] The microbiome analysis indicates mild dysbiosis with an
-    index of {di}. This suggests a moderate imbalance in the gut microbial community
-    that may benefit from targeted intervention. While not immediately concerning,
-    this imbalance could impact digestive efficiency and immune function if left unaddressed.'
-  assessment_severe: '[PL] The microbiome analysis reveals severe dysbiosis with an
-    index of {di}. This indicates a significant imbalance in the gut microbial community
-    requiring immediate attention. The disrupted microbial ecology may compromise
-    digestive function, nutrient absorption, and immune responses.'
-  rec_normal_1: '[PL] Maintain current feeding regimen and management practices'
-  rec_normal_2: '[PL] Continue regular monitoring with annual microbiome assessments'
-  rec_normal_3: '[PL] Ensure consistent access to quality forage and clean water'
-  rec_mild_1: '[PL] Increase dietary fiber through additional hay supplementation'
-  rec_mild_2: '[PL] Consider probiotic supplementation (Lactobacillus/Bifidobacterium
-    strains)'
-  rec_mild_3: '[PL] Reduce grain intake if exceeding 0.5% body weight per feeding'
-  rec_mild_4: '[PL] Re-evaluate microbiome in 8-12 weeks after intervention'
-  rec_severe_1: '[PL] Immediate dietary modification: Increase forage to 2% body weight
-    daily minimum'
-  rec_severe_2: '[PL] Implement therapeutic probiotic protocol with veterinary guidance'
-  rec_severe_3: '[PL] Eliminate or significantly reduce concentrate feeds temporarily'
-  rec_severe_4: '[PL] Consider prebiotic supplementation (FOS, MOS, or psyllium)'
-  rec_severe_5: '[PL] Re-evaluate microbiome in 4-6 weeks to assess response'
-  rec_severe_6: '[PL] Screen for underlying gastrointestinal pathology if dysbiosis
-    persists'
-  guide_normal_1: '[PL] Consistent feeding schedule (2-3 times daily)'
-  guide_normal_2: '[PL] Continuous access to forage (pasture or hay)'
-  guide_normal_3: '[PL] Gradual feed changes over 10-14 days'
-  guide_normal_4: '[PL] Regular dental care and parasite control'
-  guide_normal_5: '[PL] Minimize stress and maintain exercise routine'
-  guide_mild_1: '[PL] Increase forage intake to at least 1.5-2% body weight'
-  guide_mild_2: '[PL] Reduce grain meals to <0.5% body weight per feeding'
-  guide_mild_3: '[PL] Add probiotic supplement (10^9 CFU daily)'
-  guide_mild_4: '[PL] Consider prebiotic fiber sources (beet pulp, psyllium)'
-  guide_mild_5: '[PL] Ensure adequate water intake (30-50L daily)'
-  guide_severe_1: '[PL] Immediate dietary restructuring under veterinary guidance'
-  guide_severe_2: '[PL] Maximize forage, minimize concentrates'
-  guide_severe_3: '[PL] Therapeutic probiotic protocol (10^10 CFU daily)'
-  guide_severe_4: '[PL] Consider fecal microbiota transplantation if available'
-  guide_severe_5: '[PL] Monitor for signs of colic or laminitis'
-  guide_severe_6: '[PL] Re-test in 4-6 weeks to assess improvement'
+  balanced_description: '[PL] All major phyla within reference ranges. Optimal conditions for digestive health.'
   followup_normal_timeline: '[PL] 12 months'
   followup_normal_focus: '[PL] Annual health screening'
   followup_mild_timeline: '[PL] 2-3 months'
   followup_mild_focus: '[PL] Response to dietary changes'
   followup_severe_timeline: '[PL] 4-6 weeks'
   followup_severe_focus: '[PL] Treatment efficacy'
-  di_explanation_intro: '[PL] The Dysbiosis Index (DI) quantifies the degree of microbial
-    imbalance in the gut:'
+  di_explanation_intro: '[PL] The Dysbiosis Index (DI) quantifies the degree of microbial imbalance in the gut:'
   di_range_normal: '[PL] 0-20: Normal, healthy microbiome'
   di_range_mild: '[PL] 21-50: Mild dysbiosis requiring dietary adjustment'
   di_range_severe: '[PL] >50: Severe dysbiosis requiring intervention'
@@ -251,13 +179,13 @@ pl:
   page_x_of_y: '[PL] Page {current} of {total}'
   end_of_report: '[PL] End of Report'
   questions_contact: '[PL] For questions regarding this report, please contact:'
-  report_generated_using: '[PL] Report generated using Next-Gen Gut Profiling (NG-GP)
-    technology'
+  report_generated_using: '[PL] Report generated using Next-Gen Gut Profiling (NG-GP) technology'
   percentage: '[PL] Percentage (%)'
   species_title: '[PL] MICROBIOTIC PROFILE - Top Species Distribution'
   phylum_title: '[PL] PHYLUM DISTRIBUTION IN GUT MICROFLORA'
   reference_legend: '[PL] Gray bars indicate reference ranges'
   ref: '[PL] Ref'
+
 de:
   microbiome_sequencing_results: '[DE] Microbiome Sequencing Results'
   bacterial_species_distribution: '[DE] Bacterial Species Distribution'
@@ -272,9 +200,6 @@ de:
   report_summary: '[DE] Report Summary'
   understanding_dysbiosis_index: '[DE] Understanding the Dysbiosis Index'
   management_guidelines: '[DE] Management Guidelines'
-  maintaining_healthy_microbiome: '[DE] Maintaining a Healthy Microbiome'
-  correcting_mild_dysbiosis: '[DE] Correcting Mild Dysbiosis'
-  managing_severe_dysbiosis: '[DE] Managing Severe Dysbiosis'
   follow_up_testing: '[DE] Follow-up Testing'
   dysbiosis_index: '[DE] Dysbiosis Index'
   normal_microbiota: '[DE] Normal Microbiota'
@@ -290,6 +215,7 @@ de:
   review_date: '[DE] Review date'
   automated_analysis_pending: '[DE] AUTOMATED ANALYSIS - PENDING CLINICAL REVIEW'
   not_yet_reviewed: '[DE] This report has not yet been reviewed by a clinician.'
+  pending_clinical_review: '[DE] Pending clinical review'
   owner: '[DE] Owner'
   collected: '[DE] Collected'
   analyzed: '[DE] Analyzed'
@@ -312,66 +238,17 @@ de:
   low_bacteroidota: '[DE] Low Bacteroidota'
   elevated_pseudomonadota: '[DE] Elevated Pseudomonadota'
   balanced_microbiome: '[DE] Balanced Microbiome'
-  bacillota_description: '[DE] Associated with reduced fiber fermentation and butyrate
-    production.'
+  bacillota_description: '[DE] Associated with reduced fiber fermentation and butyrate production.'
   bacteroidota_description: '[DE] May indicate compromised carbohydrate metabolism.'
   pseudomonadota_description: '[DE] May indicate inflammation or pathogenic overgrowth.'
-  balanced_description: '[DE] All major phyla within reference ranges. Optimal conditions
-    for digestive health.'
-  healthy_balanced: '[DE] healthy and balanced'
-  assessment_normal: '[DE] The microbiome analysis reveals a healthy and balanced
-    gut microbial community. The dysbiosis index of {di} falls within the normal range
-    (0-20), indicating optimal microbial diversity and composition. The major bacterial
-    phyla are present in appropriate proportions, supporting proper digestive function
-    and immune homeostasis.'
-  assessment_mild: '[DE] The microbiome analysis indicates mild dysbiosis with an
-    index of {di}. This suggests a moderate imbalance in the gut microbial community
-    that may benefit from targeted intervention. While not immediately concerning,
-    this imbalance could impact digestive efficiency and immune function if left unaddressed.'
-  assessment_severe: '[DE] The microbiome analysis reveals severe dysbiosis with an
-    index of {di}. This indicates a significant imbalance in the gut microbial community
-    requiring immediate attention. The disrupted microbial ecology may compromise
-    digestive function, nutrient absorption, and immune responses.'
-  rec_normal_1: '[DE] Maintain current feeding regimen and management practices'
-  rec_normal_2: '[DE] Continue regular monitoring with annual microbiome assessments'
-  rec_normal_3: '[DE] Ensure consistent access to quality forage and clean water'
-  rec_mild_1: '[DE] Increase dietary fiber through additional hay supplementation'
-  rec_mild_2: '[DE] Consider probiotic supplementation (Lactobacillus/Bifidobacterium
-    strains)'
-  rec_mild_3: '[DE] Reduce grain intake if exceeding 0.5% body weight per feeding'
-  rec_mild_4: '[DE] Re-evaluate microbiome in 8-12 weeks after intervention'
-  rec_severe_1: '[DE] Immediate dietary modification: Increase forage to 2% body weight
-    daily minimum'
-  rec_severe_2: '[DE] Implement therapeutic probiotic protocol with veterinary guidance'
-  rec_severe_3: '[DE] Eliminate or significantly reduce concentrate feeds temporarily'
-  rec_severe_4: '[DE] Consider prebiotic supplementation (FOS, MOS, or psyllium)'
-  rec_severe_5: '[DE] Re-evaluate microbiome in 4-6 weeks to assess response'
-  rec_severe_6: '[DE] Screen for underlying gastrointestinal pathology if dysbiosis
-    persists'
-  guide_normal_1: '[DE] Consistent feeding schedule (2-3 times daily)'
-  guide_normal_2: '[DE] Continuous access to forage (pasture or hay)'
-  guide_normal_3: '[DE] Gradual feed changes over 10-14 days'
-  guide_normal_4: '[DE] Regular dental care and parasite control'
-  guide_normal_5: '[DE] Minimize stress and maintain exercise routine'
-  guide_mild_1: '[DE] Increase forage intake to at least 1.5-2% body weight'
-  guide_mild_2: '[DE] Reduce grain meals to <0.5% body weight per feeding'
-  guide_mild_3: '[DE] Add probiotic supplement (10^9 CFU daily)'
-  guide_mild_4: '[DE] Consider prebiotic fiber sources (beet pulp, psyllium)'
-  guide_mild_5: '[DE] Ensure adequate water intake (30-50L daily)'
-  guide_severe_1: '[DE] Immediate dietary restructuring under veterinary guidance'
-  guide_severe_2: '[DE] Maximize forage, minimize concentrates'
-  guide_severe_3: '[DE] Therapeutic probiotic protocol (10^10 CFU daily)'
-  guide_severe_4: '[DE] Consider fecal microbiota transplantation if available'
-  guide_severe_5: '[DE] Monitor for signs of colic or laminitis'
-  guide_severe_6: '[DE] Re-test in 4-6 weeks to assess improvement'
+  balanced_description: '[DE] All major phyla within reference ranges. Optimal conditions for digestive health.'
   followup_normal_timeline: '[DE] 12 months'
   followup_normal_focus: '[DE] Annual health screening'
   followup_mild_timeline: '[DE] 2-3 months'
   followup_mild_focus: '[DE] Response to dietary changes'
   followup_severe_timeline: '[DE] 4-6 weeks'
   followup_severe_focus: '[DE] Treatment efficacy'
-  di_explanation_intro: '[DE] The Dysbiosis Index (DI) quantifies the degree of microbial
-    imbalance in the gut:'
+  di_explanation_intro: '[DE] The Dysbiosis Index (DI) quantifies the degree of microbial imbalance in the gut:'
   di_range_normal: '[DE] 0-20: Normal, healthy microbiome'
   di_range_mild: '[DE] 21-50: Mild dysbiosis requiring dietary adjustment'
   di_range_severe: '[DE] >50: Severe dysbiosis requiring intervention'
@@ -379,8 +256,7 @@ de:
   page_x_of_y: '[DE] Page {current} of {total}'
   end_of_report: '[DE] End of Report'
   questions_contact: '[DE] For questions regarding this report, please contact:'
-  report_generated_using: '[DE] Report generated using Next-Gen Gut Profiling (NG-GP)
-    technology'
+  report_generated_using: '[DE] Report generated using Next-Gen Gut Profiling (NG-GP) technology'
   percentage: '[DE] Percentage (%)'
   species_title: '[DE] MICROBIOTIC PROFILE - Top Species Distribution'
   phylum_title: '[DE] PHYLUM DISTRIBUTION IN GUT MICROFLORA'

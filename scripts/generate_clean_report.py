@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Generate a clean, modern report layout (pages 2-5 only, no title page)
-Supports multiple languages via translation service
+Supports multiple languages via static translations from translations.yaml
 """
 
 import sys
@@ -25,13 +25,54 @@ from weasyprint import HTML, CSS
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Translation support
-try:
-    from scripts.translate_report_content import HTMLContentTranslator, get_language_name
-    TRANSLATION_AVAILABLE = True
-except ImportError:
-    TRANSLATION_AVAILABLE = False
-    logger.warning("Translation service not available. Install with: poetry install --with translation-free")
+# Supported languages
+SUPPORTED_LANGUAGES = ('en', 'pl', 'de')
+
+
+def load_translations(language: str) -> dict:
+    """Load translation strings for the given language.
+
+    Args:
+        language: Language code (en, pl, de)
+
+    Returns:
+        Dictionary of translation key -> translated string.
+        Falls back to English for missing keys.
+    """
+    config_path = Path(__file__).parent.parent / "config" / "translations.yaml"
+    with open(config_path, 'r', encoding='utf-8') as f:
+        all_translations = yaml.safe_load(f)
+
+    en_strings = all_translations.get('en', {})
+
+    if language == 'en':
+        return en_strings
+
+    lang_strings = all_translations.get(language, {})
+
+    # Merge: use language-specific string if available, fall back to English
+    merged = dict(en_strings)
+    merged.update(lang_strings)
+    return merged
+
+
+def make_t_function(translations: dict):
+    """Create a translation function for use in Jinja2 templates.
+
+    Usage in templates: {{ t('key_name') }}
+
+    Returns the translated string for the key, or the key itself if not found.
+    """
+    def t(key: str, **kwargs) -> str:
+        value = translations.get(key, key)
+        if kwargs:
+            try:
+                value = value.format(**kwargs)
+            except (KeyError, IndexError):
+                pass
+        return value
+    return t
+
 
 def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf", language="en", translation_service_type="free", barcode_column=None):
     """
@@ -41,16 +82,19 @@ def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf"
         csv_path: Path to CSV file with microbiome data
         patient_info: PatientInfo object with patient details
         output_path: Path for output PDF file
-        language: Target language code (en, pl, ja, etc.)
-        translation_service_type: "free", "gemini", or "google_cloud"
-            - "free": Uses deep-translator (no API key required)
-            - "gemini": Uses Google Gemini API (free tier, better quality)
-            - "google_cloud": Uses Google Cloud Translation API (paid)
+        language: Target language code (en, pl, de)
+        translation_service_type: Ignored (kept for API compatibility). Translations
+            are now loaded from config/translations.yaml.
         barcode_column: Specific barcode column to use (default: auto-detect first)
 
     Returns:
         bool: True if successful, False otherwise
     """
+
+    # Validate language
+    if language not in SUPPORTED_LANGUAGES:
+        logger.warning(f"Unsupported language '{language}'. Supported: {', '.join(SUPPORTED_LANGUAGES)}. Falling back to 'en'.")
+        language = 'en'
 
     csv_path = Path(csv_path)
     if not csv_path.exists():
@@ -91,6 +135,10 @@ def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf"
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
 
+    # Load translations
+    translations = load_translations(language)
+    t = make_t_function(translations)
+
     # Load CSS
     css_path = Path("templates/clean/styles.css")
     css_content = css_path.read_text()
@@ -113,7 +161,9 @@ def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf"
         'charts': charts,
         'config': config,
         'report_date': datetime.now().strftime('%Y-%m-%d'),
-        'recommendations': microbiome_data.recommendations if hasattr(microbiome_data, 'recommendations') else []
+        'recommendations': microbiome_data.recommendations if hasattr(microbiome_data, 'recommendations') else [],
+        't': t,
+        'lang': language,
     }
 
     # Render each page
@@ -133,38 +183,11 @@ def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf"
         'page2_content': page2_rendered,
         'page3_content': page3_rendered,
         'page4_content': page4_rendered,
-        'page5_content': page5_rendered
+        'page5_content': page5_rendered,
+        'lang': language,
     }
 
     final_html = env.from_string(master_template).render(**final_context)
-
-    # Translate if needed
-    if language != "en":
-        if not TRANSLATION_AVAILABLE:
-            logger.error("Translation requested but translation service not available")
-            logger.error("Install with: poetry install --with translation-free")
-            return False
-
-        logger.info(f"Translating report to {get_language_name(language)}...")
-        try:
-            # Get length before translation
-            original_length = len(final_html)
-
-            translator = HTMLContentTranslator(service_type=translation_service_type)
-            final_html = translator.translate_html_content(final_html, language)
-
-            # Verify translation occurred
-            if final_html and len(final_html) > 0:
-                logger.info(f"✅ Translation to {get_language_name(language)} complete")
-                logger.info(f"   Original: {original_length} chars, Translated: {len(final_html)} chars")
-            else:
-                logger.warning("Translation returned empty result, using English version")
-        except Exception as e:
-            logger.error(f"Translation failed: {e}")
-            logger.error(f"Error type: {type(e).__name__}")
-            import traceback
-            logger.error(f"Traceback: {traceback.format_exc()}")
-            logger.warning("Proceeding with English version")
 
     # Save HTML for debugging
     html_path = Path(output_path).with_suffix('.html')
@@ -176,9 +199,8 @@ def generate_clean_report(csv_path, patient_info, output_path="clean_report.pdf"
         # Get absolute path for base URL
         base_url = Path.cwd().as_uri() + '/'
         HTML(string=final_html, base_url=base_url).write_pdf(output_path)
-        logger.info(f"✅ Clean report generated: {output_path}")
-        logger.info("This PDF contains 5 pages of clean, modern layout")
-        logger.info("Combine with your NG-GP title page for the complete report")
+        logger.info(f"Clean report generated: {output_path}")
+        logger.info(f"Language: {language}")
         return True
     except Exception as e:
         logger.error(f"Failed to generate PDF: {e}")
@@ -215,20 +237,11 @@ def main():
     success = generate_clean_report(sample_csv, patient, output_path)
 
     if success:
-        print("\n✅ Clean report generated successfully!")
+        print("\nClean report generated successfully!")
         print(f"Output: {output_path}")
-        print("\nFeatures:")
-        print("  - Modern, clean layout")
-        print("  - 5 pages (no title page)")
-        print("  - Professional medical report styling")
-        print("  - Clear data visualization")
-        print("\nNext steps:")
-        print("1. Save your NG-GP title page as title_page.pdf")
-        print("2. Combine PDFs:")
-        print("   pdftk title_page.pdf clean_report.pdf cat output final_report.pdf")
         return 0
     else:
-        print("\n❌ Failed to generate report")
+        print("\nFailed to generate report")
         return 1
 
 if __name__ == "__main__":
