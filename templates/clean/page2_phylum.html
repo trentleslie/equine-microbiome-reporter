@@ -6,35 +6,35 @@
             <div class="patient-info">{{ patient.name }}</div>
             <div class="patient-info">{{ patient.species }}{% if patient.breed %} - {{ patient.breed }}{% endif %}{% if patient.sex %} ({{ patient.sex }}){% endif %}{% if patient.age %}, {{ patient.age }}{% endif %}</div>
             {% if patient.owner_name %}
-            <div class="patient-info" style="font-size: 8pt;">Owner: {{ patient.owner_name }}</div>
+            <div class="patient-info" style="font-size: 8pt;">{{ t('owner') }}: {{ patient.owner_name }}</div>
             {% endif %}
         </div>
         <div class="header-center">
-            <div class="sample-badge">Sample #{{ patient.sample_number }}</div>
+            <div class="sample-badge">{{ t('sample') }} #{{ patient.sample_number }}</div>
         </div>
         <div class="header-right">
             <div style="font-size: 8pt; color: #64748b;">
                 {% if patient.collection_date %}
-                <div>Collected: {{ patient.collection_date }}</div>
+                <div>{{ t('collected') }}: {{ patient.collection_date }}</div>
                 {% endif %}
-                <div>Analyzed: {{ patient.date_analyzed }}</div>
-                <div>Report: {{ report_date }}</div>
+                <div>{{ t('analyzed') }}: {{ patient.date_analyzed }}</div>
+                <div>{{ t('report') }}: {{ report_date }}</div>
             </div>
         </div>
     </div>
 
     <!-- Main Title -->
-    <h1 class="section-title">Bacterial Species Distribution</h1>
+    <h1 class="section-title">{{ t('bacterial_species_distribution') }}</h1>
 
     <!-- Species Distribution Chart -->
-    <h2 class="subsection-title">Top 20 Bacterial Species by Abundance</h2>
+    <h2 class="subsection-title">{{ t('top_20_species') }}</h2>
     <div class="chart-container">
         <img src="{{ charts.species_distribution }}" alt="Species Distribution" class="chart-img">
     </div>
 
     <!-- Footer -->
     <div class="page-footer">
-        <div class="footer-left">MIMT Genetics Laboratory</div>
-        <div class="footer-right">Page 2 of 5</div>
+        <div class="footer-left">{{ t('lab_name') }}</div>
+        <div class="footer-right">{{ t('page_x_of_y', current=2, total=5) }}</div>
     </div>
 </div>

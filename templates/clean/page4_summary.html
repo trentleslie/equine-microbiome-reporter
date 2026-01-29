@@ -6,125 +6,99 @@
             <div class="patient-info">{{ patient.name }}</div>
             <div class="patient-info">{{ patient.species }}{% if patient.breed %} - {{ patient.breed }}{% endif %}{% if patient.sex %} ({{ patient.sex }}){% endif %}{% if patient.age %}, {{ patient.age }}{% endif %}</div>
             {% if patient.owner_name %}
-            <div class="patient-info" style="font-size: 8pt;">Owner: {{ patient.owner_name }}</div>
+            <div class="patient-info" style="font-size: 8pt;">{{ t('owner') }}: {{ patient.owner_name }}</div>
             {% endif %}
         </div>
         <div class="header-center">
-            <div class="sample-badge">Sample #{{ patient.sample_number }}</div>
+            <div class="sample-badge">{{ t('sample') }} #{{ patient.sample_number }}</div>
         </div>
         <div class="header-right">
             <div style="font-size: 8pt; color: #64748b;">
                 {% if patient.collection_date %}
-                <div>Collected: {{ patient.collection_date }}</div>
+                <div>{{ t('collected') }}: {{ patient.collection_date }}</div>
                 {% endif %}
-                <div>Analyzed: {{ patient.date_analyzed }}</div>
-                <div>Report: {{ report_date }}</div>
+                <div>{{ t('analyzed') }}: {{ patient.date_analyzed }}</div>
+                <div>{{ t('report') }}: {{ report_date }}</div>
             </div>
         </div>
     </div>
 
     <!-- Main Title -->
-    <h1 class="section-title">Summary & Management Guidelines</h1>
+    <h1 class="section-title">{{ t('summary_management_guidelines') }}</h1>
 
     <!-- Summary Box -->
     <div class="content-box full-width" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);">
-        <h2 class="subsection-title">Report Summary</h2>
+        <h2 class="subsection-title">{{ t('report_summary') }}</h2>
         <div class="content-grid">
             <div>
-                <strong>Dysbiosis Index:</strong> {{ "%.1f"|format(data.dysbiosis_index) }}<br>
-                <strong>Category:</strong> {{ data.dysbiosis_category|capitalize }}<br>
-                <strong>Dominant Phylum:</strong> {{ data.phylum_distribution|dictsort(false, 'value', true)|first|first }}
+                <strong>{{ t('dysbiosis_index') }}:</strong> {{ "%.1f"|format(data.dysbiosis_index) }}<br>
+                <strong>{{ t('category') }}:</strong> {{ data.dysbiosis_category|capitalize }}<br>
+                <strong>{{ t('dominant_phylum') }}:</strong> {{ data.phylum_distribution|dictsort(false, 'value', true)|first|first }}
             </div>
             <div>
-                <strong>Total Species Identified:</strong> {{ data.species_list|length }}<br>
-                <strong>Sample Quality:</strong> Adequate<br>
-                <strong>Analysis Method:</strong> Shotgun metagenomic NGS
+                <strong>{{ t('total_species_identified') }}:</strong> {{ data.species_list|length }}<br>
+                <strong>{{ t('sample_quality') }}:</strong> {{ t('sample_quality_adequate') }}<br>
+                <strong>{{ t('analysis_method') }}:</strong> {{ t('analysis_method_value') }}
             </div>
         </div>
     </div>
 
     <!-- Understanding Your Results -->
     <div class="info-box">
-        <h4>Understanding the Dysbiosis Index</h4>
+        <h4>{{ t('understanding_dysbiosis_index') }}</h4>
         <p>
-            The Dysbiosis Index (DI) quantifies the degree of microbial imbalance in the gut:
-            <br>• <strong>0-20:</strong> Normal, healthy microbiome
-            <br>• <strong>21-50:</strong> Mild dysbiosis requiring dietary adjustment
-            <br>• <strong>&gt;50:</strong> Severe dysbiosis requiring intervention
+            {{ t('di_explanation_intro') }}
+            <br>• <strong>{{ t('di_range_normal') }}</strong>
+            <br>• <strong>{{ t('di_range_mild') }}</strong>
+            <br>• <strong>{{ t('di_range_severe') }}</strong>
         </p>
     </div>
 
     <!-- Management Guidelines -->
-    <h2 class="subsection-title">Management Guidelines</h2>
+    <h2 class="subsection-title">{{ t('management_guidelines') }}</h2>
 
-    {% if data.dysbiosis_category == "normal" %}
+    {% if patient.clinical_recommendations %}
     <div class="info-box">
-        <h4>Maintaining a Healthy Microbiome</h4>
-        <p>
-            • Consistent feeding schedule (2-3 times daily)<br>
-            • Continuous access to forage (pasture or hay)<br>
-            • Gradual feed changes over 10-14 days<br>
-            • Regular dental care and parasite control<br>
-            • Minimize stress and maintain exercise routine
-        </p>
-    </div>
-    {% elif data.dysbiosis_category == "mild" %}
-    <div class="info-box">
-        <h4>Correcting Mild Dysbiosis</h4>
-        <p>
-            • Increase forage intake to at least 1.5-2% body weight<br>
-            • Reduce grain meals to &lt;0.5% body weight per feeding<br>
-            • Add probiotic supplement (10^9 CFU daily)<br>
-            • Consider prebiotic fiber sources (beet pulp, psyllium)<br>
-            • Ensure adequate water intake (30-50L daily)
-        </p>
+        <p>{{ patient.clinical_recommendations }}</p>
     </div>
     {% else %}
     <div class="info-box">
-        <h4>Managing Severe Dysbiosis</h4>
-        <p>
-            • Immediate dietary restructuring under veterinary guidance<br>
-            • Maximize forage, minimize concentrates<br>
-            • Therapeutic probiotic protocol (10^10 CFU daily)<br>
-            • Consider fecal microbiota transplantation if available<br>
-            • Monitor for signs of colic or laminitis<br>
-            • Re-test in 4-6 weeks to assess improvement
-        </p>
+        <p><em style="color: #64748b;">{{ t('pending_clinical_review') }}</em></p>
     </div>
     {% endif %}
 
     <!-- Follow-up Protocol -->
-    <h2 class="subsection-title">Follow-up Testing</h2>
+    <h2 class="subsection-title">{{ t('follow_up_testing') }}</h2>
     <table class="data-table">
         <thead>
             <tr>
-                <th>Dysbiosis Category</th>
-                <th>Re-test Timeline</th>
-                <th>Monitoring Focus</th>
+                <th>{{ t('dysbiosis_category') }}</th>
+                <th>{{ t('retest_timeline') }}</th>
+                <th>{{ t('monitoring_focus') }}</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td>Normal</td>
-                <td>12 months</td>
-                <td>Annual health screening</td>
+                <td>{{ t('normal') }}</td>
+                <td>{{ t('followup_normal_timeline') }}</td>
+                <td>{{ t('followup_normal_focus') }}</td>
             </tr>
             <tr>
-                <td>Mild</td>
-                <td>2-3 months</td>
-                <td>Response to dietary changes</td>
+                <td>{{ t('mild') }}</td>
+                <td>{{ t('followup_mild_timeline') }}</td>
+                <td>{{ t('followup_mild_focus') }}</td>
             </tr>
             <tr>
-                <td>Severe</td>
-                <td>4-6 weeks</td>
-                <td>Treatment efficacy</td>
+                <td>{{ t('severe') }}</td>
+                <td>{{ t('followup_severe_timeline') }}</td>
+                <td>{{ t('followup_severe_focus') }}</td>
             </tr>
         </tbody>
     </table>
 
     <!-- Footer -->
     <div class="page-footer">
-        <div class="footer-left">MIMT Genetics Laboratory</div>
-        <div class="footer-right">Page 4 of 5</div>
+        <div class="footer-left">{{ t('lab_name') }}</div>
+        <div class="footer-right">{{ t('page_x_of_y', current=4, total=5) }}</div>
     </div>
 </div>

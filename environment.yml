@@ -294,8 +294,4 @@ dependencies:
       - tinyhtml5==2.0.0
       - weasyprint==66.0
       - zopfli==0.2.3.post1
-      # Translation services for multilingual reports
-      - deep-translator==1.11.4
-      - googletrans==4.0.0rc1
-      - translatepy==2.3
 prefix: /home/trent/miniconda3/envs/equine-microbiome
