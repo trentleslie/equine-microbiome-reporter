@@ -21,7 +21,6 @@ Usage:
 """
 
 import os
-import sys
 import argparse
 import time
 from pathlib import Path
@@ -30,8 +29,6 @@ import yaml
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from dotenv import load_dotenv
-
-sys.path.append(str(Path(__file__).parent.parent))
 
 load_dotenv()
 

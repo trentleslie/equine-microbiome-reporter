@@ -55,8 +55,3 @@ dependencies:
       - pyphen>=0.16,<1.0
       - tinyhtml5>=2.0,<3.0
       - reportlab>=4.0,<5.0
-
-      # Translation services for multilingual reports
-      - deep-translator>=1.11,<2.0
-      - googletrans==4.0.0rc1
-      - translatepy>=2.3,<3.0
