@@ -509,7 +509,7 @@ def main():
         "--languages",
         type=str,
         default="en",
-        help="Comma-separated list of language codes for PDF generation (e.g., en,pl,ja). Default: en"
+        help="Comma-separated list of language codes for PDF generation (en,pl,de). Default: en"
     )
 
     args = parser.parse_args()

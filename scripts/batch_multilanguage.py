@@ -82,7 +82,7 @@ Examples:
         "--languages",
         nargs="+",
         default=["en"],
-        choices=["en", "pl", "ja", "de", "es", "fr", "it", "pt", "ru", "zh", "ko"],
+        choices=["en", "pl", "de"],
         help="Language codes for report generation (default: en)"
     )
 
