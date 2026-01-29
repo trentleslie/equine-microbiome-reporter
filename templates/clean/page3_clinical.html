@@ -4,21 +4,27 @@
     <div class="page-header">
         <div class="header-left">
             <div class="patient-info">{{ patient.name }}</div>
-            <div class="patient-info">{{ patient.species }}</div>
+            <div class="patient-info">{{ patient.species }}{% if patient.breed %} - {{ patient.breed }}{% endif %}{% if patient.sex %} ({{ patient.sex }}){% endif %}{% if patient.age %}, {{ patient.age }}{% endif %}</div>
+            {% if patient.owner_name %}
+            <div class="patient-info" style="font-size: 8pt;">{{ t('owner') }}: {{ patient.owner_name }}</div>
+            {% endif %}
         </div>
         <div class="header-center">
-            <div class="sample-badge">Sample #{{ patient.sample_number }}</div>
+            <div class="sample-badge">{{ t('sample') }} #{{ patient.sample_number }}</div>
         </div>
         <div class="header-right">
             <div style="font-size: 8pt; color: #64748b;">
-                <div>Analyzed: {{ patient.date_analyzed }}</div>
-                <div>Report: {{ report_date }}</div>
+                {% if patient.collection_date %}
+                <div>{{ t('collected') }}: {{ patient.collection_date }}</div>
+                {% endif %}
+                <div>{{ t('analyzed') }}: {{ patient.date_analyzed }}</div>
+                <div>{{ t('report') }}: {{ report_date }}</div>
             </div>
         </div>
     </div>
 
     <!-- Main Title -->
-    <h1 class="section-title">Clinical Interpretation</h1>
+    <h1 class="section-title">{{ t('clinical_interpretation') }}</h1>
 
     <!-- Clinical Review Status (if reviewed) -->
     {% if patient.reviewed_by %}
@@ -26,10 +32,10 @@
         <div style="display: flex; align-items: center; gap: 3mm;">
             <span style="color: #10b981; font-size: 16pt; font-weight: bold;">&#10003;</span>
             <div>
-                <strong style="color: #166534;">CLINICAL REVIEW COMPLETED</strong><br>
+                <strong style="color: #166534;">{{ t('clinical_review_completed') }}</strong><br>
                 <span style="font-size: 9pt; color: #64748b;">
-                    Reviewed by: {{ patient.reviewed_by }}
-                    {% if patient.review_date %} | Date: {{ patient.review_date }}{% endif %}
+                    {{ t('reviewed_by') }}: {{ patient.reviewed_by }}
+                    {% if patient.review_date %} | {{ t('review_date') }}: {{ patient.review_date }}{% endif %}
                 </span>
             </div>
         </div>
@@ -39,9 +45,9 @@
         <div style="display: flex; align-items: center; gap: 3mm;">
             <span style="color: #f59e0b; font-size: 16pt; font-weight: bold;">!</span>
             <div>
-                <strong style="color: #92400e;">AUTOMATED ANALYSIS - PENDING CLINICAL REVIEW</strong><br>
+                <strong style="color: #92400e;">{{ t('automated_analysis_pending') }}</strong><br>
                 <span style="font-size: 9pt; color: #64748b;">
-                    This report has not yet been reviewed by a clinician.
+                    {{ t('not_yet_reviewed') }}
                 </span>
             </div>
         </div>
@@ -50,96 +56,62 @@
 
     <!-- Clinical Assessment -->
     <div class="content-box full-width">
-        <h2 class="subsection-title">Clinical Assessment</h2>
+        <h2 class="subsection-title">{{ t('clinical_assessment') }}</h2>
         <p style="font-size: 10.5pt; line-height: 1.6;">
             {% if patient.clinical_assessment %}
-                {# Manual clinical assessment provided via manifest #}
                 {{ patient.clinical_assessment }}
             {% else %}
-                {# Auto-generated assessment based on dysbiosis category #}
-                {% if data.dysbiosis_category == "normal" %}
-                    The microbiome analysis reveals a <strong>healthy and balanced</strong> gut microbial community.
-                    The dysbiosis index of {{ "%.1f"|format(data.dysbiosis_index) }} falls within the normal range (0-20),
-                    indicating optimal microbial diversity and composition. The major bacterial phyla are present in
-                    appropriate proportions, supporting proper digestive function and immune homeostasis.
-                {% elif data.dysbiosis_category == "mild" %}
-                    The microbiome analysis indicates <strong>mild dysbiosis</strong> with an index of {{ "%.1f"|format(data.dysbiosis_index) }}.
-                    This suggests a moderate imbalance in the gut microbial community that may benefit from targeted intervention.
-                    While not immediately concerning, this imbalance could impact digestive efficiency and immune function if left unaddressed.
-                {% else %}
-                    The microbiome analysis reveals <strong>severe dysbiosis</strong> with an index of {{ "%.1f"|format(data.dysbiosis_index) }}.
-                    This indicates a significant imbalance in the gut microbial community requiring immediate attention.
-                    The disrupted microbial ecology may compromise digestive function, nutrient absorption, and immune responses.
-                {% endif %}
+                <em style="color: #64748b;">{{ t('pending_clinical_review') }}</em>
             {% endif %}
         </p>
     </div>
 
     <!-- Key Findings -->
-    <h2 class="subsection-title">Key Findings</h2>
+    <h2 class="subsection-title">{{ t('key_findings') }}</h2>
     <div class="content-grid">
         {% if data.phylum_distribution.get('Bacillota', 0) < 20 %}
         <div class="finding-card critical">
-            <strong>Low Bacillota:</strong> {{ "%.1f"|format(data.phylum_distribution.get('Bacillota', 0)) }}%
-            (Normal: 20-70%). Associated with reduced fiber fermentation and butyrate production.
+            <strong>{{ t('low_bacillota') }}:</strong> {{ "%.1f"|format(data.phylum_distribution.get('Bacillota', 0)) }}%
+            ({{ t('normal') }}: 20-70%). {{ t('bacillota_description') }}
         </div>
         {% endif %}
 
         {% if data.phylum_distribution.get('Bacteroidota', 0) < 4 %}
         <div class="finding-card warning">
-            <strong>Low Bacteroidota:</strong> {{ "%.1f"|format(data.phylum_distribution.get('Bacteroidota', 0)) }}%
-            (Normal: 4-40%). May indicate compromised carbohydrate metabolism.
+            <strong>{{ t('low_bacteroidota') }}:</strong> {{ "%.1f"|format(data.phylum_distribution.get('Bacteroidota', 0)) }}%
+            ({{ t('normal') }}: 4-40%). {{ t('bacteroidota_description') }}
         </div>
         {% endif %}
 
         {% if data.phylum_distribution.get('Pseudomonadota', 0) > 35 %}
         <div class="finding-card critical">
-            <strong>Elevated Pseudomonadota:</strong> {{ "%.1f"|format(data.phylum_distribution.get('Pseudomonadota', 0)) }}%
-            (Normal: 2-35%). May indicate inflammation or pathogenic overgrowth.
+            <strong>{{ t('elevated_pseudomonadota') }}:</strong> {{ "%.1f"|format(data.phylum_distribution.get('Pseudomonadota', 0)) }}%
+            ({{ t('normal') }}: 2-35%). {{ t('pseudomonadota_description') }}
         </div>
         {% endif %}
 
         {% if data.dysbiosis_category == "normal" %}
         <div class="finding-card normal">
-            <strong>Balanced Microbiome:</strong> All major phyla within reference ranges.
-            Optimal conditions for digestive health.
+            <strong>{{ t('balanced_microbiome') }}:</strong> {{ t('balanced_description') }}
         </div>
         {% endif %}
     </div>
 
     <!-- Recommendations -->
-    <h2 class="subsection-title">Clinical Recommendations</h2>
+    <h2 class="subsection-title">{{ t('clinical_recommendations') }}</h2>
     {% if patient.clinical_recommendations %}
-        {# Manual clinical recommendations provided via manifest #}
         <div class="content-box" style="font-size: 10.5pt; line-height: 1.6;">
             {{ patient.clinical_recommendations }}
         </div>
     {% else %}
-        {# Auto-generated recommendations based on dysbiosis category #}
-        <ul class="recommendation-list">
-            {% if data.dysbiosis_category == "normal" %}
-                <li>Maintain current feeding regimen and management practices</li>
-                <li>Continue regular monitoring with annual microbiome assessments</li>
-                <li>Ensure consistent access to quality forage and clean water</li>
-            {% elif data.dysbiosis_category == "mild" %}
-                <li>Increase dietary fiber through additional hay supplementation</li>
-                <li>Consider probiotic supplementation (Lactobacillus/Bifidobacterium strains)</li>
-                <li>Reduce grain intake if exceeding 0.5% body weight per feeding</li>
-                <li>Re-evaluate microbiome in 8-12 weeks after intervention</li>
-            {% else %}
-                <li>Immediate dietary modification: Increase forage to 2% body weight daily minimum</li>
-                <li>Implement therapeutic probiotic protocol with veterinary guidance</li>
-                <li>Eliminate or significantly reduce concentrate feeds temporarily</li>
-                <li>Consider prebiotic supplementation (FOS, MOS, or psyllium)</li>
-                <li>Re-evaluate microbiome in 4-6 weeks to assess response</li>
-                <li>Screen for underlying gastrointestinal pathology if dysbiosis persists</li>
-            {% endif %}
-        </ul>
+        <div class="content-box" style="font-size: 10.5pt; line-height: 1.6;">
+            <em style="color: #64748b;">{{ t('pending_clinical_review') }}</em>
+        </div>
     {% endif %}
 
     <!-- Footer -->
     <div class="page-footer">
-        <div class="footer-left">MIMT Genetics Laboratory</div>
-        <div class="footer-right">Page 3 of 5</div>
+        <div class="footer-left">{{ t('lab_name') }}</div>
+        <div class="footer-right">{{ t('page_x_of_y', current=3, total=5) }}</div>
     </div>
 </div>
