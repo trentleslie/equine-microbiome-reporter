@@ -5,6 +5,7 @@ Simple CSV processor test to bypass conftest issues
 import pytest
 import pandas as pd
 import os
+import sys
 from pathlib import Path
 
 # Using installed package imports

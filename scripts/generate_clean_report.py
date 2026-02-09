@@ -4,13 +4,11 @@ Generate a clean, modern report layout (pages 2-5 only, no title page)
 Supports multiple languages via static translations from translations.yaml
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
-
-sys.path.append(str(Path(__file__).parent.parent))
 
 from src.data_models import PatientInfo, MicrobiomeData
 from src.chart_generator import ChartGenerator

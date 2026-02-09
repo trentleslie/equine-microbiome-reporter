@@ -333,6 +333,11 @@ body {
         page-break-inside: avoid;
     }
 
+    /* Allow variable-height pages (e.g. species list) to break naturally */
+    .page.page-variable-height {
+        page-break-inside: auto;
+    }
+
     .chart-container,
     .content-box,
     .data-table {

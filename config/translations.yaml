@@ -97,6 +97,8 @@ en:
 
   # Footer and contact
   lab_name: MIMT Genetics Laboratory
+  contact_email: lab@mimtgenetics.com
+  contact_phone: '+48 XXX XXX XXX'
   page_x_of_y: Page {current} of {total}
   end_of_report: End of Report
   questions_contact: 'For questions regarding this report, please contact:'
@@ -176,6 +178,8 @@ pl:
   di_range_mild: '[PL] 21-50: Mild dysbiosis requiring dietary adjustment'
   di_range_severe: '[PL] >50: Severe dysbiosis requiring intervention'
   lab_name: '[PL] MIMT Genetics Laboratory'
+  contact_email: lab@mimtgenetics.com
+  contact_phone: '+48 XXX XXX XXX'
   page_x_of_y: '[PL] Page {current} of {total}'
   end_of_report: '[PL] End of Report'
   questions_contact: '[PL] For questions regarding this report, please contact:'
@@ -253,6 +257,8 @@ de:
   di_range_mild: '[DE] 21-50: Mild dysbiosis requiring dietary adjustment'
   di_range_severe: '[DE] >50: Severe dysbiosis requiring intervention'
   lab_name: '[DE] MIMT Genetics Laboratory'
+  contact_email: lab@mimtgenetics.com
+  contact_phone: '+48 XXX XXX XXX'
   page_x_of_y: '[DE] Page {current} of {total}'
   end_of_report: '[DE] End of Report'
   questions_contact: '[DE] For questions regarding this report, please contact:'
