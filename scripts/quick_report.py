@@ -39,6 +39,7 @@ def main():
     parser.add_argument("--age", default="Unknown", help="Age (default: Unknown)")
     parser.add_argument("--owner", default="", help="Owner or farm name")
     parser.add_argument("--sample-number", default="001", help="Lab sample number (default: 001)")
+    parser.add_argument("--collection-date", default="", help="Sample collection date (e.g., 2026-01-15)")
     parser.add_argument("-l", "--language", default="en", choices=["en", "pl", "de"],
                         help="Report language (default: en)")
     parser.add_argument("--barcode", default=None, help="Specific barcode column (default: auto-detect)")
@@ -73,6 +74,7 @@ def main():
         age=args.age,
         owner_name=args.owner,
         sample_number=args.sample_number,
+        collection_date=args.collection_date,
         clinical_assessment=args.clinical_assessment,
         clinical_recommendations=args.clinical_recommendations,
         reviewed_by=args.reviewed_by,
@@ -92,6 +94,8 @@ def main():
     print(f"Generating report for {args.name}...")
     print(f"  CSV:      {csv_path}")
     print(f"  Language: {args.language}")
+    if args.collection_date:
+        print(f"  Collected: {args.collection_date}")
     if args.barcode:
         print(f"  Barcode:  {args.barcode}")
     if args.reviewed_by:
